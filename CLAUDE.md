@@ -1,186 +1,190 @@
 # The Thinking Foundry — Project Context
 
-**Project Type:** Software Product + Consulting Service
-**Status:** Phase 0 (User Stories Definition)
+**Type:** Voice-first SaaS product
+**Status:** POC deployed (Railway), building toward MVP
+**Repo:** growthpigs/thinking-foundry
+**Deploy:** thinking-foundry-production.up.railway.app (Railway, auto-deploys from main)
 **Started:** 2026-03-28
-**Owner:** Roderic Andrews
 
 ---
 
-## What This Is (Executive Summary)
+## WHAT THIS IS
 
-The Thinking Foundry is a **voice-first SaaS product** that teaches people how to think clearly when using AI.
+The Thinking Foundry is a **voice-first structured thinking product**. NOT a chatbot. NOT a therapy session. NOT a motivational tool.
 
-**The Problem We Solve:** AI gives you 70% quality answers. The final 30% requires context, constraints, and judgment specific to YOUR situation. Most people don't know how to bridge that gap.
+It's an **IDEO-style consultation** delivered by AI — a co-founder in the room who drives you through 8 phases of structured thinking, from confusion to clarity.
 
-**Our Solution:** A guided thinking session where we explore your problem together, document the entire process in GitHub, and you leave with clarity + a repeatable thinking framework.
+**The AI LEADS. The human THINKS. Together they find clarity.**
 
-**Revenue Model:**
-- $500 Discovery Session (1-3 hours, voice + GitHub repo)
-- $1,000+ Follow-up Sessions
-- $5K-20K Longer Engagements (team training, implementation)
+### The 8 Phases (The Foundry Process)
 
----
+| Phase | Name | Duration | What the AI Does |
+|-------|------|----------|-----------------|
+| 0 | User Stories | 5 min | Extract what success looks like — the founder IS the user |
+| 1 | MINE | 10 min | Deep listening. 5 Whys. Find the ROOT cause, not symptoms |
+| 2 | SCOUT | 25 min | Generate 7-10 possibilities. Wide. Unconventional. No judgment |
+| 3 | ASSAY | 20 min | Filter to THIS person's constraints, values, timeline |
+| 4 | CRUCIBLE | 20 min | Stress-test. What breaks? War-game scenarios |
+| 5 | AUDITOR | 15 min | Quality check. Blind spots? Confidence ≥8? |
+| 6 | PLAN | 15 min | Concrete answers. What to do, why, first step tomorrow |
+| 7 | VERIFY | 5 min | Document everything. Export to GitHub + Drive |
 
-## The Product
+### Critical Design Principles
 
-### What You're Building
+1. **AI decides phase transitions** — not the user, not a timer
+2. **AI keeps responses SHORT** — 2-3 sentences + a question. Like a sharp friend.
+3. **AI challenges assumptions** — "What if that's not true?"
+4. **AI uses frameworks NATURALLY** — doesn't lecture about Stoicism, just applies it
+5. **AI is NOT a cheerleader** — no "You can do this!", no empty encouragement
+6. **AI resists premature closure** — pushes one more round even when user wants quick answer
 
-A **voice-first interface** (using Google Gemini Live API) that:
-1. Listens to your problem statement
-2. Guides you through a structured thinking process (Phase 0 → Phase 7)
-3. Documents your entire thinking in a GitHub issue
-4. Adapts based on your constraints, values, and timeline
-5. Generates clear answers tied to YOUR specific situation (not generic advice)
+### What the AI is NOT
 
-### Why Voice-First
-
-- **Interruption-enabled** — you can jump in, ask follow-ups, challenge ideas in real-time
-- **Conversational** — thinking out loud is how humans think
-- **Low friction** — no typing, no waiting for batch responses
-- **Authentic** — captures the actual thinking process, not just final answers
-
-### Technical Foundation
-
-- **Frontend** — TypeScript + React + Vercel
-- **Voice Engine** — Google Gemini Live API (real-time streaming, tool use, tone detection)
-- **Thinking Space** — GitHub API (store sessions as issues, collaborate with client)
-- **Backend** — Cloudflare Workers (Lambda for scalability)
+- NOT a passive listener waiting for instructions
+- NOT a chatbot that answers questions
+- NOT a consultant reading a script
+- NOT a motivational speaker
+- NOT verbose — short, punchy, like talking to a sharp co-founder
 
 ---
 
-## The Phases
+## ARCHITECTURE
 
-Every thinking session follows The Foundry's battle-tested 8-phase pipeline:
+### Tech Stack (Current POC)
+- **Frontend:** Vanilla HTML/CSS/JS (poc/public/)
+- **Backend:** Node.js + Express + WebSocket (poc/server/)
+- **Voice:** Gemini 3.1 Flash Live API (v1alpha, AUDIO modality ONLY)
+- **Knowledge:** Markdown files in poc/knowledge/ (frameworks + mentors)
+- **Context:** Connectors in poc/context/ (GitHub, Drive, loader)
+- **Deploy:** Railway (auto-deploy from main branch)
 
-| Phase | Name | Duration | What Happens |
-|-------|------|----------|--------------|
-| 0 | **User Stories** | 5-10 min | What do you want? What's success? What are real constraints? |
-| 1 | **MINE** | 10-15 min | Deep listening. What's the actual problem? |
-| 2 | **SCOUT** | 20-30 min | Explore possibility space. Sources, frameworks, contradictions. |
-| 3 | **ASSAY** | 15-20 min | Signal from noise. What matters for THIS person? |
-| 4 | **CRUCIBLE** | 15-20 min | Test ideas. What breaks? War-game scenarios. |
-| 5 | **AUDITOR** | 10-15 min | Quality check. Logical gaps? Confidence ≥8? |
-| 6 | **PLAN** | 10-15 min | Clear answers. Here's what you do, here's why. |
-| 7 | **VERIFY** | 5 min | Document. Export session to shareable GitHub issue. |
+### Tech Stack (Target MVP)
+- **Frontend:** React + Web Audio API (Vercel)
+- **Backend:** Cloudflare Workers + Durable Objects
+- **Voice:** Gemini 3.1 Flash Live API
+- **Storage:** GitHub Issues (source of truth) + Google Drive (user-facing, phase-organized)
+- **Auth:** Link-based (MVP), PIN + SMS (post-MVP)
 
-**Total Duration:** 60-120 minutes per session
-
----
-
-## Core Principles
-
-### 1. Stoicism Is the Foundation
-- Focus on what's in their control
-- Accept what's not
-- Seek virtue in thinking (not the answer, but good thinking)
-- Use constraints as clarification, not limitation
-
-### 2. Person-Specific Optimization (Not Modal)
-- Modal answer = what works for most people
-- Optimal answer = what works for THIS person given THEIR goals, constraints, philosophy, timeline
-- Adapt every framework to fit them, never force them into frameworks
-
-### 3. Keep the Possibility Space Wide
-- Resist jumping to solutions
-- Always ask "what else?"
-- Bring in sources from everywhere (famous, obscure, adjacent industries)
-- Hold complexity instead of reducing to simple
-
-### 4. GitHub Is the Thinking Space
-- Issues capture real-time deliberation
-- Clients see the thinking process (not a polished answer)
-- Repos are shareable, teachable, transparent
-- Everyone can learn how you actually think
-
-### 5. AI + Human Judgment
-- AI has answers (based on training data patterns)
-- Humans have judgment (based on values, constraints, experience)
-- The Thinking Foundry shows how to synthesize them
-
----
-
-## Target Market (ICP)
-
-### Primary: C-Suite with Teams
-- VP/Director managing 10+ people
-- Company has funding or revenue
-- Budget: $20K-50K for clarity
-- Pain: "We have AI tools but our team doesn't think clearly"
-
-### Secondary: Founders with Serious Budgets
-- Pre-Series A or later (have money)
-- Solo or small team, but well-funded
-- Budget: $2K-20K to validate credibility
-- Pain: "My project is 70% done but I don't know what's wrong"
-
-### Not For
-- People without budget (can't afford $500-1K per session)
-- People looking for cheap generic advice
-- People who want you to do the work (not thinking alongside)
-- People who won't participate
+### File Structure
+```
+thinking-foundry/
+├── CLAUDE.md              ← You are here
+├── ARCHITECTURE-V2.md     ← System design
+├── PHASE-0-USER-STORIES.md
+├── docs/
+│   └── 04-technical/
+│       └── FSD.md         ← THE SPEC. Read this. It's the bible.
+├── poc/
+│   ├── server/
+│   │   ├── index.js           ← Express + WS server
+│   │   ├── gemini-live.js     ← Gemini Live API + 15-min reconnection
+│   │   ├── session-state.js   ← Phase state machine
+│   │   ├── context-manager.js ← Context condensation for reconnections
+│   │   ├── github-export.js   ← GitHub issue creation
+│   │   └── drive-manager.js   ← Google Drive folder creation
+│   ├── public/
+│   │   ├── index.html         ← Setup screen + session UI
+│   │   ├── app.js             ← Audio capture + WS client + setup flow
+│   │   └── style.css          ← Mobile-first dark theme
+│   ├── prompts/
+│   │   └── phase-{0-7}-*.txt  ← System prompts per phase (CRITICAL)
+│   ├── knowledge/
+│   │   ├── frameworks/        ← Stoicism, IDEO, McKinsey, YC, Lean
+│   │   ├── mentors/           ← Hormozi, Nate B. Jones, IndyDev Dan
+│   │   └── index.json         ← Knowledge registry
+│   └── context/
+│       ├── loader.js          ← Unified context loader
+│       ├── drive-connector.js ← Google Drive context fetcher
+│       └── github-connector.js← GitHub repo context fetcher
+└── .env                       ← API keys (not committed)
+```
 
 ---
 
-## Business Model
+## BUILD RULES
 
-### Revenue Streams
+### Gemini Live API Rules
+- **responseModalities MUST be ['AUDIO'] only** — ['AUDIO', 'TEXT'] crashes with error 1011
+- Transcript comes from separate pipeline (future: Google STT), NOT from Gemini response
+- 15-minute connection limit → 3-phase reconnection (prepare at 13:00, setup at 13:30, swap at 14:00)
+- Model: `models/gemini-3.1-flash-live-preview`
+- Voice: Aoede
 
-| Offering | Price | Duration | Who | DUs |
-|----------|-------|----------|-----|-----|
-| Discovery Session | $500 | 1-3 hrs | 1:1 | 1-2 |
-| Follow-Up Session | $1,000+ | 1-3 hrs | 1:1 | 1-2 |
-| Team Training | $5K-10K | 2-4 weeks | N:1 team | 5-8 |
-| Retainer Advisory | $20K+/month | Ongoing | N:1 | Variable |
+### Prompt Writing Rules
+- **Read the FSD first** (docs/04-technical/FSD.md) — it has the canonical per-phase prompts
+- Phase prompts go in poc/prompts/phase-{N}-{slug}.txt
+- AI must explain what phase we're in and what it's trying to achieve
+- AI must be structured, not conversational fluff
+- AI must drive — always end with a question
+- AI must keep responses to 2-3 sentences MAX
+- NO cheerleading. NO motivation. NO "you can do this"
+- Frameworks referenced naturally, not lectured about
 
-### Customer Acquisition
+### Data Flow
+1. User opens app → Setup screen (paste GitHub/Drive URLs, pick frameworks)
+2. User clicks Start → Server fetches context from GitHub/Drive
+3. Knowledge frameworks loaded based on selection
+4. All context injected into Gemini system prompt
+5. AI leads through phases, short responses, always questions
+6. Phase transitions decided by AI (not timer, not user)
+7. Session ends → GitHub issue created + Drive folder with phase docs
 
-- Content (YouTube, Substack, blog) proving you teach thinking
-- LinkedIn (3x/week posts about decision-making, AI, stoicism)
-- Network (warm intros from founders, CIOs, executives)
-- Case studies (GitHub repos showing thinking process)
+### Deployment
+- Push to main → Railway auto-deploys
+- URL: thinking-foundry-production.up.railway.app
+- Environment variables: GEMINI_API_KEY, GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GOOGLE_SERVICE_ACCOUNT
 
----
-
-## What Success Looks Like
-
-### Year 1 Goals
-- Launch MVP (voice interface + GitHub integration)
-- Run 20+ discovery sessions (proof of concept)
-- Achieve $5K/month ARR (discovery sessions)
-- Create 10 case studies
-- Build audience to 5K+ followers (LinkedIn/Twitter)
-
-### Year 2 Goals
-- Scale to $15K-20K/month
-- Launch "team license" (team training)
-- Build content curriculum (courses, workshops)
-- Establish brand as "the thinking coach for AI era"
-
----
-
-## Handover
-
-**Last Session:** 2026-03-28
-- Updated Constitution (#16) with refined content
-- Updated Positioning (#21), Target Market (#10), Metallurgy (#9), Case Studies (#5)
-- Created thinking-foundry repo
-- Defined all 8 phases with Phase 0 as anchor
-
-**Next Steps:**
-1. Define Phase 0 (User Stories) in detail
-2. Create FSD (Functional Specification Document) for voice interface
-3. Research Gemini Live API integration
-4. Define per-phase prompts for AI guide
-5. Create MVP scope
-6. Design GitHub issue template for thinking sessions
-
-**Open Questions:**
-- How to handle interruptions in voice conversations?
-- How to capture thinking in GitHub issues from voice (transcription?)?
-- How to charge for discovery sessions (Stripe integration)?
-- How to measure "clarity achieved" (confidence score in Phase 5)?
+### What Goes Where
+- Phase prompts → poc/prompts/
+- Knowledge content → poc/knowledge/
+- Context connectors → poc/context/
+- UI changes → poc/public/
+- Server logic → poc/server/
+- Architecture decisions → ARCHITECTURE-V2.md
+- Product spec → docs/04-technical/FSD.md
 
 ---
 
-**Philosophy:** The Thinking Foundry is not software. It's how I think, made repeatable and teachable.
+## KEY DOCUMENTS
+
+| Document | Purpose |
+|----------|---------|
+| docs/04-technical/FSD.md | THE SPEC. Product design, flows, API contracts, per-phase prompts |
+| ARCHITECTURE-V2.md | System architecture, component design, storage model |
+| PHASE-0-USER-STORIES.md | Original user stories for the product itself |
+| poc/knowledge/index.json | Knowledge framework registry |
+
+---
+
+## CURRENT STATUS
+
+### What Works
+- ✅ Gemini Live API voice sessions (AUDIO modality)
+- ✅ 15-minute auto-reconnection (3-phase swap)
+- ✅ 8 phase prompts
+- ✅ Pre-session setup screen (GitHub, Drive, framework selection)
+- ✅ Knowledge base system (5 frameworks + 3 mentors)
+- ✅ Context connectors (GitHub + Drive)
+- ✅ Pause button
+- ✅ Deployed on Railway
+
+### What Needs Work
+- ❌ Transcript display (Gemini Live AUDIO-only, need separate STT pipeline)
+- ❌ Real-time outline view (show key points, not raw transcript)
+- ❌ GitHub issue export (built but untested with real sessions)
+- ❌ Google Drive folder creation (built but needs service account setup)
+- ❌ Phase transition by AI (currently manual "Next Phase" button)
+- ❌ Production frontend (React + Vercel, currently vanilla HTML)
+- ❌ Authentication (link-based for MVP)
+
+---
+
+## PHILOSOPHY
+
+The Thinking Foundry is not software. It's how Roderic thinks, made repeatable and teachable.
+
+The product teaches people how to think clearly when AI provides answers but not context. AI gives you 70% quality answers. The final 30% requires context, constraints, and judgment specific to YOUR situation.
+
+The Foundry bridges that gap through structured voice sessions where an AI co-founder leads you through the thinking process — from confusion to clarity in 60-120 minutes.
+
+**Read the FSD. It's the bible. Everything flows from there.**

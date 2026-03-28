@@ -60,27 +60,14 @@ const $btnDebug = document.getElementById('btn-debug');
 const $exportModal = document.getElementById('export-modal');
 const $exportStatus = document.getElementById('export-status');
 
-// ─── Framework pill toggles ───
-
-document.querySelectorAll('#framework-pills .pill').forEach(pill => {
-  pill.addEventListener('click', () => {
-    pill.classList.toggle('active');
-  });
-});
-
 /**
- * Collect the current setup configuration from the form.
+ * Collect setup config. All frameworks always loaded.
  */
 function getSetupConfig() {
-  const frameworks = [];
-  document.querySelectorAll('#framework-pills .pill.active').forEach(pill => {
-    frameworks.push(pill.dataset.id);
-  });
-
   return {
     github: $setupGithub.value.trim() || null,
     drive: $setupDrive.value.trim() || null,
-    frameworks
+    frameworks: ['stoicism', 'ideo', 'mckinsey', 'yc', 'lean', 'hormozi', 'nate-b-jones', 'indydev-dan']
   };
 }
 
