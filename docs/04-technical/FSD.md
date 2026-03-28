@@ -2,10 +2,10 @@
 
 **The Thinking Foundry — Product Design**
 
-**Status:** Ready to Build
-**Version:** 1.0
+**Status:** Ready to Build (Post-Stress-Test)
+**Version:** 2.1
 **Date:** 2026-03-28
-**DU Estimate:** 12-15 (3 weeks)
+**DU Estimate:** 15-20 (3-4 weeks)
 
 ---
 
@@ -14,21 +14,27 @@
 The Thinking Foundry is a **voice-first SaaS product** that guides people through structured thinking when facing complex decisions.
 
 **Product in 30 Seconds:**
-1. User starts a voice session ($500)
-2. AI guide takes them through 8 thinking phases (60-120 min)
-3. User can interrupt anytime (natural conversation)
-4. Session is transcribed automatically
-5. GitHub issue is created with full thinking record
-6. User leaves with clarity + a repeatable process
+1. You send someone a link. They open it. Session starts.
+2. The AI **leads** the conversation — it drives, asks questions, challenges assumptions, manages phases
+3. User can interrupt anytime (natural barge-in)
+4. Session is transcribed and organized by phase automatically
+5. Google Drive folder created with phase-by-phase thinking artifacts
+6. User leaves with clarity + a repeatable process they understand
+
+**Critical Design Principle:** The AI is the co-founder in the room. It doesn't wait for the user to know what to ask. It drives. It challenges. It knows when to push, when to listen, when to move phases. This is NOT a chatbot.
 
 **Tech Stack:**
 - Frontend: React + Web Audio API (Vercel)
-- Voice: Gemini 3.1 Flash Live API (via Google Ultra account)
-- Backend: Cloudflare Workers
-- Storage: GitHub Issues (source-of-truth) + Google Drive (user-friendly)
-- Auth: Email → PIN (6-digit) + SMS verification (4-digit)
-- Plugins: Dynamic satellite systems (pull frameworks/services on-the-fly)
-- User Data: Google Drive + Google Docs (organized by phase)
+- Voice: Gemini 3.1 Flash Live API (Google Cloud billing)
+- Backend: Cloudflare Workers + Durable Objects
+- Storage: GitHub Issues (source-of-truth) + Google Drive (user-friendly, phase-organized)
+- Auth: MVP = link-based access (no login). Post-MVP = PIN + SMS
+- User Data: Google Drive + Google Docs (organized by Foundry phase)
+
+**Deferred to Post-MVP:**
+- PIN + SMS authentication (feature flag — not needed for first 2 months)
+- Dynamic plugin system (satellite services — base knowledge is sufficient for launch)
+- Stripe payment processing (free/open initially)
 
 ---
 
@@ -208,13 +214,118 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 
 ---
 
+## The AI as Conversation Leader
+
+**This is the single most important design decision in the product.**
+
+The AI doesn't respond. It LEADS. Like a co-founder who's been through this before.
+
+### How the AI Drives Each Phase
+
+**Phase 0 (User Stories):** AI opens with: "Tell me what's on your mind. What's the problem you're wrestling with?" Then actively probes: "You said X — what makes that the real issue and not a symptom?" Keeps asking until it has clarity. Decides when to move to Phase 1.
+
+**Phase 1 (MINE):** AI says: "OK, I think I understand the surface. Let me dig deeper." Uses the 5 Whys. Reflects back. Challenges gently. "What if that assumption is wrong?" Decides when root cause is found.
+
+**Phase 2 (SCOUT):** AI says: "Good — now let's open this up. I'm going to throw some directions at you. Don't evaluate yet, just react." Generates 7-10 possibilities. References frameworks. Asks "what else?" Decides when possibility space is wide enough.
+
+**Phase 3 (ASSAY):** AI says: "We've got a lot on the table. Let's narrow. Given your constraints — [lists them] — which of these actually fits YOUR situation?" Adapts frameworks. Decides when 2-3 viable paths remain.
+
+**Phase 4 (CRUCIBLE):** AI says: "Let's stress-test these. What breaks? What's the worst case?" War-games each path. Decides when confidence is sufficient.
+
+**Phase 5 (AUDITOR):** AI says: "Before I give you a plan — did we miss anything? Any blind spots?" Honest quality check. Decides if we need to loop back.
+
+**Phase 6 (PLAN):** AI says: "Here's what I think you should do, and here's why." Gives specific, actionable answers tied to their constraints.
+
+**Phase 7 (VERIFY):** AI says: "Let me organize everything we discussed." Creates the export.
+
+### Key Behaviors
+
+- **AI decides phase transitions** (not the user, not a timer)
+- **AI asks follow-ups** without being asked
+- **AI challenges assumptions** proactively
+- **AI brings in frameworks** from base knowledge (Stoicism, IDEO, McKinsey, First Principles)
+- **AI keeps responses SHORT** — like a co-founder, not a lecture. 2-3 sentences, then a question.
+- **AI reads emotional tone** — if user sounds frustrated, acknowledge it before continuing
+- **AI resists premature closure** — even when user wants an answer, push one more round if warranted
+
+### What the AI is NOT
+
+- NOT a passive listener waiting for instructions
+- NOT a chatbot that answers questions
+- NOT a consultant reading a script
+- NOT verbose (short, punchy, like talking to a sharp friend)
+
+---
+
+## 15-Minute Session Reconnection Strategy
+
+**Problem:** Gemini Live API caps sessions at 15 minutes for audio-only.
+**Solution:** Seamless reconnection every ~14 minutes. User should never notice.
+
+### How It Works
+
+```
+Session Start (t=0)
+  │
+  ├── Gemini connection 1 (0:00 - 14:00)
+  │     At 13:00: Backend starts preparing reconnection
+  │     At 14:00: Connection 1 closes gracefully
+  │
+  ├── Reconnection gap (~1-2 seconds)
+  │     Backend opens connection 2
+  │     Injects system prompt + condensed transcript so far
+  │     AI continues naturally: "Sorry, where were we? Right — you were saying..."
+  │
+  ├── Gemini connection 2 (14:02 - 28:00)
+  │     Same pattern at 27:00
+  │
+  ├── Gemini connection 3 (28:02 - 42:00)
+  │     ...
+  │
+  └── Session End (42:00 - 90:00, as many connections as needed)
+```
+
+### Context Preservation Across Reconnections
+
+Each reconnection injects a condensed context:
+```
+System prompt: [Phase-specific prompt]
++ "Session context: User's problem is [X]. We're currently in Phase [N].
+   Key findings so far: [bullet points from previous phases].
+   Last thing discussed: [last 2-3 exchanges].
+   Continue naturally from here."
+```
+
+### UX During Reconnection
+
+- User hears brief silence (1-2 seconds) — acceptable in conversation
+- AI resumes naturally (no "reconnecting" message)
+- If reconnection fails: "Hold on one second... [retry]... OK, I'm back."
+- Transcript continues seamlessly (no gap visible to user)
+
+### Context Window Management
+
+Gemini 3.1 Flash Live: 128K token context window.
+- Each reconnection: ~2K tokens for system prompt + ~5K for condensed history
+- After 4 reconnections (60 min): ~28K tokens used for context
+- Leaves ~100K for conversation — sufficient
+
+### Testing Required (POC)
+
+- [ ] Can we reconnect within 2 seconds?
+- [ ] Does the AI maintain conversation coherence across reconnections?
+- [ ] Does barge-in work immediately after reconnection?
+- [ ] Can we handle reconnection during user's speech? (defer: wait for silence)
+
+---
+
 ## State Machine (FSM)
 
 ```
 [IDLE]
-  ↓ User clicks "Start Session"
-[LOADING] (Getting OAuth token)
-  ↓ Token retrieved
+  ↓ User opens link
+[SESSION_INIT] (Create Gemini connection + Drive folder)
+  ↓ Connection established
 [PHASE_0] (User Stories)
   ↓ User describes problem
 [PHASE_1] (MINE)
@@ -249,8 +360,8 @@ At any point: User can interrupt → AI responds immediately
 ```json
 POST /api/session/start
 {
-  "oauth_token": "user's github token",
-  "session_type": "discovery | follow_up | team",
+  "access_link": "unique link token (generated by Roderic per user)",
+  "user_email": "optional, for Drive folder creation",
   "previous_session_id": "optional, for follow-ups"
 }
 
@@ -258,9 +369,14 @@ Response:
 {
   "session_id": "uuid",
   "websocket_url": "wss://...",
-  "gemini_session_token": "ephemeral token"
+  "gemini_session_token": "ephemeral token",
+  "drive_folder_url": "https://drive.google.com/..."
 }
 ```
+
+**MVP Auth:** Roderic generates a unique link per user (e.g., `thinkingfoundry.app/s/abc123`). User clicks link → session starts. No login required.
+
+**Post-MVP Auth:** PIN + SMS system (see DESIGN-01 issue).
 
 ### Frontend ↔ Backend: WebSocket (Continuous)
 
@@ -311,91 +427,62 @@ Response:
 }
 ```
 
-### Frontend Auth: PIN-Based Login
+### Frontend Auth: Link-Based Access (MVP)
 
 ```json
-POST /api/auth/register
-{
-  "email": "user@example.com",
-  "pin": "123456"
-}
+// MVP: User clicks unique link generated by Roderic
+GET /s/{access_token}
 
 Response:
 {
-  "session_token": "ephemeral_token",
-  "sms_required": true
+  "session_id": "uuid",
+  "user_name": "John",
+  "redirect": "/session/{session_id}"
 }
 
-POST /api/auth/verify-sms
-{
-  "session_token": "ephemeral_token",
-  "sms_code": "1234"
-}
-
-Response:
-{
-  "auth_token": "long_lived_token",
-  "drive_folder_url": "https://drive.google.com/drive/folders/..."
-}
-
-// On return visit: Just PIN + SMS (no email)
-POST /api/auth/login
-{
-  "pin": "123456"
-}
-// → Same response as verify-sms
+// No login. No PIN. No SMS. Just a link.
+// Roderic controls access by who gets a link.
 ```
+
+**Post-MVP (DEFERRED):** PIN + SMS authentication — see issue #10.
 
 ---
 
-## Plugin System (Satellite Services)
+## Base Knowledge System (MVP)
 
-**How It Works:**
+**The AI guide has built-in knowledge of these frameworks. No dynamic fetching needed for MVP.**
 
-During each phase, the system analyzes the user's problem statement and dynamically pulls relevant frameworks/services.
+### Always Available (Baked into System Prompt)
 
-```typescript
-// Phase 2 (SCOUT) example:
-User says: "I'm struggling with marketing my AI product to enterprises"
+| Domain | Framework | How It's Used |
+|--------|-----------|--------------|
+| **Foundation** | Stoic philosophy | Anchor for all phases — what's in control? Accept constraints. Virtue in thinking. |
+| **Business Thinking** | McKinsey problem structuring | Phase 1 (MINE): Break problem into components. Phase 3 (ASSAY): Prioritize. |
+| **Design Thinking** | IDEO methodology | Phase 2 (SCOUT): Empathize, ideate without judgment, prototype to learn. |
+| **First Principles** | Elon Musk / physics thinking | Phase 4 (CRUCIBLE): Strip to fundamentals, rebuild from base truths. |
+| **Specification** | The Foundry methodology | Phase 0: User stories first. Spec before build. Verify at each gate. |
+| **Generalist Advantage** | Nate B. Jones | Phase 2 (SCOUT): Connect across domains. Pattern recognition. |
 
-PluginSystem triggers:
-1. Extract keywords: ["marketing", "AI product", "enterprises"]
-2. Identify domain: B2B SaaS marketing
-3. Fetch relevant sources:
-   - Paul Graham essays on startups
-   - Recent articles on enterprise sales
-   - Case studies from similar products
-   - Nate B. Jones on messaging
-   - GTM frameworks (Reforge, Lenny Rachitsky)
-4. Inject into AI prompt:
-   "Here are 7 directions we could explore:
-    1. ... (reference: Paul Graham on distribution)
-    2. ... (reference: Enterprise GTM framework)
-    3. ... (reference: Recent case study from similar product)"
-```
+### How Base Knowledge Enters the Conversation
 
-**Available Satellite Services:**
+The AI doesn't lecture about frameworks. It uses them naturally:
 
-| Domain | Services | Source |
-|--------|----------|--------|
-| **Strategy** | Paul Graham, Naval, Y Combinator | Web search + cached knowledge |
-| **Business** | Nate B. Jones, First Principles | Web search |
-| **Product** | Lenny Rachitsky, Reforge, IDEO | Web search + base knowledge |
-| **Marketing** | Case studies, GTM frameworks | Web search |
-| **Technical** | Architecture patterns, tools | Web search |
-| **Leadership** | Stoic philosophy, delegation | Base knowledge |
+- "Let's strip this to first principles — what's actually true here, not assumed?"
+- "An IDEO approach would say: before we solve, let's make sure we deeply understand the user."
+- "McKinsey would structure this as three sub-problems. Let's try that."
+- "What would a stoic say? What's actually in your control here?"
 
-**Base Knowledge (Always Available):**
-- Stoicism (foundation for all thinking)
-- IDEO methodology (design thinking)
-- McKinsey methodology (business thinking)
-- The 8-phase Foundry pipeline (structure)
-- First principles thinking (how to break down problems)
+The AI references frameworks when relevant, doesn't force them. Adapts to the person.
 
-**Dynamic Plugins:**
-- Pull any framework/source based on user's problem
-- No need to pre-define all possibilities
-- System adapts as new domains emerge
+### Dynamic Plugin System (DEFERRED — Post-MVP)
+
+After launch, we'll add:
+- Keyword extraction from problem statement
+- Web search for domain-specific sources
+- Real-time framework injection
+- Cached popular frameworks
+
+See issue #12 for full plugin system design.
 
 ---
 

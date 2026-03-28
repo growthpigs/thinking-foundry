@@ -49,8 +49,8 @@ This is not philosophy. This is the anchor that keeps all downstream thinking gr
 
 **Constraints:**
 - Time: 60-120 minutes max (I have other work)
-- Cost: $500 per session (I'll pay this once, not recurring during trial)
-- Technology: I should not need to code or set up anything (one click to start)
+- Cost: Free (initially). Premium tier later.
+- Technology: I click a link and it starts. Nothing to install. Nothing to set up.
 - Learning: I should understand how AI thinking differs from mine
 
 ---
@@ -69,7 +69,7 @@ This is not philosophy. This is the anchor that keeps all downstream thinking gr
 - [ ] I can see my thinking progression over multiple sessions
 
 **Success Metrics:**
-- Each follow-up session costs $1,000+ (higher value expected)
+- Each follow-up session goes deeper (progressive clarity)
 - I've implemented at least 1 decision from the first session
 - I feel like a partner in the process, not a customer
 
@@ -127,12 +127,12 @@ This is not philosophy. This is the anchor that keeps all downstream thinking gr
 
 | Requirement | Why | Phase | Priority |
 |-------------|-----|-------|----------|
-| Latency <200ms for AI responses | Conversational flow requires responsiveness | MVP | P0 |
+| Latency <800ms for AI responses | Research confirms 320-800ms. Acceptable for conversation. | MVP | P0 |
 | Real-time transcription (not batch) | User needs to see their words as they speak | MVP | P0 |
 | Supports interruption mid-sentence | Core to thinking (not just listening) | MVP | P0 |
 | Works on desktop + mobile | Client is busy (may be on phone) | MVP | P0 |
-| Authentication (GitHub OAuth) | No login friction, auto-pull client context | MVP | P0 |
-| Session stored in GitHub (not proprietary DB) | Transparency, client ownership, shareability | MVP | P0 |
+| Authentication: Link-based (MVP) | One click to start. No login friction. | MVP | P0 |
+| Session stored in GitHub + Google Drive | GitHub for SOT, Drive for user-friendly access by phase | MVP | P0 |
 
 ---
 
@@ -146,9 +146,9 @@ This is not philosophy. This is the anchor that keeps all downstream thinking gr
 - Interruption support
 - GitHub issue export
 - Session linking (one issue per session, can reference previous)
-- Basic authentication (GitHub OAuth)
+- Link-based access (no login required for MVP)
 
-**Estimated DUs:** 8-12 (1.5-2 weeks of work)
+**Estimated DUs:** 15-20 (3-4 weeks)
 
 ### What's Out (Post-MVP)
 

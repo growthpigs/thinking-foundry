@@ -8,7 +8,9 @@
 
 ## The Vision
 
-A voice-first, mobile-friendly thinking partner that guides people through 8 phases of structured thinking. **Free to use, open to everyone, no payments required.**
+A voice-first, mobile-friendly thinking partner that **leads** people through 8 phases of structured thinking. The AI is the co-founder in the room — it drives the conversation, challenges assumptions, manages phase transitions, and keeps responses short and sharp. Free to use. Open to everyone.
+
+**The AI leads. The human thinks. Together they find clarity.**
 
 ---
 
@@ -17,12 +19,12 @@ A voice-first, mobile-friendly thinking partner that guides people through 8 pha
 | Aspect | v1 | v2 | Why |
 |--------|----|----|-----|
 | **Payment** | Stripe ($500/session) | Free/Open | Make it accessible, focus on thinking quality |
-| **Auth** | GitHub OAuth | PIN (email → PIN → SMS) | Simpler UX, no GitHub required |
+| **Auth** | GitHub OAuth | Link-based (MVP). PIN+SMS (post-MVP) | Zero friction — click a link, start thinking |
 | **Backend** | Cloudflare Workers | Cloudflare Workers | ✓ Same (it's right) |
 | **Voice** | Gemini Live | Gemini Live (your Ultra) | ✓ Same (use what you have) |
 | **Storage** | GitHub Issues only | GitHub (backend) + Drive (frontend) | Users understand Drive, not GitHub |
 | **Organization** | Single GitHub issue | Phase-based folders (Drive) | Can drill into MINE/SCOUT/ASSAY/etc. |
-| **Plugins** | Fixed frameworks | Dynamic satellite services | Pull relevant knowledge on-the-fly |
+| **Plugins** | Fixed frameworks | Base knowledge (MVP). Dynamic plugins (post-MVP) | Stoicism + IDEO + McKinsey baked in. Satellite fetch later. |
 | **Frontend** | Web only | Mobile-first (Vercel) | Users are on phones |
 
 ---
@@ -33,23 +35,20 @@ A voice-first, mobile-friendly thinking partner that guides people through 8 pha
 
 ```
 User Journey:
-1. Land on app
-2. Enter email
-3. Create 6-digit PIN
-4. Verify with SMS (4-digit code)
-5. See their Google Drive folder
-6. Click "Start Thinking Session"
-7. Speak their problem
-8. 60-120 min guided conversation
-9. View results in Drive (organized by phase)
+1. User clicks link from Roderic (e.g., thinkingfoundry.app/s/abc123)
+2. Session starts immediately — AI says "Tell me what's on your mind."
+3. AI LEADS the conversation through 8 phases (60-120 min)
+4. User can interrupt anytime (natural barge-in)
+5. Session transcribed in real-time (visible on screen)
+6. Session ends → Drive folder with phase-by-phase thinking
+7. User can open any phase folder and read the Google Doc
 ```
 
 **Components:**
-- `AuthFlow` (PIN creation + SMS verification)
-- `ThinkingSession` (audio capture + real-time transcript)
-- `DriveExplorer` (browse MINE/SCOUT/ASSAY folders)
-- `PhaseIndicator` (which phase? time remaining?)
-- `PluginStatus` (which frameworks loaded?)
+- `ThinkingSession` (audio capture + real-time transcript + phase display)
+- `PhaseIndicator` (which phase? AI decides transitions)
+- `DriveExplorer` (browse MINE/SCOUT/ASSAY/CRUCIBLE/AUDITOR/PLAN/VERIFY folders)
+- `SessionReconnector` (handles 15-min Gemini session limit transparently)
 
 **Hosted on:** Vercel (auto-deploy, global CDN)
 
@@ -102,124 +101,131 @@ user@example.com/thinking-foundry-[session-id]/
 User can open any folder, read the Google Doc, understand their thinking journey.
 ```
 
-### Authentication (PIN-Based)
+### Authentication
 
-**First Login:**
+**MVP: Link-Based Access (Zero Friction)**
 ```
-1. User enters email: user@example.com
-2. Creates PIN: 123456 (something memorable)
-3. System sends SMS: "Enter code: 4729"
-4. User enters code
-5. Account created, logged in
-```
-
-**Return Visit:**
-```
-1. User enters PIN: 123456
-2. System sends SMS: "Enter code: 5847"
-3. User enters code
-4. Logged in (no email needed!)
+1. Roderic generates unique link per user
+2. User clicks link → session starts immediately
+3. No login. No account. No password. No PIN.
+4. Link can be single-use or multi-use (configurable)
 ```
 
-**Why This Works:**
-- No passwords (annoying)
-- No 2FA (redundant with SMS)
-- No GitHub account (barrier)
-- Memorable PIN (not random token)
-- Works on any device
-- Simple copy/paste pattern
+**Why This Works for MVP:**
+- Zero barrier to entry (click and go)
+- Roderic controls access (who gets a link)
+- No auth system to build or maintain
+- Can always add PIN + SMS later (feature flag)
+- First 2 months don't need formal auth
 
-### Voice & Thinking (8 Phases)
+**Post-MVP: PIN + SMS (DEFERRED)**
+See issue #10 for full PIN auth design.
+When ready, existing link users migrate to PIN accounts.
 
-**Same as always:**
-- Phase 0: User Stories (anchor)
-- Phase 1: MINE (listen)
-- Phase 2: SCOUT (explore + plugins pull frameworks)
-- Phase 3: ASSAY (filter to this person)
-- Phase 4: CRUCIBLE (test)
-- Phase 5: AUDITOR (quality check)
-- Phase 6: PLAN (answers)
-- Phase 7: VERIFY (export)
+### Voice & Thinking (8 Phases — Mirrors The Foundry)
 
-**Total: 60-120 minutes**
+**This is The Foundry, adapted for thinking instead of coding.**
 
-### Plugin System (Satellite Services)
+| Phase | Foundry (Code) | Thinking Foundry (Thinking) | Future Tool Integration |
+|-------|---------------|---------------------------|----------------------|
+| **0** | User Stories | User Stories (same!) | — |
+| **1** | MINE | MINE — Deep listening | — |
+| **2** | SCOUT | SCOUT — Explore possibilities | — |
+| **3** | ASSAY | ASSAY — Signal from noise | — |
+| **4** | CRUCIBLE | CRUCIBLE — Stress-test ideas | **NotebookLM** (multi-source synthesis) |
+| **5** | AUDITOR | AUDITOR — Quality check | — |
+| **6** | PLAN | PLAN — Clear answers | — |
+| **7** | VERIFY | VERIFY — Export & document | — |
 
-**What It Does:**
+**NotebookLM integration (post-MVP):** During Phase 4 (CRUCIBLE), feed the user's problem + possibilities into NotebookLM with relevant sources. Get a synthesized analysis. This mirrors the original Foundry's Crucible where you test ideas against multiple sources.
 
-During Phase 2 (SCOUT), the system identifies the user's domain and pulls relevant frameworks on-the-fly.
+**Total: 60-120 minutes (4-8 Gemini reconnections)**
 
-**Example:**
-```
-User: "I'm stuck on marketing my AI product to enterprises"
+### Knowledge System
 
-System:
-1. Extracts keywords: [marketing, AI, enterprises]
-2. Identifies domain: B2B SaaS
-3. Queries web for:
-   - Paul Graham on distribution
-   - Enterprise GTM case studies
-   - Product positioning frameworks
-   - Articles on AI trust/compliance
-4. Injects into AI prompt:
-   "Here are 7 directions we could explore:
-    1. ... (reference: Paul Graham)
-    2. ... (reference: Enterprise GTM framework)
-    3. ..."
-```
+**MVP: Base Knowledge (Baked into System Prompt)**
 
-**Base Knowledge (Always Available):**
-- Stoicism (foundation)
-- IDEO methodology (design)
-- McKinsey methodology (business)
-- 8-phase Foundry pipeline (structure)
-- First principles (thinking)
+The AI guide has deep knowledge of these frameworks built into its prompts:
 
-**No extra cost — just web search + summarization**
+- **Stoicism** — Foundation for all phases. What's in control? Accept constraints. Virtue in thinking.
+- **IDEO Design Thinking** — Empathize, ideate without judgment, prototype to learn.
+- **McKinsey Problem Structuring** — Decompose, prioritize, communicate.
+- **First Principles** — Strip to fundamentals, rebuild from base truths.
+- **The Foundry Methodology** — Spec before build, verify at each gate, user stories anchor everything.
+- **Nate B. Jones / Generalist Advantage** — Cross-domain pattern recognition.
+
+The AI uses these naturally in conversation, doesn't lecture.
+
+**Post-MVP: Dynamic Satellite Plugins (DEFERRED)**
+See issue #12. Will add web search, framework fetching, domain detection.
 
 ---
 
 ## Implementation Phases
 
-### Week 1: Foundation
+### Week 1: Engine (Voice + Reconnection)
 
-**Days 1-3:**
-- [ ] PIN auth system (email → PIN → SMS)
-- [ ] Cloudflare Workers WebSocket server
-- [ ] Gemini Live API integration
-- [ ] Basic React frontend (just auth + button)
+**The hardest part first. Prove the core works.**
 
-**Days 4-5:**
-- [ ] Google Drive API setup (folder creation)
-- [ ] GitHub API issue creation
-- [ ] Test full flow end-to-end
+**Days 1-2: Gemini Live POC**
+- [ ] Google Cloud project + billing enabled
+- [ ] Gemini Live API connection (basic "hello world" voice)
+- [ ] **15-minute reconnection POC** — prove we can seamlessly reconnect
+- [ ] Test context preservation across reconnections
+- [ ] Test barge-in works after reconnection
 
-### Week 2: Features
+**Days 3-5: Backend Foundation**
+- [ ] Cloudflare Workers + Durable Objects project
+- [ ] WebSocket server (audio routing to/from Gemini)
+- [ ] Session state machine (Phase 0 → Phase 7)
+- [ ] Reconnection manager (auto-reconnect at 14 min)
+- [ ] Link-based access (generate unique URLs, validate on connect)
 
-**Days 6-8:**
+### Week 2: Interface + AI Personality
+
+**Days 6-8: Frontend**
+- [ ] React app on Vercel
+- [ ] Audio capture (Web Audio API)
 - [ ] Real-time transcription display
-- [ ] Phase transitions + timer
-- [ ] Google Drive folder organization (MINE/SCOUT/ASSAY/etc.)
-- [ ] Google Docs creation per phase
+- [ ] Phase indicator (which phase? AI decides transitions)
+- [ ] Mobile responsive (test on phone)
+- [ ] Simple, clean UI — voice-first, minimal chrome
 
-**Days 9-10:**
-- [ ] Plugin system (keyword extraction + web search)
-- [ ] Phase 2 prompt injection (reference frameworks)
-- [ ] Session state management
+**Days 9-10: AI as Leader**
+- [ ] Per-phase system prompts (all 8 phases, refined)
+- [ ] AI personality: short responses, asks questions, drives conversation
+- [ ] Phase transition logic (AI signals when to move, backend transitions)
+- [ ] Base knowledge injection (Stoicism, IDEO, McKinsey in system prompt)
+- [ ] Test full 60-min session (3-4 reconnections)
 
-### Week 3: Polish & Launch
+### Week 3: Storage + Polish
 
-**Days 11-12:**
-- [ ] Mobile responsiveness (test on phone)
-- [ ] Error handling (network drops, timeouts)
-- [ ] E2E testing (manual session from start to end)
-- [ ] Monitoring (Sentry for errors)
+**Days 11-12: Google Drive + GitHub**
+- [ ] Google Drive API: Create user folder on session start
+- [ ] Create 7 phase subfolders (MINE/SCOUT/ASSAY/etc.)
+- [ ] Create Google Doc per phase with formatted content
+- [ ] GitHub issue creation (full session transcript)
+- [ ] Test Drive folder structure is clear and useful
 
-**Days 13-15:**
-- [ ] Production deploy (Vercel frontend + Cloudflare backend)
-- [ ] Performance testing (latency, transcription lag)
+**Days 13-15: Polish & Launch**
+- [ ] Error handling (network drops, Gemini timeout, Drive failures)
+- [ ] E2E testing (real 60-min session, start to end)
+- [ ] Monitoring (Sentry for errors, basic latency tracking)
+- [ ] Production deploy (Vercel + Cloudflare)
 - [ ] Go/No-Go decision
-- [ ] Celebration! 🎉
+
+### DU Breakdown (Realistic)
+
+| Component | DUs | Notes |
+|-----------|-----|-------|
+| Gemini Live + reconnection | 4 | Hardest part. POC first. |
+| Cloudflare backend + state | 3 | Durable Objects for WebSocket |
+| React frontend + audio | 3 | Simple UI, voice-first |
+| AI personality + prompts | 2 | Per-phase prompts, leadership behavior |
+| Google Drive integration | 2 | Folder creation, Doc per phase |
+| GitHub export | 1 | Well-researched, simple |
+| Testing + error handling | 2 | E2E, reconnection, network drops |
+| **Total** | **17** | **~3.5 weeks** |
 
 ---
 
@@ -231,13 +237,11 @@ System:
 | **Frontend Host** | Vercel | Auto-deploy, global CDN, free tier |
 | **Backend** | Cloudflare Workers | Serverless, instant scale, WebSocket native |
 | **Backend Communication** | WebSocket | Real-time audio streaming |
-| **Voice Engine** | Gemini 3.1 Flash Live | Your Google Ultra account, $0.023/min |
+| **Voice Engine** | Gemini 3.1 Flash Live | Google Cloud billing, $0.023/min |
 | **Transcription** | Gemini Live (automatic) | Included, no extra API |
 | **Issue Storage** | GitHub REST API | Free, transparent, link-friendly |
 | **User Storage** | Google Drive + Docs | Familiar UI, shareable, web search indexable |
-| **Authentication** | Email + PIN + SMS | Simple, no passwords, memorable |
-| **SMS Provider** | Twilio/AWS SNS | Standard for verification codes |
-| **Web Search** | Google Search API or free tier | For plugin system |
+| **Authentication** | Link-based access (MVP) | Zero friction. PIN+SMS deferred. |
 | **Monitoring** | Sentry | Error tracking, free tier |
 
 ---
@@ -251,24 +255,24 @@ System:
 | **Google Drive** | Free tier (15GB) | $0 |
 | **Cloudflare Workers** | Free tier (100K req/day) | ~$0.01 |
 | **Vercel** | Free tier | $0 |
-| **SMS** | ~$0.10 per code | $0.10 |
-| **Web Search** | Free tier (100 req/day) | $0 |
-| **Total** | | **~$1.50/session** |
+| **Total** | | **~$1.40/session** |
 
-**Revenue Model:** Free to use. Option for paid tier later (analytics, team features, etc.).
+**Revenue Model:** Free to use. Option for paid tier later ($500/month for premium features, analytics, team access).
 
 ---
 
 ## Success Criteria
 
-- [ ] 100% auth success rate (PIN creation works every time)
-- [ ] User clarity ≥8/10 (post-session survey)
-- [ ] Session completion ≥90% (no crashes)
-- [ ] Drive folder organized by phase (user can browse)
-- [ ] Plugins pull relevant frameworks (Phase 2)
-- [ ] Mobile experience is smooth (90% of tests pass)
-- [ ] Latency <500ms for AI responses
+- [ ] User clicks link → session starts in <5 seconds
+- [ ] AI leads the conversation (user doesn't have to know what to ask)
+- [ ] 15-minute reconnection is invisible to user
+- [ ] Full 60-min session completes without crash
+- [ ] User clarity ≥8/10 (post-session)
+- [ ] Drive folder organized by phase (user can browse and understand)
+- [ ] AI keeps responses SHORT (2-3 sentences + a question, like a co-founder)
+- [ ] Latency <800ms for AI responses (research-validated)
 - [ ] Interruption works naturally (barge-in never fails)
+- [ ] Mobile experience is smooth
 
 ---
 
@@ -276,11 +280,13 @@ System:
 
 | Risk | Impact | Mitigation |
 |------|--------|-----------|
-| **Google auth quota** | Can't access Drive | Cache permissions, handle gracefully |
-| **Gemini API rate limit** | Concurrent sessions fail | Queue requests, graceful degradation |
-| **SMS delivery slow** | Poor auth UX | Offer email verification fallback |
-| **Plugin fetch fails** | Phase 2 has no references | Use cached frameworks + manual fallback |
-| **Phone number blocked** | Can't verify | Allow email verification instead |
+| **15-min reconnection fails** | Session breaks mid-conversation | POC in Week 1 Day 1-2. If fails, evaluate alternatives. |
+| **Context lost on reconnection** | AI forgets what was discussed | Condensed transcript injection + test across 4 reconnections |
+| **Google Cloud billing suspended** | Can't access Gemini or Drive APIs | Roderic resolves billing (confirmed can pay) |
+| **Google Drive OAuth complexity** | Users need Google auth on top of link access | Use service account Drive (shared), OR defer Drive to post-MVP |
+| **AI gives long responses** | Feels like lecture, not co-founder | Enforce 2-3 sentence limit in system prompt + testing |
+| **Mobile audio issues** | iOS Safari Web Audio quirks | Test on iPhone + Android in Week 2 |
+| **Gemini API rate limit** | Concurrent sessions fail | Low risk for MVP (few users). Queue if needed. |
 
 ---
 
