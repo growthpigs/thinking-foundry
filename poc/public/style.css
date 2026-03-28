@@ -38,6 +38,150 @@ html, body {
   margin: 0 auto;
 }
 
+/* ─── Setup Screen ─── */
+#setup-screen {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 16px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+#session-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#session-screen.hidden {
+  display: none !important;
+}
+
+.setup-header {
+  text-align: center;
+  padding-top: 12px;
+}
+
+.setup-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.setup-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.setup-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.setup-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.setup-section-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.setup-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+.setup-label:first-of-type {
+  margin-top: 0;
+}
+
+.setup-label-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.setup-input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+
+.setup-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.setup-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ─── Framework Pills ─── */
+.framework-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.pill {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pill:active {
+  transform: scale(0.96);
+}
+
+.pill.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(249, 115, 22, 0.1);
+}
+
+/* ─── Begin Button ─── */
+.btn-begin {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 16px;
+  border-radius: 12px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
 /* ─── Header ─── */
 header {
   display: flex;

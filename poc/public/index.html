@@ -10,54 +10,96 @@
 </head>
 <body>
   <div id="app">
-    <!-- Header -->
-    <header>
-      <h1>The Thinking Foundry</h1>
-      <div id="connection-status" class="status disconnected">Disconnected</div>
-    </header>
-
-    <!-- Phase Indicator -->
-    <nav id="phase-nav">
-      <button class="phase-btn active" data-phase="0">0</button>
-      <button class="phase-btn" data-phase="1">1</button>
-      <button class="phase-btn" data-phase="2">2</button>
-      <button class="phase-btn" data-phase="3">3</button>
-      <button class="phase-btn" data-phase="4">4</button>
-      <button class="phase-btn" data-phase="5">5</button>
-      <button class="phase-btn" data-phase="6">6</button>
-      <button class="phase-btn" data-phase="7">7</button>
-    </nav>
-
-    <div id="phase-info">
-      <span id="phase-name">Phase 0: User Stories</span>
-      <span id="phase-desc">What do you WANT? Define success, constraints, and acceptance criteria — you are the user of your own product.</span>
-    </div>
-
-    <!-- Transcript -->
-    <main id="transcript">
-      <div class="system-msg">Press Start to begin your session. Speak naturally — the AI will lead the conversation.</div>
-    </main>
-
-    <!-- Debug Panel (reconnection info) -->
-    <div id="debug-panel" class="hidden">
-      <div id="reconnect-info">
-        <span id="connection-timer">00:00</span>
-        <span id="reconnect-count">Reconnections: 0</span>
+    <!-- ==================== SETUP SCREEN ==================== -->
+    <div id="setup-screen">
+      <div class="setup-header">
+        <h1>The Thinking Foundry</h1>
+        <p class="setup-subtitle">Connect your context, choose your frameworks, then start thinking.</p>
       </div>
+
+      <div class="setup-section">
+        <h2 class="setup-section-title">Connect Your Project</h2>
+        <p class="setup-section-hint">Optional — you can start without these.</p>
+
+        <label class="setup-label" for="setup-github">
+          GitHub Repo
+          <span class="setup-label-hint">We'll pull README, issues, and key files</span>
+        </label>
+        <input type="url" id="setup-github" class="setup-input" placeholder="https://github.com/owner/repo">
+
+        <label class="setup-label" for="setup-drive">
+          Google Drive folder or doc URL
+        </label>
+        <input type="url" id="setup-drive" class="setup-input" placeholder="https://drive.google.com/...">
+      </div>
+
+      <div class="setup-section">
+        <h2 class="setup-section-title">Choose Your Frameworks</h2>
+        <div id="framework-pills" class="framework-pills">
+          <button class="pill active" data-id="stoicism">Stoicism</button>
+          <button class="pill active" data-id="ideo">IDEO Design Thinking</button>
+          <button class="pill" data-id="mckinsey">McKinsey Problem Solving</button>
+          <button class="pill" data-id="yc">Y Combinator</button>
+          <button class="pill" data-id="lean">Lean Methodology</button>
+          <button class="pill" data-id="hormozi">Alex Hormozi</button>
+          <button class="pill" data-id="nate-b-jones">Nate B. Jones</button>
+          <button class="pill" data-id="indydev-dan">IndyDev Dan</button>
+        </div>
+      </div>
+
+      <button id="btn-begin" class="btn btn-primary btn-begin">Start Session</button>
     </div>
 
-    <!-- Controls -->
-    <footer id="controls">
-      <button id="btn-start" class="btn btn-primary">Start Session</button>
-      <button id="btn-stop" class="btn btn-danger hidden">Stop</button>
-      <button id="btn-pause" class="btn btn-pause hidden">
-        <span class="pause-icon"></span>
-        <span id="pause-label">Pause</span>
-      </button>
-      <button id="btn-next-phase" class="btn btn-secondary hidden">Next Phase</button>
-      <button id="btn-export" class="btn btn-secondary hidden">Export</button>
-      <button id="btn-debug" class="btn btn-ghost">Debug</button>
-    </footer>
+    <!-- ==================== SESSION SCREEN (hidden initially) ==================== -->
+    <div id="session-screen" class="hidden">
+      <!-- Header -->
+      <header>
+        <h1>The Thinking Foundry</h1>
+        <div id="connection-status" class="status disconnected">Disconnected</div>
+      </header>
+
+      <!-- Phase Indicator -->
+      <nav id="phase-nav">
+        <button class="phase-btn active" data-phase="0">0</button>
+        <button class="phase-btn" data-phase="1">1</button>
+        <button class="phase-btn" data-phase="2">2</button>
+        <button class="phase-btn" data-phase="3">3</button>
+        <button class="phase-btn" data-phase="4">4</button>
+        <button class="phase-btn" data-phase="5">5</button>
+        <button class="phase-btn" data-phase="6">6</button>
+        <button class="phase-btn" data-phase="7">7</button>
+      </nav>
+
+      <div id="phase-info">
+        <span id="phase-name">Phase 0: User Stories</span>
+        <span id="phase-desc">What do you WANT? Define success, constraints, and acceptance criteria — you are the user of your own product.</span>
+      </div>
+
+      <!-- Transcript -->
+      <main id="transcript">
+        <div class="system-msg">Connecting... Speak naturally — the AI will lead the conversation.</div>
+      </main>
+
+      <!-- Debug Panel (reconnection info) -->
+      <div id="debug-panel" class="hidden">
+        <div id="reconnect-info">
+          <span id="connection-timer">00:00</span>
+          <span id="reconnect-count">Reconnections: 0</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <footer id="controls">
+        <button id="btn-stop" class="btn btn-danger">Stop</button>
+        <button id="btn-pause" class="btn btn-pause">
+          <span class="pause-icon"></span>
+          <span id="pause-label">Pause</span>
+        </button>
+        <button id="btn-next-phase" class="btn btn-secondary">Next Phase</button>
+        <button id="btn-export" class="btn btn-secondary">Export</button>
+        <button id="btn-debug" class="btn btn-ghost">Debug</button>
+      </footer>
+    </div>
   </div>
 
   <!-- Export Modal -->

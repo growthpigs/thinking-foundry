@@ -9,6 +9,8 @@ const { ContextManager } = require('./context-manager');
 const { exportToGitHub } = require('./github-export');
 const { DriveManager } = require('./drive-manager');
 const { ContextLoader } = require('../context/loader');
+const { GitHubConnector } = require('../context/github-connector');
+const { DriveConnector } = require('../context/drive-connector');
 
 const app = express();
 const server = http.createServer(app);
@@ -58,11 +60,105 @@ wss.on('connection', (clientWs) => {
     }
   };
 
+  // Stores session-level external context fetched during setup
+  let sessionGithubContext = '';
+  let sessionDriveContext = '';
+  let sessionFrameworks = [];
+
+  /**
+   * Parse a GitHub URL into owner/repo.
+   * Handles https://github.com/owner/repo and variants.
+   */
+  function parseGitHubUrl(url) {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      const parts = parsed.pathname.replace(/^\//, '').replace(/\/$/, '').split('/');
+      if (parts.length >= 2) {
+        return { owner: parts[0], repo: parts[1] };
+      }
+    } catch {
+      // not a valid URL
+    }
+    return null;
+  }
+
+  /**
+   * Parse a Google Drive URL into a file/folder ID.
+   * Handles various Drive URL formats.
+   */
+  function parseDriveUrl(url) {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      // Format: /drive/folders/ID or /file/d/ID or /document/d/ID
+      const folderMatch = parsed.pathname.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+      if (folderMatch) return { type: 'folder', id: folderMatch[1] };
+
+      const fileMatch = parsed.pathname.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (fileMatch) return { type: 'file', id: fileMatch[1] };
+    } catch {
+      // not a valid URL
+    }
+    return null;
+  }
+
+  /**
+   * Fetch external context from GitHub and/or Drive based on setup config.
+   */
+  async function fetchExternalContext(config) {
+    const { github, drive, frameworks } = config;
+    let githubContext = '';
+    let driveContext = '';
+
+    // Fetch GitHub context
+    if (github) {
+      const parsed = parseGitHubUrl(github);
+      if (parsed) {
+        try {
+          const gh = new GitHubConnector();
+          githubContext = await gh.fetchRepoContext(parsed.owner, parsed.repo);
+          console.log(`[SETUP] GitHub context fetched: ${githubContext.length} chars`);
+        } catch (err) {
+          console.warn(`[SETUP] GitHub fetch failed (continuing without):`, err.message);
+        }
+      } else {
+        console.warn(`[SETUP] Could not parse GitHub URL: ${github}`);
+      }
+    }
+
+    // Fetch Drive context
+    if (drive) {
+      const parsed = parseDriveUrl(drive);
+      if (parsed) {
+        try {
+          const driveConn = new DriveConnector();
+          if (parsed.type === 'folder') {
+            driveContext = await driveConn.fetchFolderContext(parsed.id);
+          } else {
+            const content = await driveConn.fetchDocContent(parsed.id);
+            driveContext = content || '';
+          }
+          console.log(`[SETUP] Drive context fetched: ${driveContext.length} chars`);
+        } catch (err) {
+          console.warn(`[SETUP] Drive fetch failed (continuing without):`, err.message);
+        }
+      } else {
+        console.warn(`[SETUP] Could not parse Drive URL: ${drive}`);
+      }
+    }
+
+    return { githubContext, driveContext, frameworks: frameworks || [] };
+  }
+
   const startGemini = async () => {
-    // Load knowledge context for current phase
+    // Load knowledge context for current phase, including external context and selected frameworks
     const knowledgeContext = await knowledgeLoader.load({
       phase: session.currentPhase,
-      fullContent: false
+      frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
+      fullContent: false,
+      githubContext: sessionGithubContext || undefined,
+      driveContext: sessionDriveContext || undefined
     });
 
     gemini = new GeminiLiveManager({
@@ -116,8 +212,34 @@ wss.on('connection', (clientWs) => {
     }
 
     switch (msg.type) {
+      case 'session-setup':
+        // New setup flow: fetch external context, then start Gemini
+        console.log('[WS] Session setup received:', {
+          github: msg.github || '(none)',
+          drive: msg.drive || '(none)',
+          frameworks: msg.frameworks || []
+        });
+
+        try {
+          const external = await fetchExternalContext({
+            github: msg.github,
+            drive: msg.drive,
+            frameworks: msg.frameworks
+          });
+          sessionGithubContext = external.githubContext;
+          sessionDriveContext = external.driveContext;
+          sessionFrameworks = external.frameworks;
+        } catch (err) {
+          console.warn('[SETUP] External context fetch error (continuing):', err.message);
+        }
+
+        // Start Gemini with all context loaded
+        await startGemini();
+        break;
+
       case 'start':
-        console.log('[WS] Starting session');
+        // Legacy start message (backwards compat)
+        console.log('[WS] Starting session (legacy)');
         await startGemini();
         break;
 
@@ -132,10 +254,13 @@ wss.on('connection', (clientWs) => {
         console.log(`[WS] Phase change: ${session.currentPhase} → ${newPhase}`);
         session.setPhase(newPhase);
         if (gemini) {
-          // Reload knowledge context for new phase
+          // Reload knowledge context for new phase, preserving session context
           const phaseKnowledge = await knowledgeLoader.load({
             phase: newPhase,
-            fullContent: false
+            frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
+            fullContent: false,
+            githubContext: sessionGithubContext || undefined,
+            driveContext: sessionDriveContext || undefined
           });
           gemini.knowledgeContext = phaseKnowledge;
           await gemini.forceReconnect(newPhase, context.getCondensedContext());

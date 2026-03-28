@@ -36,6 +36,14 @@ const PHASES = {
 
 // ─── DOM Elements ───
 
+// Setup screen
+const $setupScreen = document.getElementById('setup-screen');
+const $sessionScreen = document.getElementById('session-screen');
+const $btnBegin = document.getElementById('btn-begin');
+const $setupGithub = document.getElementById('setup-github');
+const $setupDrive = document.getElementById('setup-drive');
+
+// Session screen
 const $status = document.getElementById('connection-status');
 const $transcript = document.getElementById('transcript');
 const $phaseName = document.getElementById('phase-name');
@@ -43,7 +51,6 @@ const $phaseDesc = document.getElementById('phase-desc');
 const $debugPanel = document.getElementById('debug-panel');
 const $connTimer = document.getElementById('connection-timer');
 const $reconnCount = document.getElementById('reconnect-count');
-const $btnStart = document.getElementById('btn-start');
 const $btnStop = document.getElementById('btn-stop');
 const $btnNextPhase = document.getElementById('btn-next-phase');
 const $btnPause = document.getElementById('btn-pause');
@@ -52,6 +59,30 @@ const $btnExport = document.getElementById('btn-export');
 const $btnDebug = document.getElementById('btn-debug');
 const $exportModal = document.getElementById('export-modal');
 const $exportStatus = document.getElementById('export-status');
+
+// ─── Framework pill toggles ───
+
+document.querySelectorAll('#framework-pills .pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    pill.classList.toggle('active');
+  });
+});
+
+/**
+ * Collect the current setup configuration from the form.
+ */
+function getSetupConfig() {
+  const frameworks = [];
+  document.querySelectorAll('#framework-pills .pill.active').forEach(pill => {
+    frameworks.push(pill.dataset.id);
+  });
+
+  return {
+    github: $setupGithub.value.trim() || null,
+    drive: $setupDrive.value.trim() || null,
+    frameworks
+  };
+}
 
 // ─── Audio Context Setup ───
 
@@ -233,7 +264,7 @@ async function processPlaybackQueue() {
 
 // ─── WebSocket ───
 
-function connectWebSocket() {
+function connectWebSocket(setupConfig) {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const url = `${protocol}//${window.location.host}`;
 
@@ -241,8 +272,13 @@ function connectWebSocket() {
 
   ws.onopen = () => {
     console.log('[WS] Connected to server');
-    // Tell server to start Gemini connection
-    ws.send(JSON.stringify({ type: 'start' }));
+    // Send session-setup with context sources + selected frameworks
+    ws.send(JSON.stringify({
+      type: 'session-setup',
+      github: setupConfig.github,
+      drive: setupConfig.drive,
+      frameworks: setupConfig.frameworks
+    }));
   };
 
   ws.onmessage = (event) => {
@@ -373,21 +409,27 @@ function startTimer() {
 
 // ─── Event Handlers ───
 
-$btnStart.addEventListener('click', async () => {
-  $btnStart.classList.add('hidden');
-  $btnStop.classList.remove('hidden');
-  $btnPause.classList.remove('hidden');
-  $btnNextPhase.classList.remove('hidden');
-  $btnExport.classList.remove('hidden');
+// Begin session: transition from setup screen to session screen
+$btnBegin.addEventListener('click', async () => {
+  const config = getSetupConfig();
+
+  // Disable button to prevent double-clicks
+  $btnBegin.disabled = true;
+  $btnBegin.textContent = 'Connecting...';
 
   try {
     await startAudioCapture();
-    connectWebSocket();
-    addSystemMessage('Session started. Listening...');
+
+    // Transition screens
+    $setupScreen.classList.add('hidden');
+    $sessionScreen.classList.remove('hidden');
+
+    connectWebSocket(config);
+    addSystemMessage('Session started. Loading context and connecting...');
   } catch (err) {
     addSystemMessage('Failed to start: ' + err.message);
-    $btnStart.classList.remove('hidden');
-    $btnStop.classList.add('hidden');
+    $btnBegin.disabled = false;
+    $btnBegin.textContent = 'Start Session';
   }
 });
 
@@ -400,12 +442,14 @@ $btnStop.addEventListener('click', () => {
   clearInterval(timerInterval);
   isPaused = false;
 
-  $btnStart.classList.remove('hidden');
-  $btnStop.classList.add('hidden');
-  $btnPause.classList.add('hidden');
+  // Return to setup screen
+  $sessionScreen.classList.add('hidden');
+  $setupScreen.classList.remove('hidden');
+  $btnBegin.disabled = false;
+  $btnBegin.textContent = 'Start Session';
+
   $btnPause.classList.remove('paused');
   $pauseLabel.textContent = 'Pause';
-  addSystemMessage('Session stopped.');
 });
 
 $btnPause.addEventListener('click', () => {
