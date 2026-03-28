@@ -18,30 +18,56 @@
       </div>
 
       <div class="setup-section">
-        <label class="setup-label" for="setup-github">
-          GitHub Repo <span class="setup-label-hint">(optional)</span>
-        </label>
-        <input type="url" id="setup-github" class="setup-input" placeholder="https://github.com/owner/repo">
+        <label class="setup-label" for="setup-github">GitHub Repo</label>
+        <div class="input-with-btn">
+          <input type="url" id="setup-github" class="setup-input" placeholder="https://github.com/owner/repo">
+          <button id="btn-connect-github" class="btn btn-connect">Connect</button>
+        </div>
+        <div id="github-status" class="connect-status"></div>
 
-        <label class="setup-label" for="setup-files">
-          Upload documents <span class="setup-label-hint">(PDF, TXT, MD — optional)</span>
-        </label>
+        <label class="setup-label" for="setup-files" style="margin-top: 16px;">Upload docs</label>
         <input type="file" id="setup-files" class="setup-input-file" multiple accept=".pdf,.txt,.md,.doc,.docx">
         <div id="file-list" class="file-list"></div>
       </div>
 
-      <button id="btn-begin" class="btn btn-primary btn-begin">Start Session</button>
+      <button id="btn-begin" class="btn btn-primary btn-begin">Start with Context</button>
+      <button id="btn-skip" class="btn btn-ghost btn-skip">Start without context</button>
     </div>
 
     <!-- ==================== SESSION SCREEN (hidden initially) ==================== -->
     <div id="session-screen" class="hidden">
-      <!-- Header -->
+      <!-- Minimal header -->
       <header>
-        <h1>The Thinking Foundry</h1>
-        <div id="connection-status" class="status disconnected">Disconnected</div>
+        <span id="phase-name">0: User Stories</span>
+        <div id="connection-status" class="status disconnected"></div>
       </header>
 
-      <!-- Phase Indicator -->
+      <!-- Outline area — key insights appear here as the conversation progresses -->
+      <main id="outline">
+        <div id="outline-items"></div>
+      </main>
+
+      <!-- Hidden elements needed by JS -->
+      <span id="phase-desc" class="hidden"></span>
+      <div id="transcript" class="hidden"></div>
+      <div id="debug-panel" class="hidden">
+        <span id="connection-timer">00:00</span>
+        <span id="reconnect-count">0</span>
+      </div>
+
+      <!-- Controls — minimal -->
+      <footer id="controls">
+        <button id="btn-pause" class="btn btn-pause">
+          <span class="pause-icon"></span>
+          <span id="pause-label">Pause</span>
+        </button>
+        <button id="btn-next-phase" class="btn btn-secondary">Next</button>
+        <button id="btn-stop" class="btn btn-ghost">End</button>
+        <button id="btn-export" class="btn btn-secondary hidden">Export</button>
+        <button id="btn-debug" class="btn btn-ghost hidden">Debug</button>
+      </footer>
+
+      <!-- Phase dots at bottom -->
       <nav id="phase-nav">
         <button class="phase-btn active" data-phase="0">0</button>
         <button class="phase-btn" data-phase="1">1</button>
@@ -52,36 +78,6 @@
         <button class="phase-btn" data-phase="6">6</button>
         <button class="phase-btn" data-phase="7">7</button>
       </nav>
-
-      <div id="phase-info">
-        <span id="phase-name">Phase 0: User Stories</span>
-        <span id="phase-desc">What do you WANT? Define success, constraints, and acceptance criteria — you are the user of your own product.</span>
-      </div>
-
-      <!-- Transcript -->
-      <main id="transcript">
-        <div class="system-msg">Connecting... Speak naturally — the AI will lead the conversation.</div>
-      </main>
-
-      <!-- Debug Panel (reconnection info) -->
-      <div id="debug-panel" class="hidden">
-        <div id="reconnect-info">
-          <span id="connection-timer">00:00</span>
-          <span id="reconnect-count">Reconnections: 0</span>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <footer id="controls">
-        <button id="btn-stop" class="btn btn-danger">Stop</button>
-        <button id="btn-pause" class="btn btn-pause">
-          <span class="pause-icon"></span>
-          <span id="pause-label">Pause</span>
-        </button>
-        <button id="btn-next-phase" class="btn btn-secondary">Next Phase</button>
-        <button id="btn-export" class="btn btn-secondary">Export</button>
-        <button id="btn-debug" class="btn btn-ghost">Debug</button>
-      </footer>
     </div>
   </div>
 

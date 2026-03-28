@@ -40,12 +40,57 @@ const PHASES = {
 const $setupScreen = document.getElementById('setup-screen');
 const $sessionScreen = document.getElementById('session-screen');
 const $btnBegin = document.getElementById('btn-begin');
+const $btnSkip = document.getElementById('btn-skip');
 const $setupGithub = document.getElementById('setup-github');
+const $btnConnectGithub = document.getElementById('btn-connect-github');
+const $githubStatus = document.getElementById('github-status');
 const $setupFiles = document.getElementById('setup-files');
 const $fileList = document.getElementById('file-list');
 
-// File upload state
+// Context state
 let uploadedFileContents = [];
+let githubConnected = false;
+
+// GitHub connect button — pre-fetch and confirm
+$btnConnectGithub.addEventListener('click', async () => {
+  const url = $setupGithub.value.trim();
+  if (!url) { $githubStatus.textContent = 'Enter a URL first'; return; }
+
+  $btnConnectGithub.disabled = true;
+  $btnConnectGithub.textContent = '...';
+  $githubStatus.textContent = 'Reading repository...';
+  $githubStatus.className = 'connect-status loading';
+
+  try {
+    // Parse owner/repo from URL
+    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) throw new Error('Invalid GitHub URL');
+    const [, owner, repo] = match;
+
+    // Test fetch via our server API
+    const res = await fetch(`/api/github-preview?owner=${owner}&repo=${repo.replace(/\.git$/, '')}`);
+    const data = await res.json();
+
+    if (data.ok) {
+      githubConnected = true;
+      $githubStatus.textContent = `Connected — ${data.summary}`;
+      $githubStatus.className = 'connect-status success';
+      $btnConnectGithub.textContent = '✓';
+    } else {
+      throw new Error(data.error || 'Failed to fetch');
+    }
+  } catch (err) {
+    $githubStatus.textContent = err.message;
+    $githubStatus.className = 'connect-status error';
+    $btnConnectGithub.textContent = 'Retry';
+    $btnConnectGithub.disabled = false;
+  }
+});
+
+// Skip button — start without any context
+$btnSkip.addEventListener('click', async () => {
+  await startSession({ github: null, documents: [], frameworks: ['stoicism', 'ideo', 'mckinsey', 'yc', 'lean', 'hormozi', 'nate-b-jones', 'indydev-dan'] });
+});
 
 $setupFiles.addEventListener('change', async () => {
   uploadedFileContents = [];
@@ -368,7 +413,7 @@ function setPhase(phase) {
   currentPhase = phase;
   const info = PHASES[phase];
 
-  $phaseName.textContent = `Phase ${phase}: ${info.name}`;
+  $phaseName.textContent = `${phase}: ${info.name}`;
   $phaseDesc.textContent = info.desc;
 
   // Update phase buttons
@@ -377,8 +422,6 @@ function setPhase(phase) {
     btn.classList.toggle('active', p === phase);
     if (p < phase) btn.classList.add('visited');
   });
-
-  addSystemMessage(`Entering Phase ${phase}: ${info.name} — ${info.desc}`);
 }
 
 function addTranscriptMessage(role, text) {
@@ -429,13 +472,11 @@ function startTimer() {
 
 // ─── Event Handlers ───
 
-// Begin session: transition from setup screen to session screen
-$btnBegin.addEventListener('click', async () => {
-  const config = getSetupConfig();
-
-  // Disable button to prevent double-clicks
+// Shared start function
+async function startSession(config) {
   $btnBegin.disabled = true;
   $btnBegin.textContent = 'Connecting...';
+  $btnSkip.disabled = true;
 
   try {
     await startAudioCapture();
@@ -445,13 +486,16 @@ $btnBegin.addEventListener('click', async () => {
     $sessionScreen.classList.remove('hidden');
 
     connectWebSocket(config);
-    addSystemMessage('Session started. Loading context and connecting...');
   } catch (err) {
-    addSystemMessage('Failed to start: ' + err.message);
+    console.error('Failed to start:', err.message);
     $btnBegin.disabled = false;
-    $btnBegin.textContent = 'Start Session';
+    $btnBegin.textContent = 'Start with Context';
+    $btnSkip.disabled = false;
   }
-});
+}
+
+// Begin session with context
+$btnBegin.addEventListener('click', () => startSession(getSetupConfig()));
 
 $btnStop.addEventListener('click', () => {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -465,6 +509,7 @@ $btnStop.addEventListener('click', () => {
   // Return to setup screen
   $sessionScreen.classList.add('hidden');
   $setupScreen.classList.remove('hidden');
+  $btnSkip.disabled = false;
   $btnBegin.disabled = false;
   $btnBegin.textContent = 'Start Session';
 

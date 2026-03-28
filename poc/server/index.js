@@ -21,6 +21,21 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ─── REST Endpoints ───
 
+app.get('/api/github-preview', async (req, res) => {
+  const { owner, repo } = req.query;
+  if (!owner || !repo) return res.json({ ok: false, error: 'Missing owner or repo' });
+
+  try {
+    const gh = new GitHubConnector();
+    const readme = await gh.fetchReadme(owner, repo);
+    const issues = await gh.fetchRecentIssues(owner, repo, 5);
+    const summary = `${owner}/${repo} — README ${readme ? `(${readme.length} chars)` : '(none)'}, ${issues.length} open issues`;
+    res.json({ ok: true, summary });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
 app.post('/api/export', async (req, res) => {
   try {
     const { sessionName, transcript, phases } = req.body;
