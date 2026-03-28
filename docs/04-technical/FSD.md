@@ -22,11 +22,13 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 6. User leaves with clarity + a repeatable process
 
 **Tech Stack:**
-- Frontend: React + Web Audio API
-- Voice: Gemini 3.1 Flash Live API
+- Frontend: React + Web Audio API (Vercel)
+- Voice: Gemini 3.1 Flash Live API (via Google Ultra account)
 - Backend: Cloudflare Workers
-- Storage: GitHub Issues + Gists
-- Auth: GitHub OAuth
+- Storage: GitHub Issues (source-of-truth) + Google Drive (user-friendly)
+- Auth: Email → PIN (6-digit) + SMS verification (4-digit)
+- Plugins: Dynamic satellite systems (pull frameworks/services on-the-fly)
+- User Data: Google Drive + Google Docs (organized by phase)
 
 ---
 
@@ -49,46 +51,62 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 
 ## User Flows
 
-### Flow 1: New User (Discovery Session)
+### Flow 1: New User (First Session - Free)
 
 ```
 1. User lands on app
    ↓
-2. Sign in with GitHub (OAuth)
+2. Enter email
    ↓
-3. Click "Start Thinking Session"
+3. Create 6-digit PIN
    ↓
-4. Grant audio permission
+4. Verify phone (SMS code)
    ↓
-5. [PHASE 0-7] Guided conversation with AI
+5. System creates Google Drive folder for user
+   ↓
+6. Click "Start Thinking Session"
+   ↓
+7. Grant audio permission
+   ↓
+8. [PHASE 0-7] Guided conversation with AI
    - User speaks problem
    - AI listens, asks questions
-   - Conversation recorded + transcribed
+   - Conversation recorded + transcribed (real-time display)
    - User can interrupt anytime
+   - System pulls relevant frameworks/services on-the-fly (plugins)
    ↓
-6. Session ends, export screen
+9. Session ends → GitHub issue created (backend)
    ↓
-7. GitHub issue created automatically
+10. Google Drive organized by phases:
+    /MINE/[phase transcript]
+    /SCOUT/[possibilities generated]
+    /ASSAY/[relevant frameworks]
+    /CRUCIBLE/[risks tested]
+    /AUDITOR/[quality check]
+    /PLAN/[clear answers]
+    /VERIFY/[full transcript]
    ↓
-8. User sees issue URL, can share/fork
-   ↓
-9. Charged $500 (Stripe)
+11. User sees their Drive folder, can open any phase to review
 ```
 
-### Flow 2: Follow-Up Session (Already Paid)
+### Flow 2: Follow-Up Session
 
 ```
-1. User logs in
+1. User enters PIN + SMS code
    ↓
-2. Click "Continue Thinking"
+2. See previous session in Drive
    ↓
-3. AI references previous session
+3. Click "Continue Thinking"
    ↓
-4. [PHASE 0-7] Same structure, but AI remembers context
+4. AI references previous session folder
    ↓
-5. New GitHub issue created, linked to previous one
+5. [PHASE 0-7] Same structure, deeper dive on specific topics
    ↓
-6. User charged $1,000+ (higher value, solved problem)
+6. New GitHub issue created, linked to previous one
+   ↓
+7. Drive folder updated with new phases + thinking
+   ↓
+8. All previous sessions visible in Drive history
 ```
 
 ### Flow 3: Team Training (Not MVP, but in architecture)
@@ -112,53 +130,80 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 ## Component Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│         Frontend (React + Web Audio)        │
-├─────────────────────────────────────────────┤
-│                                             │
-│  ThinkingSession                            │
-│    ├─ AudioCapture (Web Audio API)          │
-│    ├─ TranscriptDisplay (real-time)         │
-│    ├─ PhaseIndicator (which phase?)         │
-│    └─ InterruptHint (soft indicator)        │
-│                                             │
-│  SessionExport                              │
-│    └─ GitHub Issue Preview + Share          │
-│                                             │
-│  Auth (GitHub OAuth)                        │
-│    └─ Login button, token refresh           │
-│                                             │
-└─────────────────────────────────────────────┘
-              ↓ WebSocket ↓
-┌─────────────────────────────────────────────┐
-│  Backend (Cloudflare Workers)               │
-├─────────────────────────────────────────────┤
-│                                             │
-│  SessionRouter                              │
-│    └─ Route audio → Gemini, results → client│
-│                                             │
-│  GitHubExporter                             │
-│    └─ Create issues, manage OAuth tokens    │
-│                                             │
-│  AuthHandler                                │
-│    ├─ GitHub OAuth code → token exchange    │
-│    └─ Token refresh logic                   │
-│                                             │
-│  SessionState (Durable Objects)             │
-│    └─ In-memory session history             │
-│                                             │
-└─────────────────────────────────────────────┘
-              ↓ API ↓
-┌─────────────────────────────────────────────┐
-│   External APIs                             │
-├─────────────────────────────────────────────┤
-│                                             │
-│  Gemini 3.1 Flash Live (voice)              │
-│  GitHub REST API (issues)                   │
-│  Stripe (payment)                           │
-│  Cloudflare KV (token storage)              │
-│                                             │
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│        Frontend (React + Web Audio — Vercel)        │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Auth Layer                                         │
+│    ├─ Email input                                   │
+│    ├─ PIN creation (6-digit)                        │
+│    ├─ SMS verification (4-digit)                    │
+│    └─ PIN/SMS login on return visits                │
+│                                                     │
+│  ThinkingSession                                    │
+│    ├─ AudioCapture (Web Audio API)                  │
+│    ├─ TranscriptDisplay (real-time)                 │
+│    ├─ PhaseIndicator + Timer                        │
+│    ├─ InterruptHint (soft indicator)                │
+│    └─ Plugin status (which frameworks loaded?)      │
+│                                                     │
+│  DriveExplorer                                      │
+│    └─ Show Google Drive folder structure by phase   │
+│        /MINE /SCOUT /ASSAY /CRUCIBLE /AUDITOR       │
+│        /PLAN /VERIFY (open any to read)             │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+         ↓ WebSocket + REST APIs ↓
+┌─────────────────────────────────────────────────────┐
+│   Backend (Cloudflare Workers)                      │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  AuthHandler (PIN-based)                            │
+│    ├─ Email → PIN creation                          │
+│    ├─ SMS verification                              │
+│    └─ Session tokens (no passwords)                 │
+│                                                     │
+│  SessionRouter                                      │
+│    ├─ Route audio → Gemini Live (your Ultra acct)   │
+│    ├─ Real-time transcription                       │
+│    └─ Phase state machine                           │
+│                                                     │
+│  PluginSystem (Satellite Services)                  │
+│    ├─ Analyze user's problem statement              │
+│    ├─ Extract keywords/domains                      │
+│    ├─ Pull relevant frameworks (Nate B., Graham...) │
+│    ├─ Fetch web sources on-demand                   │
+│    └─ Inject into phase prompts dynamically         │
+│                                                     │
+│  GitHubExporter                                     │
+│    ├─ Create issue per session                      │
+│    ├─ Tag by phase (MINE, SCOUT, ASSAY, etc.)       │
+│    └─ Link to previous sessions                     │
+│                                                     │
+│  GoogleDriveManager                                 │
+│    ├─ Create user's Drive folder                    │
+│    ├─ Organize by phase subdirectories              │
+│    ├─ Create Google Docs per phase                  │
+│    └─ Expose folder URL to user                     │
+│                                                     │
+│  SessionState (Durable Objects)                     │
+│    ├─ In-memory session history                     │
+│    └─ User session data (email, PIN hash)           │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+         ↓ APIs ↓
+┌─────────────────────────────────────────────────────┐
+│   External Services                                 │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Gemini 3.1 Flash Live (via Google Ultra account)   │
+│  GitHub REST API (store thinking issues)            │
+│  Google Drive API (user-friendly storage)           │
+│  SMS Provider (verification codes)                  │
+│  Cloudflare KV (session tokens, no passwords)       │
+│  Web Search API (plugin system to fetch sources)    │
+│                                                     │
+└─────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -266,24 +311,91 @@ Response:
 }
 ```
 
-### Backend → Stripe: Create Charge
+### Frontend Auth: PIN-Based Login
 
-```
-POST https://api.stripe.com/v1/payment_intents
-
+```json
+POST /api/auth/register
 {
-  "amount": 50000, // $500 in cents
-  "currency": "usd",
-  "customer": "stripe_customer_id",
-  "description": "Thinking Foundry Discovery Session"
+  "email": "user@example.com",
+  "pin": "123456"
 }
 
 Response:
 {
-  "status": "succeeded",
-  "id": "pi_..."
+  "session_token": "ephemeral_token",
+  "sms_required": true
 }
+
+POST /api/auth/verify-sms
+{
+  "session_token": "ephemeral_token",
+  "sms_code": "1234"
+}
+
+Response:
+{
+  "auth_token": "long_lived_token",
+  "drive_folder_url": "https://drive.google.com/drive/folders/..."
+}
+
+// On return visit: Just PIN + SMS (no email)
+POST /api/auth/login
+{
+  "pin": "123456"
+}
+// → Same response as verify-sms
 ```
+
+---
+
+## Plugin System (Satellite Services)
+
+**How It Works:**
+
+During each phase, the system analyzes the user's problem statement and dynamically pulls relevant frameworks/services.
+
+```typescript
+// Phase 2 (SCOUT) example:
+User says: "I'm struggling with marketing my AI product to enterprises"
+
+PluginSystem triggers:
+1. Extract keywords: ["marketing", "AI product", "enterprises"]
+2. Identify domain: B2B SaaS marketing
+3. Fetch relevant sources:
+   - Paul Graham essays on startups
+   - Recent articles on enterprise sales
+   - Case studies from similar products
+   - Nate B. Jones on messaging
+   - GTM frameworks (Reforge, Lenny Rachitsky)
+4. Inject into AI prompt:
+   "Here are 7 directions we could explore:
+    1. ... (reference: Paul Graham on distribution)
+    2. ... (reference: Enterprise GTM framework)
+    3. ... (reference: Recent case study from similar product)"
+```
+
+**Available Satellite Services:**
+
+| Domain | Services | Source |
+|--------|----------|--------|
+| **Strategy** | Paul Graham, Naval, Y Combinator | Web search + cached knowledge |
+| **Business** | Nate B. Jones, First Principles | Web search |
+| **Product** | Lenny Rachitsky, Reforge, IDEO | Web search + base knowledge |
+| **Marketing** | Case studies, GTM frameworks | Web search |
+| **Technical** | Architecture patterns, tools | Web search |
+| **Leadership** | Stoic philosophy, delegation | Base knowledge |
+
+**Base Knowledge (Always Available):**
+- Stoicism (foundation for all thinking)
+- IDEO methodology (design thinking)
+- McKinsey methodology (business thinking)
+- The 8-phase Foundry pipeline (structure)
+- First principles thinking (how to break down problems)
+
+**Dynamic Plugins:**
+- Pull any framework/source based on user's problem
+- No need to pre-define all possibilities
+- System adapts as new domains emerge
 
 ---
 
@@ -504,15 +616,21 @@ Ready to share? I'll give you the link."
 ## Testing Checklist (Pre-Launch)
 
 ### Functional Tests
+- [ ] Email + PIN creation works
+- [ ] SMS verification works
+- [ ] PIN login on return visit (no email needed)
 - [ ] Audio capture works (desktop + mobile)
 - [ ] Real-time transcription displays correctly
 - [ ] All 8 phases execute (take manual session)
 - [ ] Interruption works (cut off AI mid-sentence)
-- [ ] GitHub issue created with full transcript
+- [ ] GitHub issue created with full transcript + phase tags
+- [ ] Google Drive folder created with phase subfolders
+- [ ] Google Docs created for each phase
 - [ ] Issue links to previous session (follow-up)
-- [ ] Payment processing (Stripe)
-- [ ] User can download transcript
+- [ ] User can access Drive folder and open any phase
 - [ ] Session data persists (disconnect/reconnect)
+- [ ] Plugin system fetches relevant frameworks (SCOUT phase)
+- [ ] Plugin results appear in AI prompts
 
 ### Performance Tests
 - [ ] Latency <500ms (first response)
@@ -541,38 +659,48 @@ Ready to share? I'll give you the link."
 
 | Metric | Target | How to Measure |
 |--------|--------|----------------|
+| **Auth Success** | 100% | PIN creation → SMS verification → login works |
 | **Completion Rate** | 90%+ | Sessions that finish without error |
 | **User Clarity** | 8+/10 avg | Post-session survey |
 | **Session Duration** | 60-120 min | WebSocket duration |
 | **GitHub Issues Created** | 100% | Sessions → Issues (no failures) |
+| **Google Drive Organization** | 100% | Folders created, Docs per phase |
+| **Plugin System Working** | 80%+ | Frameworks fetched for relevant domains |
 | **Latency (AI Response)** | <500ms | WebSocket message timestamps |
 | **Interruption Success** | 100% | Works every time user tries |
+| **Mobile Usability** | 90%+ | Easy to use on phone (not just desktop) |
 
 ---
 
 ## Deployment Plan
 
 ### Week 1: Setup & Testing
-- [ ] Gemini Live API account + credentials
-- [ ] GitHub OAuth app setup
-- [ ] Stripe account + test mode
+- [ ] Gemini Live API account (Google Ultra account configured)
+- [ ] GitHub project + API token (for issue creation)
+- [ ] Google Cloud project + Drive API (for user folders)
+- [ ] SMS provider account (Twilio or similar for verification)
 - [ ] Cloudflare Workers project
 - [ ] Local development environment
+- [ ] Web search API (for plugin system)
 
 ### Week 2: Core Build
-- [ ] Frontend: React scaffold + audio capture
-- [ ] WebSocket server (Cloudflare)
-- [ ] Gemini Live integration
+- [ ] Frontend: React scaffold (Vercel)
+- [ ] PIN auth system (email → PIN → SMS)
+- [ ] Audio capture + Gemini Live integration
 - [ ] Real-time transcription display
-- [ ] Phase transitions
+- [ ] Phase transitions + plugin system skeleton
+- [ ] Google Drive folder creation + permissions
+- [ ] WebSocket server (Cloudflare Workers)
 
 ### Week 3: Integration & Launch
-- [ ] GitHub OAuth login
-- [ ] Issue export to GitHub
-- [ ] Stripe payment integration
+- [ ] GitHub issue export (by phase, with tags)
+- [ ] Google Drive folder organization (subfolders per phase)
+- [ ] Google Docs creation for each phase
+- [ ] Plugin system completion (fetch frameworks for SCOUT)
 - [ ] E2E testing with real sessions
-- [ ] Deploy to production (Vercel + Cloudflare)
-- [ ] Monitoring + error tracking
+- [ ] Deploy to production (Vercel frontend + Cloudflare backend)
+- [ ] Monitoring + error tracking (Sentry)
+- [ ] Go/No-Go decision
 
 ### Launch Checklist
 - [ ] All FSD requirements met
