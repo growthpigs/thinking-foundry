@@ -24,14 +24,14 @@ let transcript = [];
 // ─── Phase metadata ───
 
 const PHASES = {
-  0: { name: 'User Stories', desc: 'Capture the raw problem' },
-  1: { name: 'MINE', desc: 'Deep listening, 5 Whys, challenge assumptions' },
-  2: { name: 'SCOUT', desc: 'Generate 7-10 possibilities' },
-  3: { name: 'ASSAY', desc: 'Filter to your constraints' },
-  4: { name: 'CRUCIBLE', desc: 'Stress-test remaining paths' },
-  5: { name: 'AUDITOR', desc: 'Quality check, confidence score' },
-  6: { name: 'PLAN', desc: 'Clear specific answers' },
-  7: { name: 'VERIFY', desc: 'Summarize and export' }
+  0: { name: 'User Stories', desc: 'What do you WANT? Define success, constraints, and acceptance criteria — you are the user of your own product.' },
+  1: { name: 'MINE', desc: 'Going deeper. What\'s the REAL problem underneath what you just described? 5 Whys until we hit bedrock.' },
+  2: { name: 'SCOUT', desc: 'Exploring the possibility space. Every option on the table — conventional, unconventional, adjacent.' },
+  3: { name: 'ASSAY', desc: 'Filtering signal from noise. Which options actually fit YOUR constraints, values, and timeline?' },
+  4: { name: 'CRUCIBLE', desc: 'Stress-testing. What breaks? What survives? War-gaming the top paths against reality.' },
+  5: { name: 'AUDITOR', desc: 'Quality check. Are we confident? Any blind spots? Logical gaps? Rating our thinking.' },
+  6: { name: 'PLAN', desc: 'Concrete answers. Here\'s what you do, here\'s why, here\'s the first step tomorrow morning.' },
+  7: { name: 'VERIFY', desc: 'Documenting everything. Full session captured, exported, ready to act on.' }
 };
 
 // ─── DOM Elements ───

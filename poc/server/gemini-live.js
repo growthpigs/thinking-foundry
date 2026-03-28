@@ -107,10 +107,9 @@ class GeminiLiveManager {
       setup: {
         model: 'models/gemini-3.1-flash-live-preview',
         generationConfig: {
-          // NOTE: Gemini Live API may not support AUDIO + TEXT together.
-          // If the API rejects this, revert to ['AUDIO'] only and implement
-          // a separate transcription pipeline (e.g., Whisper or Google STT).
-          responseModalities: ['AUDIO', 'TEXT'],
+          // Gemini Live only supports single modality. AUDIO for voice sessions.
+          // Transcript comes from a separate pipeline (future: Google STT).
+          responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
