@@ -327,6 +327,53 @@ header h1 {
   color: var(--text-muted);
 }
 
+/* ─── Pause Button ─── */
+.btn-pause {
+  background: var(--surface-hover);
+  color: var(--text);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.btn-pause:hover {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.btn-pause.paused {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.btn-pause.paused .pause-icon {
+  background: var(--success);
+  animation: none;
+}
+
+.pause-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: pulse-recording 1.5s ease-in-out infinite;
+}
+
+.btn-pause.paused .pause-icon {
+  border-radius: 2px;
+  width: 10px;
+  height: 10px;
+  animation: none;
+}
+
+@keyframes pulse-recording {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
 /* ─── Recording indicator ─── */
 .recording-indicator {
   display: inline-block;

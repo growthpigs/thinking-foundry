@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "knowledge": [
+    {
+      "id": "stoicism",
+      "name": "Stoic Decision-Making",
+      "type": "framework",
+      "path": "frameworks/stoicism.md",
+      "description": "Focus on what you can control, negative visualization, premeditatio malorum, amor fati. The emotional and psychological foundation for clear thinking.",
+      "phases": [0, 1, 3, 4, 5, 6, 7],
+      "tags": ["decision-making", "psychology", "emotional-clarity", "fear", "control", "resilience", "priorities"]
+    },
+    {
+      "id": "ideo",
+      "name": "IDEO Design Thinking",
+      "type": "framework",
+      "path": "frameworks/ideo.md",
+      "description": "Human-centered problem solving: empathize, define, ideate, prototype, test. Keeps solutions grounded in real human needs.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["design-thinking", "user-centered", "empathy", "ideation", "prototyping", "testing", "innovation"]
+    },
+    {
+      "id": "mckinsey",
+      "name": "McKinsey Problem Solving",
+      "type": "framework",
+      "path": "frameworks/mckinsey.md",
+      "description": "MECE decomposition, issue trees, hypothesis-driven thinking, pyramid principle. The analytical backbone for structured problem solving.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["analytical", "structured", "mece", "hypothesis", "issue-trees", "strategy", "consulting"]
+    },
+    {
+      "id": "yc",
+      "name": "Y Combinator Startup Thinking",
+      "type": "framework",
+      "path": "frameworks/yc.md",
+      "description": "Talk to users, launch fast, measure growth, find product-market fit. Urgency and intellectual honesty for startup decisions.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["startup", "users", "growth", "pmf", "launch", "mvp", "validation"]
+    },
+    {
+      "id": "lean",
+      "name": "Lean Methodology",
+      "type": "framework",
+      "path": "frameworks/lean.md",
+      "description": "Build-measure-learn loops, MVP thinking, validated learning, pivot-or-persevere decisions. Converts plans into experiments.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["lean", "mvp", "experimentation", "validation", "build-measure-learn", "pivot", "waste"]
+    },
+    {
+      "id": "hormozi",
+      "name": "Alex Hormozi Frameworks",
+      "type": "mentor",
+      "path": "mentors/hormozi.md",
+      "description": "$100M Offers value equation, Grand Slam Offers, lead generation, CLOSER framework. Revenue-focused, offer-driven thinking.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["offers", "pricing", "value", "revenue", "sales", "leads", "monetization", "business"]
+    },
+    {
+      "id": "nate-b-jones",
+      "name": "Nate B. Jones Thinking Frameworks",
+      "type": "mentor",
+      "path": "mentors/nate-b-jones.md",
+      "description": "Mental models, inversion, decision quality framework, compounding, leverage. Upgrades the quality of the thinking process itself.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["mental-models", "inversion", "decisions", "compounding", "leverage", "first-principles", "cognitive"]
+    },
+    {
+      "id": "indydev-dan",
+      "name": "IndyDev Dan AI Development",
+      "type": "mentor",
+      "path": "mentors/indydev-dan.md",
+      "description": "Blueprint pattern, learning systems, prompt architecture, stress testing, context management. Making AI-assisted work reliable.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["ai", "development", "prompts", "learning-system", "quality", "verification", "agents"]
+    }
+  ],
+  "phaseNames": {
+    "0": "user-stories",
+    "1": "mine",
+    "2": "scout",
+    "3": "assay",
+    "4": "crucible",
+    "5": "auditor",
+    "6": "plan",
+    "7": "verify"
+  }
+}

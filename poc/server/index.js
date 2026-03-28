@@ -8,6 +8,7 @@ const { SessionState } = require('./session-state');
 const { ContextManager } = require('./context-manager');
 const { exportToGitHub } = require('./github-export');
 const { DriveManager } = require('./drive-manager');
+const { ContextLoader } = require('../context/loader');
 
 const app = express();
 const server = http.createServer(app);
@@ -48,6 +49,7 @@ wss.on('connection', (clientWs) => {
 
   const session = new SessionState();
   const context = new ContextManager();
+  const knowledgeLoader = new ContextLoader();
   let gemini = null;
 
   const sendToClient = (type, data) => {
@@ -57,10 +59,17 @@ wss.on('connection', (clientWs) => {
   };
 
   const startGemini = async () => {
+    // Load knowledge context for current phase
+    const knowledgeContext = await knowledgeLoader.load({
+      phase: session.currentPhase,
+      fullContent: false
+    });
+
     gemini = new GeminiLiveManager({
       apiKey: process.env.GEMINI_API_KEY,
       phase: session.currentPhase,
       contextSummary: context.getCondensedContext(),
+      knowledgeContext,
 
       onTranscript: (role, text) => {
         context.addUtterance(role, text);
@@ -123,6 +132,12 @@ wss.on('connection', (clientWs) => {
         console.log(`[WS] Phase change: ${session.currentPhase} → ${newPhase}`);
         session.setPhase(newPhase);
         if (gemini) {
+          // Reload knowledge context for new phase
+          const phaseKnowledge = await knowledgeLoader.load({
+            phase: newPhase,
+            fullContent: false
+          });
+          gemini.knowledgeContext = phaseKnowledge;
           await gemini.forceReconnect(newPhase, context.getCondensedContext());
         }
         sendToClient('phase', { phase: newPhase });

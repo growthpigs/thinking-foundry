@@ -27,6 +27,7 @@ class GeminiLiveManager {
     this.apiKey = opts.apiKey;
     this.phase = opts.phase || 0;
     this.contextSummary = opts.contextSummary || '';
+    this.knowledgeContext = opts.knowledgeContext || '';
 
     // Callbacks
     this.onTranscript = opts.onTranscript || (() => {});
@@ -57,6 +58,12 @@ class GeminiLiveManager {
     } catch {
       console.warn(`[GEMINI] No prompt file for phase ${phase}, using default`);
       prompt = 'You are a thoughtful co-founder helping someone think through a problem. Ask probing questions. Keep responses to 2-3 sentences plus a question.';
+    }
+
+    // Prepend knowledge context if available
+    if (this.knowledgeContext) {
+      prompt = `${this.knowledgeContext}\n\n--- PHASE INSTRUCTIONS ---\n${prompt}`;
+      console.log(`[GEMINI] Injected ${this.knowledgeContext.length} chars of knowledge context`);
     }
 
     if (contextSummary) {
@@ -100,7 +107,10 @@ class GeminiLiveManager {
       setup: {
         model: 'models/gemini-3.1-flash-live-preview',
         generationConfig: {
-          responseModalities: ['AUDIO'],
+          // NOTE: Gemini Live API may not support AUDIO + TEXT together.
+          // If the API rejects this, revert to ['AUDIO'] only and implement
+          // a separate transcription pipeline (e.g., Whisper or Google STT).
+          responseModalities: ['AUDIO', 'TEXT'],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {

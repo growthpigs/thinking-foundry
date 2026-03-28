@@ -14,6 +14,7 @@ let mediaStream = null;
 let audioContext = null;
 let scriptProcessor = null;
 let isRecording = false;
+let isPaused = false;
 let currentPhase = 0;
 let reconnectCount = 0;
 let connectionStartTime = null;
@@ -45,6 +46,8 @@ const $reconnCount = document.getElementById('reconnect-count');
 const $btnStart = document.getElementById('btn-start');
 const $btnStop = document.getElementById('btn-stop');
 const $btnNextPhase = document.getElementById('btn-next-phase');
+const $btnPause = document.getElementById('btn-pause');
+const $pauseLabel = document.getElementById('pause-label');
 const $btnExport = document.getElementById('btn-export');
 const $btnDebug = document.getElementById('btn-debug');
 const $exportModal = document.getElementById('export-modal');
@@ -86,7 +89,7 @@ async function startAudioCapture() {
     scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
 
     scriptProcessor.onaudioprocess = (event) => {
-      if (!isRecording || !ws || ws.readyState !== WebSocket.OPEN) return;
+      if (!isRecording || isPaused || !ws || ws.readyState !== WebSocket.OPEN) return;
 
       const float32 = event.inputBuffer.getChannelData(0);
 
@@ -176,6 +179,8 @@ let isPlaying = false;
  * Play received audio from Gemini (24kHz PCM, base64 encoded)
  */
 function playAudio(base64Data) {
+  // When paused, discard incoming audio
+  if (isPaused) return;
   playbackQueue.push(base64Data);
   if (!isPlaying) {
     processPlaybackQueue();
@@ -371,6 +376,7 @@ function startTimer() {
 $btnStart.addEventListener('click', async () => {
   $btnStart.classList.add('hidden');
   $btnStop.classList.remove('hidden');
+  $btnPause.classList.remove('hidden');
   $btnNextPhase.classList.remove('hidden');
   $btnExport.classList.remove('hidden');
 
@@ -392,10 +398,30 @@ $btnStop.addEventListener('click', () => {
   }
   stopAudioCapture();
   clearInterval(timerInterval);
+  isPaused = false;
 
   $btnStart.classList.remove('hidden');
   $btnStop.classList.add('hidden');
+  $btnPause.classList.add('hidden');
+  $btnPause.classList.remove('paused');
+  $pauseLabel.textContent = 'Pause';
   addSystemMessage('Session stopped.');
+});
+
+$btnPause.addEventListener('click', () => {
+  isPaused = !isPaused;
+
+  if (isPaused) {
+    $btnPause.classList.add('paused');
+    $pauseLabel.textContent = 'Resume';
+    // Clear any queued audio playback
+    playbackQueue = [];
+    addSystemMessage('Session paused. Audio muted.');
+  } else {
+    $btnPause.classList.remove('paused');
+    $pauseLabel.textContent = 'Pause';
+    addSystemMessage('Session resumed.');
+  }
 });
 
 $btnNextPhase.addEventListener('click', () => {
