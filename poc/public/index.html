@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>The Thinking Foundry</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header>
+      <h1>The Thinking Foundry</h1>
+      <div id="connection-status" class="status disconnected">Disconnected</div>
+    </header>
+
+    <!-- Phase Indicator -->
+    <nav id="phase-nav">
+      <button class="phase-btn active" data-phase="0">0</button>
+      <button class="phase-btn" data-phase="1">1</button>
+      <button class="phase-btn" data-phase="2">2</button>
+      <button class="phase-btn" data-phase="3">3</button>
+      <button class="phase-btn" data-phase="4">4</button>
+      <button class="phase-btn" data-phase="5">5</button>
+      <button class="phase-btn" data-phase="6">6</button>
+      <button class="phase-btn" data-phase="7">7</button>
+    </nav>
+
+    <div id="phase-info">
+      <span id="phase-name">Phase 0: User Stories</span>
+      <span id="phase-desc">Capture the raw problem</span>
+    </div>
+
+    <!-- Transcript -->
+    <main id="transcript">
+      <div class="system-msg">Press Start to begin your session. Speak naturally — the AI will lead the conversation.</div>
+    </main>
+
+    <!-- Debug Panel (reconnection info) -->
+    <div id="debug-panel" class="hidden">
+      <div id="reconnect-info">
+        <span id="connection-timer">00:00</span>
+        <span id="reconnect-count">Reconnections: 0</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <footer id="controls">
+      <button id="btn-start" class="btn btn-primary">Start Session</button>
+      <button id="btn-stop" class="btn btn-danger hidden">Stop</button>
+      <button id="btn-next-phase" class="btn btn-secondary hidden">Next Phase →</button>
+      <button id="btn-export" class="btn btn-secondary hidden">Export</button>
+      <button id="btn-debug" class="btn btn-ghost">Debug</button>
+    </footer>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="export-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Export Session</h2>
+      <label>
+        Session Name:
+        <input type="text" id="export-name" placeholder="My Thinking Session">
+      </label>
+      <label>
+        Email (for Drive sharing):
+        <input type="email" id="export-email" placeholder="you@example.com">
+      </label>
+      <div class="modal-actions">
+        <button id="btn-export-github" class="btn btn-primary">Export to GitHub</button>
+        <button id="btn-export-drive" class="btn btn-secondary">Export to Drive</button>
+        <button id="btn-export-cancel" class="btn btn-ghost">Cancel</button>
+      </div>
+      <div id="export-status"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
