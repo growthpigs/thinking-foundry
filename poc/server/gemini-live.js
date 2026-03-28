@@ -20,7 +20,7 @@ const RECONNECT_PREPARE_MS = 13 * 60 * 1000;   // 13:00 — start preparing new 
 const RECONNECT_SETUP_MS = 13.5 * 60 * 1000;   // 13:30 — send setup to new connection
 const RECONNECT_SWAP_MS = 14 * 60 * 1000;       // 14:00 — swap to new connection
 
-const GEMINI_WS_URL = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
+const GEMINI_WS_URL = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
 
 class GeminiLiveManager {
   constructor(opts) {
@@ -98,9 +98,9 @@ class GeminiLiveManager {
 
     const setupMessage = {
       setup: {
-        model: 'models/gemini-2.0-flash-live-001',
+        model: 'models/gemini-3.1-flash-live-preview',
         generationConfig: {
-          responseModalities: ['AUDIO', 'TEXT'],
+          responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
@@ -370,10 +370,10 @@ class GeminiLiveManager {
 
     const msg = {
       realtimeInput: {
-        mediaChunks: [{
-          mimeType: 'audio/pcm;rate=16000',
-          data: Buffer.from(audioBuffer).toString('base64')
-        }]
+        audio: {
+          data: Buffer.from(audioBuffer).toString('base64'),
+          mimeType: 'audio/pcm;rate=16000'
+        }
       }
     };
     this.activeWs.send(JSON.stringify(msg));
@@ -387,10 +387,10 @@ class GeminiLiveManager {
 
     const msg = {
       realtimeInput: {
-        mediaChunks: [{
-          mimeType: 'audio/pcm;rate=16000',
-          data: base64Data
-        }]
+        audio: {
+          data: base64Data,
+          mimeType: 'audio/pcm;rate=16000'
+        }
       }
     };
     this.activeWs.send(JSON.stringify(msg));
