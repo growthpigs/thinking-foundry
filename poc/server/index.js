@@ -213,22 +213,35 @@ wss.on('connection', (clientWs) => {
 
     switch (msg.type) {
       case 'session-setup':
-        // New setup flow: fetch external context, then start Gemini
+        // New setup flow: fetch external context + uploaded docs, then start Gemini
         console.log('[WS] Session setup received:', {
           github: msg.github || '(none)',
-          drive: msg.drive || '(none)',
+          documents: msg.documents ? `${msg.documents.length} files` : '(none)',
           frameworks: msg.frameworks || []
         });
 
         try {
           const external = await fetchExternalContext({
             github: msg.github,
-            drive: msg.drive,
+            drive: null,
             frameworks: msg.frameworks
           });
           sessionGithubContext = external.githubContext;
-          sessionDriveContext = external.driveContext;
           sessionFrameworks = external.frameworks;
+
+          // Handle uploaded documents as additional context
+          if (msg.documents && msg.documents.length > 0) {
+            const docSections = ['--- Uploaded Documents ---'];
+            for (const doc of msg.documents) {
+              const truncated = doc.content.length > 5000
+                ? doc.content.substring(0, 5000) + '\n...[truncated]'
+                : doc.content;
+              docSections.push(`\n--- ${doc.name} ---`);
+              docSections.push(truncated);
+            }
+            sessionDriveContext = docSections.join('\n');
+            console.log(`[SETUP] Document context: ${sessionDriveContext.length} chars from ${msg.documents.length} files`);
+          }
         } catch (err) {
           console.warn('[SETUP] External context fetch error (continuing):', err.message);
         }

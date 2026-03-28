@@ -41,7 +41,40 @@ const $setupScreen = document.getElementById('setup-screen');
 const $sessionScreen = document.getElementById('session-screen');
 const $btnBegin = document.getElementById('btn-begin');
 const $setupGithub = document.getElementById('setup-github');
-const $setupDrive = document.getElementById('setup-drive');
+const $setupFiles = document.getElementById('setup-files');
+const $fileList = document.getElementById('file-list');
+
+// File upload state
+let uploadedFileContents = [];
+
+$setupFiles.addEventListener('change', async () => {
+  uploadedFileContents = [];
+  $fileList.innerHTML = '';
+  for (const file of $setupFiles.files) {
+    const text = await readFileAsText(file);
+    if (text) {
+      uploadedFileContents.push({ name: file.name, content: text });
+      const tag = document.createElement('div');
+      tag.className = 'file-tag';
+      tag.textContent = file.name;
+      $fileList.appendChild(tag);
+    }
+  }
+});
+
+async function readFileAsText(file) {
+  return new Promise((resolve) => {
+    if (file.name.endsWith('.pdf')) {
+      // PDF: read as base64, server will handle extraction (or skip for now)
+      resolve(`[PDF: ${file.name} — ${(file.size / 1024).toFixed(0)}KB]`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsText(file);
+  });
+}
 
 // Session screen
 const $status = document.getElementById('connection-status');
@@ -66,7 +99,7 @@ const $exportStatus = document.getElementById('export-status');
 function getSetupConfig() {
   return {
     github: $setupGithub.value.trim() || null,
-    drive: $setupDrive.value.trim() || null,
+    documents: uploadedFileContents,
     frameworks: ['stoicism', 'ideo', 'mckinsey', 'yc', 'lean', 'hormozi', 'nate-b-jones', 'indydev-dan']
   };
 }

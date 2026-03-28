@@ -23,10 +23,11 @@
         </label>
         <input type="url" id="setup-github" class="setup-input" placeholder="https://github.com/owner/repo">
 
-        <label class="setup-label" for="setup-drive">
-          Google Drive link <span class="setup-label-hint">(optional)</span>
+        <label class="setup-label" for="setup-files">
+          Upload documents <span class="setup-label-hint">(PDF, TXT, MD — optional)</span>
         </label>
-        <input type="url" id="setup-drive" class="setup-input" placeholder="https://drive.google.com/...">
+        <input type="file" id="setup-files" class="setup-input-file" multiple accept=".pdf,.txt,.md,.doc,.docx">
+        <div id="file-list" class="file-list"></div>
       </div>
 
       <button id="btn-begin" class="btn btn-primary btn-begin">Start Session</button>

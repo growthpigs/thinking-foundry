@@ -528,3 +528,37 @@ header h1 {
   margin-right: 6px;
   animation: pulse 1s ease-in-out infinite;
 }
+
+/* ─── File Upload ─── */
+.setup-input-file {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 2px dashed var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.setup-input-file:hover {
+  border-color: var(--accent);
+}
+
+.file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.file-tag {
+  background: rgba(249, 115, 22, 0.15);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
