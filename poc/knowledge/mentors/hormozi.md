@@ -314,6 +314,212 @@ Hormozi's frameworks are the **revenue and offer engine** of a business.
 
 ---
 
+### 7. Warm Affiliate & Referral Architecture ($100M Leads Expansion)
+
+**Why warm channels matter:** Cold outreach scales, but warm channels are your moat. A referral customer costs 1/10th the CAC and has 3x the lifetime value.
+
+**The Warm Channel Blueprint:**
+
+**Layer 1: Your Customer Referral Loop**
+```
+Deliver remarkable results
+  ↓
+Ask: "Who else struggles like you did?"
+  ↓
+Incentivize: $500 finder fee per referral (affiliate model)
+  ↓
+Track: Each referral → Commission tracking system
+  ↓
+Repeat: Best customers = your sales team
+```
+
+Example economics: Customer LTV = $3,000 | Referral commission = $500 | Net gain = $2,500 per referral customer
+
+**Why this works:** Your happiest customers already know people like them. The referral is pre-endorsed.
+
+**Layer 2: Strategic Partner Affiliates**
+Identify businesses that serve YOUR exact customer but don't compete:
+- Email list: To businesses with parallel offers but no overlap
+- Joint webinar: Co-present value with partner
+- Affiliate dashboard: Partner can see commissions live
+- Recurring commission: If they sell annuals, commission every year (not just year 1)
+
+Example: If you sell "sales training for SaaS" → partner with "SaaS business accounting software" (complementary, same customer)
+
+**Layer 3: Cold Affiliate Recruitment**
+Once warm affiliates are working:
+- Pay them 10-20% commission (transparent, above-market)
+- Provide: Landing page, email sequences, one-sheet, testimonials
+- Track performance: Who drives most qualified customers?
+- Double down: Offer exclusive territory + higher commission to top performers
+
+**The Affiliate Funnel Mindset:**
+Most founders think: "Build product → Sell it"
+Hormozi thinks: "Build product → Make it so good customers refer → Pay referrers → Repeat"
+
+**Red flag:** If you can't afford 10% commission and still be profitable, your unit economics are broken.
+
+---
+
+### 8. Acquisition Offer vs Monetization Offer (Critical Distinction)
+
+**The Problem:** Most founders use ONE offer to do TWO different jobs (acquire customers + make money). This breaks both.
+
+**Acquisition Offer (Job: Get them in the door)**
+- Low price or free
+- Objective: Volume, social proof, list building
+- Example: Free tier of SaaS, lead magnet PDF, free trial
+- Questions: "Can I get 100+ of these?" "Will they know I exist?"
+- Success metric: How many people said yes?
+
+**Monetization Offer (Job: Make money from existing customers)**
+- Premium price
+- Objective: Profit margin, predictable revenue
+- Example: $300/month paid tier, $5k/month consulting upsell
+- Questions: "Can I charge 10x more?" "Will they perceive this as high-value?"
+- Success metric: How much money did we make?
+
+**The Mistake:** Using acquisition pricing on monetization offer = leaving $100k on the table
+
+Example timeline:
+```
+Month 1: Free tier acquisition (1,000 signups @ $0)
+Month 2-3: Build trust with free tier users
+Month 4: Launch $300/month tier (only 50 convert, but profit > month 1 revenue)
+Month 12: Paying tier = primary revenue, free tier = customer acquisition machine
+```
+
+**How Hormozi applies this:**
+- Acquisition: "Join my free workshop" → Build email list
+- Monetization: "Join my $5k/month mastermind" → Serve serious customers only
+- Same person, different offers for different stages
+
+**When you have two offers:**
+- Acquisition naturally flows into monetization
+- You can measure: What % convert from free → paid? (target: 5-20%)
+- Pricing is no longer a debate (free for acquisition, premium for money)
+
+---
+
+### 9. Content-as-Lead-Gen Framework
+
+**The insight:** Content is not a marketing expense. Content IS your sales funnel.
+
+**Three Content Tiers (Hook → Retain → Reward):**
+
+**Tier 1: Hook Content** (Free, viral, attention)
+- YouTube shorts, TikToks, Twitter threads, Instagram reels
+- Give away your BEST idea in 60 seconds
+- Hook: "What if I told you [common belief is wrong]?"
+- Call-to-action: Link to longer form
+- Volume: 5-10 per week
+- Goal: Get people to notice you exist
+
+**Tier 2: Retain Content** (Free, substantial, depth)
+- YouTube long-form, blog posts, email sequences, podcasts
+- Go deeper on the problems your Hook content surfaced
+- 10-30 minute investment from viewer
+- Call-to-action: Join community or watch next video
+- Volume: 1-2 per week
+- Goal: Build an audience of people who understand your problem
+
+**Tier 3: Reward Content** (Paid, transformation, results)
+- Your actual offer (course, coaching, software, services)
+- Reward people who consumed 50+ pieces of Hook + Retain
+- Price: 100-1000x the free content investment
+- The path: Hook → Retain (50 pieces) → Reward (1 paid offer)
+- Goal: Convert attention into revenue
+
+**Content Velocity Rule (From $100M Leads):**
+- Don't judge what works after 10 pieces
+- Create 50 Hook pieces → See patterns in what gets traction
+- 50+ pieces = statistically valid signal
+
+**Why this works:**
+- Google Ads person: "I'll spend $100k on ads"
+- Content person: "I'll invest 2 hours/day in content, 6 months from now traffic is free forever"
+- 6-month timeline: Content person now has free customer acquisition machine
+
+**The Compounding Effect:**
+Month 1: 100 views on Hook content
+Month 2: 500 views (people sharing)
+Month 3: 2,000 views (YouTube algorithm picks up)
+Month 6: 10,000+ views (momentum)
+
+One piece of Hook content from Month 1 is still getting views in Month 12.
+
+**Application to Thinking Foundry:**
+Imagine Roderic creates Hook content around "Here's how I think about decisions" (60-90 sec clips). Retain: Full thinking sessions (30 min). Reward: Private 1-on-1 coaching on your decision ($5k/month).
+
+---
+
+### 10. Churn Reduction Framework (Gym Business Lessons)
+
+**Why it matters:** 1% per month churn at 100 customers = 37 customers left after 1 year. 2% churn = 12 customers left. Churn kills revenue.
+
+**Hormozi's gym churn discovery:**
+- Problem: 30% churn/month in fitness industry (typical)
+- Solution: Identify WHY people quit, fix each reason
+- Result: 5% churn/month at Gym Launch clients (6x improvement = revenue multiplier)
+
+**The Five Churn Reasons (In Priority Order):**
+
+**Reason 1: They Didn't See Results (Biggest)**
+- Person joins, expects transformation in 2 weeks, gets frustrated at week 3
+- Fix: Set expectations upfront ("Most see results in 4-6 weeks")
+- Fix: Deliver FAST early wins (even if small)
+- Fix: Measure progress visibly (track calories, weight, strength)
+- Example: First week of gym = easy wins + mobile app showing progress = feels productive
+
+**Reason 2: They Stopped Using It (Second Biggest)**
+- Gym: "I'll go Monday-Friday" → Skips week 1 → Never returns
+- SaaS: "I'll use this daily" → Tries once, forgets → Churn
+- Fix: Onboarding hook (first 3 days = critical)
+- Fix: Friction removal (make it stupidly easy to start)
+- Fix: Streak gamification (if you miss 1 day, bad; if you miss 2, you're out)
+- Example: Slack onboarding = loads first workspace, shows first message → you're committed
+
+**Reason 3: Cost Became Unbearable**
+- Gym: $99/month feels cheap until month 4, then "Why am I paying for this?"
+- Solve: Payment plan (smaller monthly payment feels different than annual)
+- Solve: Price perception anchor ("Therapist costs $200/hr, you pay $1.50/session")
+- Solve: Pause option (instead of cancel, pause 2 months = saves 50% of churned customers)
+
+**Reason 4: Feeling Stuck / Not Progressing**
+- Gym: Same routine for 3 months = no strength gains = bored
+- SaaS: Same features, same workflow = not improving their life
+- Fix: Refresh mechanism (new challenges, expanded features, progression path)
+- Fix: Coaching/support ("You're plateauing; let's try this new approach")
+- Fix: Community (other people at your level = motivation)
+
+**Reason 5: Switching to Competitor**
+- Usually symptom of #1-4 (didn't get results, too expensive, got bored)
+- Only address after fixing above
+- Retention > Acquisition (10x cheaper)
+
+**The Churn Audit (Do This Quarterly):**
+```
+Survey churned customers:
+"On a scale of 1-5, how happy were you? Why did you leave?"
+
+Group responses by reason:
+- 40% "Didn't see results" → Fix expectations + deliver faster wins
+- 30% "Too expensive" → Create payment plan or pause option
+- 20% "Forgot to use it" → Improve onboarding, add reminders
+- 10% "Found competitor" → Fix #1-3, that competitor isn't your real threat
+```
+
+**The Metric That Matters:**
+Not: "How many customers do we have?"
+But: "What % of customers are still here after 6 months?"
+
+Cohort retention at >70% at 6 months = sustainable business
+Cohort retention <50% at 6 months = you're leaking faster than adding
+
+**Quick calc:** 100 customers, 2% monthly churn = 22 customers lost in year 1. New customers better exceed 22/month or you shrink.
+
+---
+
 ## Sources & Maintenance
 
 **Primary Source:** Alex Hormozi YouTube (100+ videos on business, offers, pricing, leads, sales)
@@ -332,5 +538,5 @@ Hormozi's frameworks are the **revenue and offer engine** of a business.
 ---
 
 **Last Updated:** 2026-03-29
-**File Size:** ~1,740 lines
-**Confidence Level:** Encyclopedic (not directional summary)
+**File Size:** 542 lines
+**Confidence Level:** Encyclopedic (frameworks + patterns + churn/affiliate strategies)
