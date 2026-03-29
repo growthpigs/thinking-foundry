@@ -191,6 +191,11 @@ wss.on('connection', (clientWs) => {
         sendToClient('audio', { data: audioBase64 });
       },
 
+      onInterrupted: () => {
+        console.log('[GEMINI] Barge-in detected — clearing client playback');
+        sendToClient('interrupted', {});
+      },
+
       onReconnecting: () => {
         console.log('[GEMINI] Reconnection starting...');
         sendToClient('status', { state: 'reconnecting' });
