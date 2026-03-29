@@ -1,0 +1,1418 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generated": "2026-03-29T19:13:11.191Z",
+    "stats": {
+      "byFramework": {
+        "stoicism": 9,
+        "ideo": 11,
+        "mckinsey": 5,
+        "yc": 13,
+        "lean": 8,
+        "hormozi": 10,
+        "nate-b-jones": 11,
+        "indydev-dan": 11
+      },
+      "totalChunks": 78,
+      "totalWords": 20774,
+      "avgChunkSize": 266
+    }
+  },
+  "chunks": [
+    {
+      "id": "mckinsey-2-the-issue-tree-problem-decomposition",
+      "framework_id": "mckinsey",
+      "section": "2. The Issue Tree (Problem Decomposition)",
+      "content": "**What it is:** A hierarchical breakdown of a problem into its component parts, organized by logic.\n\n**The structure:**\n```\n                        KEY QUESTION\n                              |\n              ________________|________________\n             |                |                |\n          MAJOR LEVER      MAJOR LEVER    MAJOR LEVER\n             |                |                |\n      ______|______      _____|_____    _____|_____\n     |      |      |    |    |     |   |    |     |\n    SUB  SUB   SUB  SUB  SUB SUB  SUB  SUB  SUB SUB\n```\n\n**Why it works:** Forces you to be exhaustive (you can't forget a branch), logically consistent (each level is comparable), and focused (you can test each leaf independently).\n\n**Example: \"Why is customer retention low?\" (30% churn)**\n\n```\n                    Customer Churn (30%)\n                           |\n                ┌──────────┼──────────┐\n                |          |          |\n          Deactivated  Switched   Not Renewing\n          (10%)        (15%)      (5%)\n             |            |          |\n         ┌───┴───┐      ┌──┴──┐    ┌─┴─┐\n         |       |      |     |    |   |\n    Not    Can't  Product  Price  Lost  Inac-\n    using  access changed  too   inter-  tive\n    (6%)  (4%)   (8%)   high   est  segment\n                         (7%)  (8%) (5%)\n\nTesting hypotheses:\n- \"Product changed\" → analyze feature adoption, compare cohorts\n- \"Can't access\" → check for login failures, support tickets\n- \"Price too high\" → survey churn customers about pricing decision\n- \"Lost interest\" → analyze usage decline patterns\n```\n\n**The power of issue trees:**\n1. **Completeness:** You won't forget a piece\n2. **Testability:** Each leaf is a hypothesis you can test\n3. **Communication:** Shows your full thinking, not just conclusions\n4. **Prioritization:** Quickly identify which branches matter most\n\n---",
+      "words": 223,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "mckinsey/2. The Issue Tree (Problem Decomposition)"
+    },
+    {
+      "id": "hormozi-3-pricing-strategies-premium-vs-volume-vs-hybrid",
+      "framework_id": "hormozi",
+      "section": "3. Pricing Strategies (Premium vs Volume vs Hybrid)",
+      "content": "**Strategy A: Premium Positioning (High Price, Low Volume)**\n- Charge 3-10x market average\n- Unique, defensible advantage required\n- Customers measure ROI (B2B, consulting, high-stakes)\n- Example: $25k/month service vs $5k market average (10x better results)\n- Risk: Must deliver on premium promise, smaller market, targets for competition\n\n**Strategy B: Volume Positioning (Low Price, High Volume)**\n- Commodity product, price-sensitive market\n- Win on efficiency + automation\n- Example: Dropshipping $5 cost → $15 price → 10,000 units = $100k profit\n- Risk: Need scale to be profitable, vulnerable to price wars\n\n**Strategy C: Hybrid / Skimming (Premium Then Volume)**\n- Start premium (capture early adopters, build brand)\n- Lower price as competition enters\n- Example: iPhone launched at $599, now $200-1000 range\n- Requires capital to survive Phase 1, but builds \"premium\" brand equity\n\n**How to choose:**\n- Can I articulate a premium result clearly? → Premium strategy\n- Do customers measure ROI? → Premium strategy\n- Am I first to market + have capital? → Hybrid strategy\n- Commodity market + price-sensitive? → Volume strategy\n\n**Red flag:** Premium price + commodity results = brand death\n\n---",
+      "words": 188,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/3. Pricing Strategies (Premium vs Volume vs Hybrid)"
+    },
+    {
+      "id": "stoicism-the-7-founder-traps-stoic-perspective",
+      "framework_id": "stoicism",
+      "section": "The 7 Founder Traps (Stoic Perspective)",
+      "content": "| Trap | Stoic Insight | Counter-Action |\n|------|---------------|-----------------|\n| Perfectionism | You control effort, not perfection. Ship when excellent, not perfect. | Release the product at \"good enough + learning\" |\n| Catastrophizing | You control your judgment about what the problem means. Reframe. | \"What is this obstacle teaching me?\" |\n| Comparison | You control your effort. Someone else's success is not your failure. | Focus on your dichotomy of control. |\n| Decision paralysis | You control the decision-making process. You don't control the outcome. Decide and act. | Use premeditatio, gather info, decide, commit. |\n| Burnout | You control pace and values. You don't control market demand. Maintain rhythm. | Build sustainable habits, not hero schedules. |\n| Impostor syndrome | You control your preparation and effort. Self-doubt is not evidence of inadequacy. | Did you prepare? Yes? Then you're ready. |\n| Sunk cost fallacy | The past is not in your control. Only the next decision is. Release it. | What should I do NOW given what I know today? |",
+      "words": 179,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/The 7 Founder Traps (Stoic Perspective)"
+    },
+    {
+      "id": "stoicism-3-the-premeditatio-malorum-negative-visualization",
+      "framework_id": "stoicism",
+      "section": "3. The Premeditatio Malorum (Negative Visualization)",
+      "content": "**The Practice:** Deliberately imagine obstacles before they occur.\n\n**What it is:**\n- Before launching, imagine: What if nobody buys? What if we run out of capital? What if a competitor copies us?\n- Not to paralyze, but to **prepare**\n\n**Why it works:**\n- Removes shock when obstacles arrive (you already imagined them)\n- Forces you to build contingencies\n- Reduces panic (you've mentally rehearsed the response)\n\n**Typical founder blindspots:**\n- \"If we don't raise Series A, what happens?\" (founder panic, no contingency)\n- \"If our top customer leaves, can we survive?\" (founder caught off-guard)\n- \"If the market shifts, what's our pivot?\" (no backup plan)\n\n**The Stoic approach:**\n1. List worst-case scenarios (honest, not catastrophizing)\n2. For each: \"What would I do if this happened?\"\n3. Build those contingencies proactively\n4. Sleep better knowing you've mentally rehearsed\n\n**Example premeditatio for early SaaS:**\n- Scenario: \"We can't raise Series A\"\n- Stoic response: \"Then we cut burn to $X/month, focus on profitability, extend runway to 18 months, and bootstrap\"\n- Action now: Build lean habits, track unit economics, plan for that future\n\n**Integration with Hormozi:** Negative visualization + Value Stack = clear-eyed pricing and customer acquisition.\n\n---",
+      "words": 196,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/3. The Premeditatio Malorum (Negative Visualization)"
+    },
+    {
+      "id": "ideo-mistake-4-feedback-confirmation-not-challenge",
+      "framework_id": "ideo",
+      "section": "Mistake 4: Feedback Confirmation, Not Challenge",
+      "content": "- **Problem:** \"Users loved our demo!\" (They were being polite)\n- **IDEO solution:** Watch what they do, not what they say. Look for moments of confusion. Ask \"why?\" to everything. Expect them to be wrong about what they want.\n\n---\n\n## Integration With Other Frameworks\n\n| Framework | IDEO Complement | How They Work Together |\n|-----------|-----------------|------------------------|\n| **Hormozi** | User empathy feeds pricing | Understand user value. Price based on ACTUAL need. |\n| **McKinsey** | User insight feeds strategy | Understand what's possible. IDEO ensures it solves a real need. |\n| **Stoicism** | User empathy is virtue | Design with integrity: solve for the user's real need, not your assumption. |\n| **Lean** | IDEO → Lean → scale | Design thinking finds the right problem. Lean builds fast. |\n\n---\n\n## Example AI Prompts",
+      "words": 138,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/Mistake 4: Feedback Confirmation, Not Challenge"
+    },
+    {
+      "id": "ideo-phase-c-ideate-generate-possibilities",
+      "framework_id": "ideo",
+      "section": "Phase C: Ideate (Generate Possibilities)",
+      "content": "**Goal:** Generate MANY ideas without judgment, then cluster and evaluate.\n\n**The rules of ideation:**\n1. **Defer judgment** — say yes to wild ideas first, evaluate later\n2. **Encourage wild ideas** — constraints come later; creativity first\n3. **Build on others' ideas** — \"Yes, and...\" not \"No, but...\"\n4. **Stay focused on topic** — keep coming back to the problem statement\n5. **One conversation at a time** — listen deeply, don't multitask\n6. **Be visual** — sketch, don't just talk\n\n**Ideation techniques:**\n- **Brainstorm:** Rapid-fire ideas (30 min, no judgment)\n- **Bodystorm:** Act out scenarios (people role-play the user experience)\n- **Six thinking hats:** Different perspectives (optimist, pessimist, creative, logical, etc.)\n- **Worst possible idea:** Start with \"how to make this WORSE?\" then invert\n- **Attribute listing:** List attributes of the problem, swap them with random things, see what sticks\n\n**The output:** 50+ ideas (most will be bad; that's the point). Then cluster into themes and pick 3-5 to prototype.\n\n**Red flag:** If you only have 5-10 ideas, you didn't ideate enough. Go back.",
+      "words": 173,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/Phase C: Ideate (Generate Possibilities)"
+    },
+    {
+      "id": "stoicism-2-amor-fati-love-of-fate",
+      "framework_id": "stoicism",
+      "section": "2. Amor Fati (Love of Fate)",
+      "content": "**The Principle:** Not passive acceptance, but *active embrace* of what happens. Your obstacle IS the way.\n\n**What it is:**\n- Marcus Aurelius faced plague, war, assassinations, and family betrayal\n- His response: \"I needed to experience this to learn what I needed to learn\"\n- Not \"this is unfair\" but \"what is this obstacle teaching me?\"\n\n**What it is NOT:**\n- Fatalism (giving up)\n- Passivity (not fighting)\n- Delusion (pretending bad things are good)\n\n**In practice:**\n- Your first product failed? → That's the tuition you paid to understand the market\n- Your co-founder quit? → That's the information you needed to find your real co-founder\n- Market turned against you? → That's the stress test that either kills you or makes you stronger\n\n**Application in founding:**\n1. Something unexpected happens (market downturn, key hire leaves, product flops)\n2. First reaction: emotion (fear, anger, shame)\n3. Stoic pause: \"What is this obstacle for? What can I learn? How does this make me stronger?\"\n4. Action: Extract the learning, adjust, continue\n\n**Marcus Aurelius in a founder's situation:**\n> \"A blazing fire makes flame and brightness out of everything that is thrown into it.\" — Your problems are the fuel for growth, not evidence of failure.\n\n---",
+      "words": 206,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/2. Amor Fati (Love of Fate)"
+    },
+    {
+      "id": "yc-situation-10-luck-requires-preparation-part1",
+      "framework_id": "yc",
+      "section": "Situation 10: Luck Requires Preparation",
+      "content": "**The insight:** YC founder success looks like luck to outsiders. But Luck = Preparation × Timing × Obsession.\n\n**What looks like luck:**\n- \"They were in the right market at the right time\"\n- \"They found a technical co-founder right when they needed one\"\n- \"A customer gave them massive feedback that changed the product\"\n- \"An investor noticed them at the right moment\"\n\n**What actually happened (preparation):**\n- They studied multiple markets and were ready when one exploded\n- They BUILT the technical co-founder relationship by co-creating over months\n- They were obsessively talking to customers 10x more than competitors\n- They had a working product and clear metrics when they pitched\n\n**The formula (YC thinking):**\n\n```\nLuck happens = You prepared for it + You showed up in the right place + You executed when opportunity appeared\n\nLuck doesn't happen = You hoped things would work out + You tried once + You moved on after rejection\n```\n\n**Preparation signals:**\n- You've built 3 things before (failed twice, learned)\n- You know the customer deeply (not from guessing, from obsessive interviews)\n- You have a working prototype (not a pitch deck)\n- You can articulate your edge (why you specifically will win, not just \"the market is big\")\n\n**How to increase your luck:**\n1. **Study the market:** Know trends 6-12 months ahead. When something explodes, you're already thinking about it.\n2. **Build your network:** Not for fundraising, but for early feedback. Your strongest signal comes from trusted people, not from surveys.\n3. **Execute projects:** Each project teaches you something. Founders with 10 failed projects have 10x the edge of first-time founders.\n4. **Stay obsessed:** When you find a customer problem you care about, go deep. Most people stay shallow.\n5. **Be ready to move fast:** When opportunity appears (market timing, key hire available, customer wants to buy), can you move in 48 hours?\n\n**The luck paradox:** YC founder success isn't about getting lucky. It's about being so prepared that when luck appears, you're the only one ready to catch it.\n\n**Example timeline:**\n```\nYear 1: You spend 9 months learning a market (customers, problems, solutions)\nYear 2: You build a solution, talk to 50 customers, iterate\nYear 3: Market shifts, your prepared insight becomes urgent, adoption explodes\n  → Looks like luck (right time, right place)\n  → Actually: 2 years of preparation making you ready\n\nvs.\n\nYear 1: You have a vague idea, build for 3 months, launch\nYear 2: Market shifts, you're not ready to pivot, get left behind\n  → Looks like bad luck\n  → Actually: Not prepared enough\n```\n\n---\n\n## When to Apply (Updated Phase Mapping)",
+      "words": 440,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 10: Luck Requires Preparation"
+    },
+    {
+      "id": "mckinsey-5-logic-vs-data-kahneman-s-integration",
+      "framework_id": "mckinsey",
+      "section": "5. Logic vs. Data (Kahneman's Integration)",
+      "content": "**McKinsey principle (from behavioral economics):** Logic structures the thinking; data validates it.\n\n**The mistake:** Founders often skip the logic step and go straight to data. They collect lots of metrics but don't have a logical framework to interpret them.\n\n**The right way:**\n\n```\n1. LOGICAL STRUCTURE: What SHOULD happen if my hypothesis is true?\n   Example: \"If pricing is the issue, THEN we should see drop-offs at pricing page\"\n\n2. DATA VALIDATION: What ACTUALLY happens?\n   Example: \"Let's measure drop-off by page\"\n\n3. INTERPRETATION: Does data match logic?\n   Example: \"Yes, pricing page has 2x drop-off. Hypothesis confirmed.\"\n\n4. ACTION: What should we change?\n   Example: \"Rewrite pricing messaging\"\n\nWITHOUT LOGIC: You collect data (bounce rate: 45%, traffic: 10k/month, etc.) but can't interpret it\nWITH LOGIC: You know exactly what to measure and what it means\n```\n\n---\n\n## When NOT to Use McKinsey Thinking (Critical)\n\nMcKinsey excels at **structural analysis**. It fails at:\n- ❌ Ambiguous/emotional decisions (use Stoicism)\n- ❌ User needs (use IDEO)\n- ❌ Speed (McKinsey thinking takes time; startup decisions need speed)\n- ❌ Emergent problems (McKinsey assumes a rational system; chaotic systems need different thinking)\n\n**When to combine:** McKinsey (structure) + IDEO (empathy) = complete strategic thinking\n\n---\n\n## When to Apply (Phase by Phase)\n\n| Phase | McKinsey Application | Example |\n|-------|----------------------|---------|\n| **0 - User Stories** | MECE breakdown of customer segments | \"Who are ALL the types of customers? How do they differ?\" |\n| **1 - MINE** | Issue tree of the problem | \"What are all the reasons churn is high? Let's decompose.\" |\n| **2 - SCOUT** | Hypothesis testing on go-to-market approaches | \"If we target SMBs, what would success look like? What data would prove it?\" |\n| **3 - ASSAY** | 7S framework for pricing readiness | \"Is the org aligned on premium positioning? Or do we have structural misalignment?\" |\n| **4 - CRUCIBLE** | Stress-test the logic of your strategy | \"Is the logical structure sound? Have we covered all cases?\" |\n| **5 - AUDITOR** | Issue tree of customer acquisition channels | \"Break down why some channels work and others don't.\" |\n| **6 - PLAN** | Hypothesis-driven planning | \"What's our core hypothesis for growth? What would prove/disprove it?\" |\n| **7 - VERIFY** | Did we test the right hypotheses? | \"Did our plan rest on assumptions? Which ones were validated?\" |\n\n---\n\n## Example AI Prompts",
+      "words": 405,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "mckinsey/5. Logic vs. Data (Kahneman's Integration)"
+    },
+    {
+      "id": "hormozi-speed-of-implementation",
+      "framework_id": "hormozi",
+      "section": "Speed of Implementation",
+      "content": "#1 predictor of success: How fast you implement after learning, NOT how much you know.\n\nIn a Thinking Foundry session: Leave with ONE action you'll take today.\n\n---\n\n## When to Apply (Phase by Phase)\n\n| Phase | Hormozi Application | Example |\n|-------|---------------------|---------|\n| **0 - User Stories** | Dream outcome identification | \"What transformation does your customer want?\" |\n| **1 - MINE** | Value Equation analysis | \"Where is value leaking? What's your Value Stack?\" |\n| **2 - SCOUT** | Market selection + Grand Slam Offer | \"Massive pain? Purchasing power? Easy to target? Build offer stack.\" |\n| **3 - ASSAY** | Pricing strategy choice | \"Premium vs volume vs hybrid? Which fits THIS market?\" |\n| **4 - CRUCIBLE** | Pricing stress test + guarantee | \"Are you charging enough? Can you guarantee results?\" |\n| **5 - AUDITOR** | Lead generation audit | \"Which 4 channels are you using? Missing any?\" |\n| **6 - PLAN** | Scaling sequence | \"Warm > cold > content > paid. What order for your situation?\" |\n| **7 - VERIFY** | Unit economics validation | \"ARPU × Volume = Target? Do the numbers work?\" |\n\n---\n\n## Example AI Prompts (AI Can Say These Things)",
+      "words": 209,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/Speed of Implementation"
+    },
+    {
+      "id": "yc-situation-8-pmf-stress-test-checklist-how-to-know-you-have-it",
+      "framework_id": "yc",
+      "section": "Situation 8: PMF Stress-Test Checklist (How to Know You Have It)",
+      "content": "**Is your product-market fit real, or are you fooling yourself?**\n\n**The Checklist:**\n\n**Retention (Does it stick?)**\n- [ ] >30% of users active after 1 month (B2C benchmark)\n- [ ] >10% returning after 6 months (B2C)\n- [ ] Churn is stable and predictable (not shocking drops)\n- [ ] You can predict churn behavior by cohort\n\n**Growth (Does it spread?)**\n- [ ] Organic word-of-mouth (measured by referral source)\n- [ ] Growth compounds WITHOUT paid ads (natural viral loop)\n- [ ] Net Promoter Score (NPS) >50 (would users recommend?)\n- [ ] Users proactively invite others\n\n**Unit Economics (Does it make sense?)**\n- [ ] LTV (lifetime value) > 3x CAC (customer acquisition cost)\n- [ ] Contribution margin: >50% after COGS\n- [ ] Payback period: <12 months (for B2B SaaS, <6 months)\n\n**Product Demand (Do users actually want this?)**\n- [ ] Users would be upset if you shut down (qualitative)\n- [ ] Support requests are about features, not bugs (product fit, not quality)\n- [ ] Price increases don't crush conversion (demand is strong)\n\n**The Test:** If you can't check >80% of these boxes, you don't have PMF yet.\n\n**Red flags that look like PMF but aren't:**\n- ❌ High signup, low retention (awareness ≠ product fit)\n- ❌ Paid growth only (ads force adoption, not fit)\n- ❌ Founder enthusiasm (you're biased)\n- ❌ Investor interest (investors are wrong often)\n- ❌ Revenue growth without unit economics (unsustainable)\n\n---",
+      "words": 248,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 8: PMF Stress-Test Checklist (How to Know You Have It)"
+    },
+    {
+      "id": "ideo-3-empathy-mapping-goes-deeper-than-interviews",
+      "framework_id": "ideo",
+      "section": "3. Empathy Mapping (Goes Deeper Than Interviews)",
+      "content": "**The Tool:** A structured way to organize what you learned about a user.\n\n**The six sections:**\n\n```\n╔════════════════════════════════════════════╗\n║     WHO IS THE USER? (Demographics)        ║\n╠════════════════════════════════════════════╣\n║ SEES:               │ HEARS:               ║\n║ [Market, ads,      │ [What people say,    ║\n║ what's around      │ friend feedback,     ║\n║ them]              │ media messages]      ║\n├────────────────────┼────────────────────┤\n║ THINKS & FEELS:     │ SAYS & DOES:         ║\n║ [Worries, hopes,   │ [Behavior, public   ║\n║ aspirations]       │ statements]         ║\n├────────────────────┼────────────────────┤\n║ PAINS:              │ GAINS:               ║\n║ [Fears, frustrations│[Desired outcomes,   ║\n║ obstacles]          │what success looks   ║\n║                     │like]                ║\n╚════════════════════════════════════════════╝\n```\n\n**How to fill it:**\n1. Pick a specific user (not \"all small business owners\" but \"Sarah, freelance designer in Berlin\")\n2. Interview Sarah for 45 minutes\n3. Fill each section directly from what you learned\n4. Use direct quotes, not paraphrases\n5. Identify the **gap between what she SAYS and what she THINKS** (the insight)\n\n**The insight:** Often in the gap between \"says\" and \"thinks.\" She says \"I need better tools\" but thinks \"I don't have time to learn new tools.\"\n\n**Example (Time Tracking):**\n```\nSEES: Competitors launching AI tools, articles about \"automation\", her clients asking \"how many hours?\"\nHEARS: \"You should track time\", \"Are you using the latest software?\", friend's frustration with Toggl\nTHINKS: \"I hate being measured like a robot. Am I spending time wrong?\"\nSAYS: \"I'll track my time for a month\"\nPAINS: Feeling micromanaged, losing trust with clients, complexity of tools\nGAINS: Building trust through transparency, understanding where time actually goes\n\nINSIGHT: She wants trust with clients without feeling monitored. The solution isn't \"more tools\" but \"transparency with autonomy.\"\n```\n\n---",
+      "words": 271,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/3. Empathy Mapping (Goes Deeper Than Interviews)"
+    },
+    {
+      "id": "nate-b-jones-5-the-leverage-framework-scaling-without-scaling-yourself",
+      "framework_id": "nate-b-jones",
+      "section": "5. The Leverage Framework (Scaling Without Scaling Yourself)",
+      "content": "**What it is:** Four types of leverage that multiply your impact. Start with permissionless (code + media), then unlock capital + labor.\n\n**Type 1: Labor Leverage**\n- Definition: People working for you\n- Example: CEO directing 100 people × 100 = 100x leverage\n- Pros: Can scale big\n- Cons: Hard to manage, depends on good hiring, takes trust + capital\n- When to use: Post-PMF when you have money and need to scale fast\n\n**Type 2: Capital Leverage**\n- Definition: Money working for you\n- Example: $1M in the bank, earning 5% = $50k/year passive\n- Pros: Compounds indefinitely\n- Cons: Requires capital first (catch-22), subject to market forces\n- When to use: After you've made money or raised capital, this becomes critical\n\n**Type 3: Code Leverage (High Priority for Startups)**\n- Definition: Software working for you 24/7, zero marginal cost\n- Example: Software you build works for 1 or 1M users with same cost\n- Pros: Scales infinitely, permissionless (no one has to hire you), compounds over time\n- Cons: Takes time to build, requires technical skill\n- When to use: NOW — as early as possible. This is the modern startup moat\n\n**Type 4: Media Leverage (High Priority for Startups)**\n- Definition: Content working for you, builds while you sleep\n- Example: Blog post written today attracts customers in Year 2 and Year 5\n- Pros: Permissionless, compounds, builds trust/authority\n- Cons: Slow to start, requires consistency\n- When to use: Parallel with code. Start building your authority day 1\n\n**Leverage Priority by Stage:**\n\n**Earliest (Pre-PMF):** Code + Media\n- Code: Build the product (permission needed from customers, not society)\n- Media: Start documenting your thinking/learnings (free, builds audience)\n\n**Growth (Post-PMF):** Code + Media + Labor\n- Labor: Hire people to scale what works\n- Code + Media: Still your moats\n\n**Mature:** Code + Media + Labor + Capital\n- Capital: Invest in growth, compounding, new ventures\n- Others: Still active\n\n**The framework:**\nWhen evaluating a path, ask:\n- Does this give me code leverage (product that scales infinitely)?\n- Does this give me media leverage (content that compounds)?\n- Or am I trading my time forever (treadmill)?\n\n**Real example:**\n- Path A: Freelance consulting ($150k/year, but you do the work)\n  - Leverage type: Labor (selling your time)\n  - Compounds? No\n\n- Path B: Build software + write about building software ($150k/year today)\n  - Leverage type: Code + Media\n  - Compounds? Yes, exponentially\n\nPath B is better long-term despite similar short-term income.\n\n**AI Prompt Pattern:**\n> \"What leverage does this create? Are we building something that scales without us? Or are we trading time forever?\"\n\n---\n\n## Advanced Mental Models (Supporting Your Thinking Stack)",
+      "words": 447,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/5. The Leverage Framework (Scaling Without Scaling Yourself)"
+    },
+    {
+      "id": "nate-b-jones-phase-7-verify",
+      "framework_id": "nate-b-jones",
+      "section": "Phase 7 (VERIFY)",
+      "content": "- \"Imagine yourself at 80, looking back. Which decision would you regret not taking? That's probably the right one.\"\n- \"Final check: are we operating within our circle of competence here, or are we guessing? Where do we need a partner or advisor?\"\n\n---\n\n---\n\n## Integration & Framework Relationships\n\n**Nate's role:** The cognitive infrastructure. The meta-framework that teaches you HOW to think.\n\n**Pairs with:**\n- **McKinsey** — Nate teaches mental models; McKinsey teaches structure. Together: rigorous + wise thinking\n- **Stoicism** — Nate is rational; Stoicism is emotional. Together: you handle risk AND fear\n- **Hormozi** — Nate thinks deeply; Hormozi acts fast. Together: thoughtful action\n- **Lean** — Nate validates ideas; Lean validates with reality. Together: theory + practice\n\n**The biggest contribution:** Nate upgrades the quality of thinking itself, not just the output. Not \"what should I think about?\" but \"HOW should I think about it?\" The meta-framework.\n\n---\n\n## When NOT to Apply Nate Thinking (Critical)\n\nNate's frameworks excel at **strategic thinking and decisions under uncertainty.**\n\nThey're less useful for:\n- ❌ Tactical execution (Hormozi/Lean is better)\n- ❌ User empathy (IDEO is better)\n- ❌ Speed under certainty (just decide and move)\n\n---\n\n## Sources & Maintenance\n\n**Primary Influences:**\n- Naval Ravikant (leverage framework, probabilistic thinking, circle of competence)\n- Charlie Munger (inversion, mental models, compounding)\n- James Clear (atomic habits, systems thinking, compounding)\n- Jeff Bezos (Type 1 vs Type 2 decisions, regret minimization)\n- Paul Graham (startup decision-making)\n\n**Books:**\n- Charlie Munger, *Poor Charlie's Almanack* (mental models)\n- James Clear, *Atomic Habits* (compounding, systems)\n- Daniel Kahneman, *Thinking, Fast and Slow* (probabilistic thinking, biases)\n- Naval Ravikant, *The Almanack of Naval Ravikant* (leverage, thinking)\n\n**Maintenance:** Quarterly review of decision frameworks, semi-annual refresh with founder case studies\n\n---\n\n**Last Updated:** 2026-03-29\n**File Size:** ~550 lines\n**Confidence Level:** Encyclopedic (frameworks + mental models + applications)",
+      "words": 309,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/Phase 7 (VERIFY)"
+    },
+    {
+      "id": "yc-3-product-market-fit-the-yc-north-star",
+      "framework_id": "yc",
+      "section": "3. Product-Market Fit (The YC North Star)",
+      "content": "**What it is:** \"Product-market fit is when your product solves a real, acute problem for a large market, and customers enthusiastically adopt it.\"\n\n**How to recognize it:**\n1. **User retention is high** (>30% after 1 month, >10% after 6 months for B2C)\n2. **Users talk about you unprompted** (organic word-of-mouth)\n3. **Growth compounds** (without spending on ads)\n4. **Churn is predictable** (not shocking drops)\n5. **Unit economics work** (CAC < LTV)\n\n**How to achieve it:**\n\n```\nPHASE 1: Identify the problem\n- Talk to 20 potential customers\n- Ask: \"What's your biggest frustration with [category]?\"\n- Listen for painful problems, not nice-to-haves\n\nPHASE 2: Build a solution to ONE problem\n- Not 5 features, not the \"full vision\"\n- The minimum viable product that solves the problem\n- Expect it to be 10% as ambitious as you imagined\n\nPHASE 3: Get early users\n- Manual outreach (emails, calls, in-person)\n- \"Would you try this if I built it?\"\n- Build for the people who say \"yes I would absolutely use that\"\n- NOT for people who say \"that's interesting\"\n\nPHASE 4: Measure retention\n- Do people come back?\n- How often? How long do they stick around?\n- Talk to people who stop using it\n\nPHASE 5: Iterate on retention\n- What makes people stick around?\n- What makes them leave?\n- Change the product to improve retention\n\nPHASE 6: Once retention is good (>30%), start acquiring\n- Now talk about growth, channels, scale\n- NOT before retention is solid\n```\n\n**The common mistake:** Founders grow users before achieving retention. Result: Lots of users, high churn, unsustainable.\n\n**The rule:** Get retention first. Growth is easy once retention works.\n\n---",
+      "words": 279,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/3. Product-Market Fit (The YC North Star)"
+    },
+    {
+      "id": "indydev-dan-5-the-context-management-strategy",
+      "framework_id": "indydev-dan",
+      "section": "5. The Context Management Strategy",
+      "content": "AI systems degrade as context grows. Dan's approach:\n\n**Progressive Summarization:**\n- Fresh context: full detail\n- Aging context: condensed to key points\n- Old context: one-liner summaries\n- Ancient context: metadata only (when, what category, key conclusion)\n\n**Context Windows are Precious:**\n- Don't fill them with noise\n- Prioritize: relevant > recent > comprehensive\n- Condensation is not deletion -- it's compression\n- The system should know what it has forgotten and where to find it\n\n**Hot/Warm/Cold Context:**\n- **Hot:** Currently relevant, full detail (current phase's knowledge, recent conversation)\n- **Warm:** Might be relevant, condensed (previous phase summaries, related but not active knowledge)\n- **Cold:** Background, metadata only (session history, archived decisions)\n\n---\n\n## Key Principles",
+      "words": 116,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/5. The Context Management Strategy"
+    },
+    {
+      "id": "ideo-phase-a-empathize-understand-the-user",
+      "framework_id": "ideo",
+      "section": "Phase A: Empathize (Understand the User)",
+      "content": "**Goal:** Deeply understand the human you're solving for—not demographics, but motivations, frustrations, values, context.\n\n**Methods:**\n- **User interviews** (1-on-1, open-ended, no leading questions)\n- **Contextual inquiry** (observe the user in their environment doing the task)\n- **Diary studies** (users document their own experience over time)\n- **Journey mapping** (timeline of user's experience: moments of joy, frustration, surprise)\n\n**What NOT to do:**\n- ❌ Survey 1,000 people (breadth, not depth)\n- ❌ Ask \"would you use this?\" (they'll say yes; test with prototypes)\n- ❌ Assume you know the user (founders are rarely the user)\n\n**Red flag:** If you haven't interviewed 5+ actual users in their context, you don't have empathy yet.\n\n**Example:**\n- ❌ Assumption: \"Small businesses need better time-tracking software\"\n- ✓ Empathy: After 5 interviews, discover: \"Small business owners hate time-tracking because it makes them feel watched. They actually want trust and autonomy.\"\n- This insight changes EVERYTHING about the product.",
+      "words": 153,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/Phase A: Empathize (Understand the User)"
+    },
+    {
+      "id": "stoicism-5-disciplina-self-discipline-through-practice",
+      "framework_id": "stoicism",
+      "section": "5. Disciplina (Self-Discipline Through Practice)",
+      "content": "**The Framework:** Virtue is not a trait, it's a practice. You become excellent through daily discipline.\n\n**Epictetus's discipline formula:**\n1. **Discipline of Desire:** What you want, you truly need. What you don't need, you don't want.\n2. **Discipline of Assent:** Before believing a thought, examine it. \"Is this true? Is this useful?\"\n3. **Discipline of Action:** Whatever you do, do excellently and with full commitment.\n\n**For founders:**\n- **Discipline of Desire:** Not every opportunity is for you. Not every feature is worth building. Say NO to 90% so you can say YES to the 10% that matter.\n- **Discipline of Assent:** Don't believe the voice that says \"we can't do this\" or \"this market is saturated.\" Examine it. Is it fact or fear?\n- **Discipline of Action:** Whatever you build, build excellently. 80% of a great product beats 100% of a mediocre one.\n\n**Daily practice:**\n- Morning: Premeditatio (what obstacles might I face today? how will I respond excellently?)\n- Throughout: Pause to examine your thoughts. Are you reacting or choosing?\n- Evening: Review. Did I maintain my values? Where did I slip?\n\n---\n\n## Key Teachings & Red Flags",
+      "words": 190,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/5. Disciplina (Self-Discipline Through Practice)"
+    },
+    {
+      "id": "yc-1-do-things-that-don-t-scale-the-founder-mindset",
+      "framework_id": "yc",
+      "section": "1. Do Things That Don't Scale (The Founder Mindset)",
+      "content": "**What it means:** Early on, do things that are inefficient, manual, and unscalable. The goal is to understand the customer deeply, not to look impressive.\n\n**Why it matters:** Founders default to \"scalable\" thinking too early. This kills companies. You should be willing to do things that are embarrassingly unscalable to understand your customer.\n\n**Examples of not-scaling:**\n- ✓ Manually onboard each customer for the first 50 (learn what they struggle with)\n- ✓ Call customers every week (not email surveys)\n- ✓ Attend industry conferences and talk to people (not buy ads)\n- ✓ Build integrations by hand for early customers (not worry about API)\n- ✓ Deliver the product yourself until you understand delivery (not hire outsource partners)\n\n**Examples of scaling too early:**\n- ❌ Build an API before you know if customers want API integration\n- ❌ Hire a sales team before you understand the sales motion\n- ❌ Optimize landing page before you know the core value prop\n- ❌ Invest in marketing before you have retention figured out\n\n**The rule:** If you haven't done something manually 10+ times, you don't understand it well enough to automate/scale it.\n\n**Red flag:** If your pitch sounds like \"and then we'll scale to millions of users,\" you're not ready. Focus: Do you have 100 happy customers yet? Do you understand them?\n\n---",
+      "words": 222,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/1. Do Things That Don't Scale (The Founder Mindset)"
+    },
+    {
+      "id": "yc-6-talking-to-investors-is-different-from-building",
+      "framework_id": "yc",
+      "section": "6. Talking to Investors is Different from Building",
+      "content": "**Critical principle:** Time spent pitching ≠ time building.\n\n**The rule:**\n- Before product-market fit: Spend 10% of time fundraising, 90% building/talking to customers\n- After product-market fit: Spend 30% fundraising, 70% scaling/product\n\n**Why fundraising can kill you:**\n1. You get excited about investors' feedback and lose focus\n2. You build for investor expectations, not customer needs\n3. You spend time in pitch meetings instead of shipping\n4. You raise money and now feel pressure to \"execute the plan\" (which might be wrong)\n\n**Red flag:** If you're thinking more about fundraising than users, refocus.\n\n**YC position:** We fund founders with traction. Build something people want. Then raise. Not the other way around.\n\n---\n\n## When to Apply (Phase by Phase)\n\n| Phase | YC Application | Example |\n|-------|---|---|\n| **0 - User Stories** | Do things that don't scale — talk to users, deeply | \"Let's not survey. Let's do 1-on-1 interviews with 10 people.\" |\n| **1 - MINE** | Build something people want — extract the real problem | \"What problem do they have that they CURRENTLY solve with workarounds? That's the real problem.\" |\n| **2 - SCOUT** | Product-market fit thinking — what ONE thing would make them sticky? | \"If we only solve one problem perfectly, which would it be?\" |\n| **3 - ASSAY** | Conversation-driven — what are users actually asking for? | \"We thought they wanted X, but they're all asking for Y.\" |\n| **4 - CRUCIBLE** | Retention first — do users love it? | \"Not: Are people signing up? Question: Are they staying and using it?\" |\n| **5 - AUDITOR** | Word-of-mouth — are users inviting others? | \"Are we growing organically? Or only with paid ads?\" |\n| **6 - PLAN** | Founder psychology — keep team morale and focus high | \"The team is doubting. Let's celebrate this retention win.\" |\n| **7 - VERIFY** | Do we have product-market fit? | \"Can we describe the moment we achieved it? Or are we guessing?\" |\n\n---\n\n## Example AI Prompts",
+      "words": 344,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/6. Talking to Investors is Different from Building"
+    },
+    {
+      "id": "ideo-phase-d-prototype-build-to-test",
+      "framework_id": "ideo",
+      "section": "Phase D: Prototype (Build to Test)",
+      "content": "**Goal:** Make the idea REAL (even crude) so you can test it with users. Fidelity depends on what you need to learn.\n\n**Prototype types by fidelity:**\n\n| Fidelity | What it is | When to use | Time |\n|----------|-----------|------------|------|\n| **Low** | Sketch, role-play, storyboard | Early validation of concept | 1-4 hours |\n| **Medium** | Paper prototype, clickable wireframe, Figma mockup | Testing user flow and key moments | 1-3 days |\n| **High** | Functional MVP, video simulation, actual product | Before major investment, testing at scale | 1-4 weeks |\n\n**Principle:** Build just enough to test what you need to learn. **No more.** The goal is learning, not a finished product.\n\n**The prototype mindset:**\n- ✓ \"What's the minimum we need to test?\"\n- ✓ \"Can we test this with a Figma prototype instead of code?\"\n- ✓ \"Can we role-play this instead of building it?\"\n- ❌ \"Let's build the full product to show investors\"\n\n**Example flows:**\n- Testing if freelancers want \"transparency\" feature: low-fidelity sketch + 5-min user test\n- Testing user flow through onboarding: Figma clickthrough + 15-min user test\n- Testing if the business model works at scale: MVP + 50 paying customers",
+      "words": 202,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/Phase D: Prototype (Build to Test)"
+    },
+    {
+      "id": "hormozi-1-the-value-stack-pricing-formula",
+      "framework_id": "hormozi",
+      "section": "1. The Value Stack (Pricing Formula)",
+      "content": "**The Formula:**\n```\nPRICE = (VALUE DELIVERED - NEXT BEST ALTERNATIVE) × TRUST MULTIPLIER\n```\n\n**Component A: Value Delivered**\n- What measurable transformation does your product create?\n- NOT features (\"We have AI\") → VALUE (\"Saves 20 hours/week\")\n- Must be specific to their situation, quantifiable\n\n**Component B: Next Best Alternative**\n- What would they do if you didn't exist?\n- NOT your competitors → their actual next option\n- Example: $10k/month consulting vs $5k freelancer vs doing it themselves\n- Calculate: What's the cost/time of their alternative?\n\n**Component C: Trust Multiplier**\n- How much do they believe you'll deliver?\n- Range: 0.5 (skeptical) → 1.0 (believe) → 2.0+ (proven track record)\n- Built via: testimonials, guarantees, specificity, transparency\n\n**To increase value:** Increase numerator (outcome + likelihood), decrease denominator (time + effort). This lets you RAISE prices while increasing appeal.\n\n**Red flag:** If you can't quantify value, you can't justify price.\n\n---",
+      "words": 152,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/1. The Value Stack (Pricing Formula)"
+    },
+    {
+      "id": "yc-situation-10-luck-requires-preparation-part2",
+      "framework_id": "yc",
+      "section": "Situation 10: Luck Requires Preparation",
+      "content": "| Phase | YC Application | Example |\n|-------|---|---|\n| **0 - User Stories** | Do things that don't scale — talk to users, deeply | \"Let's not survey. Let's do 1-on-1 interviews with 10 people.\" |\n| **1 - MINE** | Default alive/dead check + painkiller vs vitamin | \"Are we solving a painkiller or vitamin? Can we survive without more capital?\" |\n| **2 - SCOUT** | Generate possibilities from founder psychology | \"What would a committed founder do differently here?\" |\n| **3 - ASSAY** | PMF stress-test your value prop | \"Would users be upset if we disappeared? Are we guessing or testing?\" |\n| **4 - CRUCIBLE** | Nuclear launch codes — are you truly committed? | \"Have you made the irreversible choice to go all-in? Or are you hedging?\" |\n| **5 - AUDITOR** | Word-of-mouth + organic growth signals | \"Are we growing organically or buying growth? Big difference.\" |\n| **6 - PLAN** | Startup = growth mindset — what's our growth lever? | \"Are we optimizing for growth or profitability? That changes the plan.\" |\n| **7 - VERIFY** | Do we have PMF? Can we survive without external capital? | \"Default alive + PMF = we can scale. Either missing = we need to fix first.\" |\n\n---\n\n## Sources & Maintenance\n\n**Primary:**\n- Y Combinator Startup School (free online course)\n- Paul Graham essays (paulgraham.com — readable library)\n- YC founder talks (youtube.com/ycombinator)\n- \"The Art of the Start\" by Guy Kawasaki (startup wisdom)\n\n**Key essays:**\n- \"Do Things That Don't Scale\" by Paul Graham\n- \"How to Get Startup Ideas\" by Paul Graham\n- \"What We Look for in Founders\" by Paul Graham\n\n**Maintenance:** Quarterly review of new YC advice, semi-annual refresh with founder interviews\n\n---\n\n**Last Updated:** 2026-03-29\n**File Size:** 506 lines\n**Confidence Level:** Encyclopedic (philosophy + frameworks + founder psychology + luck + preparation)",
+      "words": 318,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 10: Luck Requires Preparation"
+    },
+    {
+      "id": "indydev-dan-2-the-blueprint-pattern-deterministic-agentic-alternation",
+      "framework_id": "indydev-dan",
+      "section": "2. The Blueprint Pattern (Deterministic + Agentic Alternation)",
+      "content": "**The insight:** AI excels at generation. Humans excel at verification. Alternate between them.\n\n**Pure Agentic (Problems):**\n- ✗ Unreliable (same input → different outputs)\n- ✗ Hallucinates (confident wrong answers)\n- ✗ Misses edge cases (didn't think of scenario X)\n- ✗ Can't verify itself (self-evaluation is biased)\n\n**Pure Deterministic (Problems):**\n- ✗ Too slow (all analysis, no creativity)\n- ✗ No flexibility (can't handle novel situations)\n- ✗ Brittle (breaks on unexpected inputs)\n- ✗ Human bottleneck (only as smart as programmer)\n\n**The Blueprint: Alternate Them**\n\n```\nPLAN (deterministic)\n  ↓ [Define criteria, structure, constraints]\nGENERATE (agentic)\n  ↓ [AI generates freely, multiple options]\nVERIFY (deterministic)\n  ↓ [Test against criteria, catch failures]\nEVALUATE (separate agent or human)\n  ↓ [Fresh perspective, explicit scoring]\nDECIDE (deterministic)\n  ↓ [Human chooses, commits to direction]\n```\n\n**Concrete example: Generate test cases for edge case handling**\n\n```\nPLAN (deterministic): \"List all possible error states in login flow:\n  - Wrong password (1000x)\n  - Account locked (after 5 attempts)\n  - Email not verified\n  - Expired token\n  - Database unavailable\n  - Rate limited\n  - etc.\"\n\nGENERATE (agentic): \"AI: Here's a comprehensive test suite covering all scenarios\"\n\nVERIFY (deterministic): \"Check:\n  - Does each test actually test what we claimed?\n  - Are there edge cases in edge cases? (double-lock scenarios?)\n  - Do tests run fast? Under 5 seconds?\"\n\nEVALUATE (separate agent): \"Fresh perspective: Are there failure modes we missed?\n  Try to break the test suite.\"\n\nDECIDE (deterministic): \"Approve test suite. Merge to main.\"\n```\n\n**Why alternation works:**\n- AI handles creativity (100x faster than brainstorming)\n- Deterministic handles verification (100x more reliable than human review)\n- Separate evaluator catches blind spots (human biases don't survive two eyes)\n\n**Application beyond coding:**\n- Strategy: Agentic brainstorm → Deterministic evaluation → Human decision\n- Writing: AI draft → Deterministic fact-check → Human edit\n- Product design: AI wireframes → Deterministic usability review → Human gut check",
+      "words": 311,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/2. The Blueprint Pattern (Deterministic + Agentic Alternation)"
+    },
+    {
+      "id": "stoicism-1-the-dichotomy-of-control",
+      "framework_id": "stoicism",
+      "section": "1. The Dichotomy of Control",
+      "content": "**The Filter:**\n- **In your control:** Judgment, effort, preparation, response, values, priorities\n- **Not in your control:** Outcomes, market timing, competitor moves, investor decisions, luck, health emergencies\n\n**Why this matters:** Most founders waste energy on things they cannot control (will the market move? will investors say yes?) and neglect what they CAN control (am I prepared? am I thinking clearly? what's my next deliberate step?).\n\n**Application framework:**\n\nFor any decision or worry, ask:\n1. Is this in my control? (effort, judgment, preparation, response)\n2. If YES → Commit fully. Prepare. Execute deliberately.\n3. If NO → Accept it. Plan contingencies. Do not emotionally invest.\n\n**Example:**\n- ❌ \"What if the market crashes and investors flee?\" (not in your control)\n- ✓ \"What can I do TODAY to make the business more capital-efficient?\" (in your control)\n\n**Red flag:** If you're spending emotional energy on something outside your control, redirect to what IS controllable.\n\n---",
+      "words": 153,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/1. The Dichotomy of Control"
+    },
+    {
+      "id": "ideo-phase-e-test-learn-iterate",
+      "framework_id": "ideo",
+      "section": "Phase E: Test (Learn & Iterate)",
+      "content": "**Goal:** Get feedback from users on your prototype, extract insights, iterate.\n\n**Testing rules:**\n1. **Observe more than listen** — watch what the user does, not just what they say\n2. **Ask \"why?\"** — go deeper than surface answers\n3. **Look for moments of delight and frustration** — where does the user smile? Where do they squint?\n4. **Capture quotes** — word-for-word what the user says about moments\n5. **Don't defend your idea** — listen to criticism, don't explain\n\n**The output:** Not \"Is this good?\" but \"What did we learn? What should we change?\"\n\n**Iteration patterns:**\n- Learning type A: \"Users love X, but they hate Y\" → iterate Y\n- Learning type B: \"Users don't understand the core value prop\" → redesign messaging\n- Learning type C: \"This solves the problem, but it's too expensive\" → simplify or find cheaper delivery\n- Learning type D: \"This solves a different problem than we thought\" → pivot the problem statement\n\n**Returning to Design Thinking:**\nAfter testing, you loop back:\n- Empathize: Did we understand the user correctly?\n- Define: Should we adjust the problem statement?\n- Ideate: Do we have a new direction?\n- Prototype: What should we test next?\n\n**Red flag:** If you're not changing your prototype based on user feedback, you're not testing; you're confirming.\n\n---",
+      "words": 216,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/Phase E: Test (Learn & Iterate)"
+    },
+    {
+      "id": "mckinsey-4-the-hypothesis-driven-approach-case-interview-thinking",
+      "framework_id": "mckinsey",
+      "section": "4. The Hypothesis-Driven Approach (Case Interview Thinking)",
+      "content": "**What it is:** The McKinsey method for solving ambiguous problems: make a hypothesis, test it, refine, repeat.\n\n**The process:**\n\n```\n1. PROBLEM STATEMENT\n   Clarify: What exactly are we solving?\n\n2. INITIAL HYPOTHESIS\n   Quick: \"I suspect the answer is X\"\n   (This is a guess based on quick thinking, not research)\n\n3. IDENTIFY KEY DRIVERS\n   \"To test hypothesis X, what would we need to know?\"\n   (What would prove it true or false?)\n\n4. ANALYZE DATA\n   Collect and analyze evidence on key drivers\n\n5. REFINE HYPOTHESIS\n   \"Given the data, was I right? What was I missing?\"\n\n6. ITERATE\n   Go back to step 3 with the refined hypothesis\n```\n\n**Example: \"Why did our conversion rate drop from 3% to 1.5%?\"**\n\n```\nHYPOTHESIS 1: \"Traffic quality got worse\"\nKey drivers: Compare traffic source breakdown, bounce rate by source\nFinding: Traffic quality unchanged. Hypothesis wrong.\n\nHYPOTHESIS 2: \"Product got slower\"\nKey drivers: Page load time, core feature performance\nFinding: No performance regression. Hypothesis wrong.\n\nHYPOTHESIS 3: \"Pricing page changed and now seems more expensive\"\nKey drivers: Pricing conversion flow, drop-off points\nFinding: 40% of visitors drop off at pricing (up from 20% before)\nThe new pricing page messaging makes it seem like poor value\nHypothesis CORRECT.\n\nFIX: Rewrite pricing page messaging based on value, not features.\n```\n\n**Why this works:** You don't guess randomly. You make systematic hypotheses and test them. Each test either confirms or eliminates a branch. After a few iterations, the answer becomes obvious.\n\n---",
+      "words": 242,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "mckinsey/4. The Hypothesis-Driven Approach (Case Interview Thinking)"
+    },
+    {
+      "id": "stoicism-the-stoic-founder-mindset-4-questions",
+      "framework_id": "stoicism",
+      "section": "The Stoic Founder Mindset (4 Questions)",
+      "content": "When facing any situation:\n1. **What is in my control?** (judgment, effort, preparation, values)\n2. **What am I catastrophizing about?** (identify the uncontrollable fear)\n3. **What is my duty right now?** (virtue, excellence, truth)\n4. **What does this obstacle teach me?** (learning over complaining)\n\n---\n\n## When to Apply (Phase by Phase)\n\n| Phase | Stoic Application | Example |\n|-------|-------------------|---------|\n| **0 - User Stories** | Distinguish what you truly want vs. what you think you should want | \"Do I want to build this? Or am I chasing other people's ideas?\" |\n| **1 - MINE** | Use Stoicism to accept hard truths about your business without defensive emotion | \"The market doesn't want this. What's the honest obstacle?\" |\n| **2 - SCOUT** | Premeditatio — imagine obstacles before choosing your go-to-market strategy | \"What if customers don't respond to this approach? What's the backup?\" |\n| **3 - ASSAY** | Virtue in pricing — charge what's true, not what you hope to get | \"Am I pricing based on value or fear?\" |\n| **4 - CRUCIBLE** | Test your commitment — is this built on virtue or external outcomes? | \"If this product never gets big, will I be proud of it?\" |\n| **5 - AUDITOR** | Channel discipline — measure and refine, accept what you don't control | \"Which channels am I controlling well? Which am I hoping will work?\" |\n| **6 - PLAN** | Build robust plans acknowledging uncertainty — contingencies matter | \"If Plan A fails, what's Plan B? Have I mentally rehearsed it?\" |\n| **7 - VERIFY** | Review with equanimity — did you execute with excellence? Did you maintain virtue? | \"Did I stay true to my values during the build? What would I do differently?\" |\n\n---\n\n## Common Founder Situations (Stoic Responses)",
+      "words": 307,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/The Stoic Founder Mindset (4 Questions)"
+    },
+    {
+      "id": "stoicism-if-founder-is-chasing-external-validation",
+      "framework_id": "stoicism",
+      "section": "If founder is chasing external validation",
+      "content": "\"Money, investors, status — these are 'preferred indifferents.' They're nice but not the foundation. What's your virtue in this business? Are you building something you believe in?\"\n\n---\n\n## Sources & Maintenance\n\n**Primary Sources:**\n- Marcus Aurelius, *Meditations* (stoic philosophy, personal reflection)\n- Epictetus, *Discourses* (practical stoicism, the Dichotomy of Control)\n- Seneca, *Letters from a Stoic* (business and virtue)\n- Ryan Holiday, *The Obstacle Is the Way* (modern founder application)\n- Ryan Holiday, *Ego Is the Enemy* (stoicism and ambition)\n\n**Secondary:**\n- Pablos Iannone, *Stoicism for Modern Life* (practical exercises)\n- Naval Ravikant on Stoicism (podcast episodes)\n- Tim Ferriss interviews with Ryan Holiday\n\n**Maintenance:** Quarterly review of Stoic founder applications, annual refresh with new case studies\n\n---\n\n**Last Updated:** 2026-03-29\n**File Size:** 329 lines\n**Confidence Level:** Encyclopedic (philosophy + four virtues decision framework + founder psychology)",
+      "words": 138,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/If founder is chasing external validation"
+    },
+    {
+      "id": "lean-1-the-build-measure-learn-loop-the-core-cycle",
+      "framework_id": "lean",
+      "section": "1. The Build-Measure-Learn Loop (The Core Cycle)",
+      "content": "**The Process:**\n\n```\nIDEA\n  ↓\nBUILD (Minimum Viable Product)\n  ↓\nRELEASE (Get it to customers)\n  ↓\nMEASURE (What happened? Did they use it? Did they pay?)\n  ↓\nLEARN (What did we discover? What do we do next?)\n  ↓\nPIVOT or PERSEVERE (Did we learn enough to change? Or keep going?)\n  ↓\n[Loop back with new ideas based on learning]\n```\n\n**The time cycle:**\n- Early stage: Build-measure-learn in days or weeks\n- Growth stage: Cycles slower (more complexity), but still weeks not months\n- Mature: Still looping, but optimizing existing things\n\n**Why speed matters:** The faster you loop, the more you learn per unit time and money.\n\n**Slow loop example (6 months):**\n```\nMonth 1-2: Plan and design (lots of assumptions)\nMonth 3-4: Build (hope the design was right)\nMonth 5-6: Release and measure\nDiscovery: It's wrong. Pivot.\nNext cycle: 6 months again\n```\n\n**Fast loop example (2 weeks):**\n```\nWeek 1: Build minimum version (Figma prototype or MVP)\nWeek 2: Release to 20 customers, measure retention\nDiscovery: People don't use feature X\nNext loop: Remove X, add Y, test again\n```\n\n**The advantage of fast loops:** 3 cycles per month (quarterly = 12 learning cycles vs 2 slow cycles)\n\n---",
+      "words": 201,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/1. The Build-Measure-Learn Loop (The Core Cycle)"
+    },
+    {
+      "id": "ideo-4-the-user-journey-map-beyond-empathy-mapping",
+      "framework_id": "ideo",
+      "section": "4. The User Journey Map (Beyond Empathy Mapping)",
+      "content": "**What it is:** Timeline of user's experience from START to END, including moments of emotion and pain.\n\n**Why it matters:** Shows you where to focus innovation. Usually, the biggest opportunities are at moments of peak frustration.\n\n**Example (Freelancer using time-tracking for first time):**\n\n```\n1. AWARENESS\n   [Sees article about time-tracking]\n   Emotion: Neutral. Thought: \"Maybe I should try this\"\n\n2. SETUP\n   [Installs app, creates account, reads tutorial]\n   Emotion: Frustrated. Pain: Too many options, unclear what to do\n   Opportunity: Simplified onboarding\n\n3. FIRST USE\n   [Starts tracking a project]\n   Emotion: Confused. Pain: Forgetting to stop timer, unsure about how to categorize\n   Opportunity: Auto-detection, smart defaults\n\n4. REVIEW\n   [Looks at reports at end of week]\n   Emotion: Anxious. Pain: \"I tracked 20 hours on the client project but invoiced for 15. Do I tell them?\"\n   Opportunity: CORE INSIGHT — The product forced a conversation they weren't ready for\n\n5. DECISION\n   [Decides to stop using it]\n   Emotion: Guilty. Pain: Felt like a failure to use the tool\n   Opportunity: Repositioning as \"optional insight\", not \"required discipline\"\n```\n\n**The key finding:** The original problem (\"I need time tracking\") wasn't the real problem. The real problem was \"I'm anxious about having uncomfortable conversations with clients about my actual time investment.\"\n\n---",
+      "words": 202,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/4. The User Journey Map (Beyond Empathy Mapping)"
+    },
+    {
+      "id": "yc-situation-7-painkillers-vs-vitamins-what-people-actually-want",
+      "framework_id": "yc",
+      "section": "Situation 7: Painkillers vs Vitamins (What People Actually Want)",
+      "content": "**The distinction:**\n- **Painkiller:** Solves an acute, immediate problem. Users NEED it now.\n- **Vitamin:** Nice to have, improves something, but not urgent. Users WANT it eventually.\n\n**Why it matters:** Painkillers grow 10x faster than vitamins.\n\n**Examples:**\n\n| Painkiller | Vitamin |\n|---|---|\n| Accounting software (painful tax season coming) | Analytics dashboard (nice insights) |\n| Password manager (security anxiety) | Meditation app (self-improvement) |\n| Team communication (chaos without it) | Project management (organization nice-to-have) |\n| Spam filter (inbox overflowing) | Email templates (saves time) |\n\n**How to know which you're building:**\n1. Ask users: \"Would you go back to doing it without this?\"\n2. If YES = painkiller. If NO = vitamin.\n3. Painkillers have higher willingness to pay + lower churn\n\n**The danger:** Building vitamins and pricing them like painkillers. Users won't pay for optional improvements.\n\n**YC wisdom:** Find the painkillers. Vitamins are a second product (after painkiller succeeds).\n\n---",
+      "words": 155,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 7: Painkillers vs Vitamins (What People Actually Want)"
+    },
+    {
+      "id": "mckinsey-1-mece-principle-mutually-exclusive-collectively-exhaustive",
+      "framework_id": "mckinsey",
+      "section": "1. MECE Principle (Mutually Exclusive, Collectively Exhaustive)",
+      "content": "**What it means:**\n- **Mutually Exclusive (ME):** No overlap between categories. If a customer is in Segment A, they can't also be in Segment B.\n- **Collectively Exhaustive (CE):** Together, the categories cover 100% of the problem. There's no \"other.\"\n\n**Why it matters:** MECE forces you to think clearly. Sloppy categories hide assumptions and blind spots.\n\n**Example of NON-MECE (bad):**\n```\nWays to grow revenue:\n1. Get more customers\n2. Sell more to existing customers\n3. Raise prices\n4. Launch a new product\n\nProblem: These overlap. \"Launch a new product\" could be \"get more customers\" or \"sell more to existing customers.\"\nAnd \"new product\" is not exhaustive — it doesn't cover efficiency gains, partnerships, etc.\n```\n\n**Example of MECE (good):**\n```\nWays to grow revenue:\n1. Increase customer acquisition (new customers)\n2. Increase customer lifetime value (more revenue per customer)\n   a. Increase frequency of purchase\n   b. Increase average transaction value\n   c. Extend retention period\n3. Improve unit economics (revenue per unit cost)\n   a. Reduce cost of acquisition\n   b. Reduce operational costs\n   c. Reduce product costs\n\nNow: ME (no overlap) and CE (covers all levers)\n```\n\n**MECE thinking in practice:**\n\nFor any complex problem:\n1. **Ask:** \"What are ALL the ways this could be true?\"\n2. **List:** Write them all down without filtering\n3. **Organize:** Group them by dimension (e.g., \"demand-side vs supply-side\")\n4. **Check for MECE:**\n   - Mutual Exclusivity: Would you ever count something twice?\n   - Collective Exhaustiveness: Is there a piece you're missing?\n5. **Refine:** Add/remove until MECE\n\n**Red flag:** If you have more than 5 categories, you're probably overlapping. Re-organize.\n\n---",
+      "words": 263,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "mckinsey/1. MECE Principle (Mutually Exclusive, Collectively Exhaustive)"
+    },
+    {
+      "id": "yc-situation-5-default-alive-vs-default-dead-the-runway-reality-check",
+      "framework_id": "yc",
+      "section": "Situation 5: Default Alive vs Default Dead (The Runway Reality Check)",
+      "content": "**What it means:** A startup is either \"default alive\" (profitable path is clear, can reach profitability before money runs out) or \"default dead\" (needs external funding to survive).\n\n**Why it matters:** Most founders optimize for growth and miss the profitability cliff. YC forces you to think about both.\n\n**Default Alive Signal:**\n- You can cut burn to $X/month and still operate\n- At current burn rate, you have 18+ months of runway\n- Each customer pays more than their cost to acquire\n- You could be profitable in 2-3 years without more capital\n\n**Default Dead Signal:**\n- Burn rate requires scaling revenue 3x+ to survive\n- Customer acquisition costs exceed first-year revenue\n- Each new customer makes unit economics worse\n- You NEED Series B to survive Series A\n\n**The Framework:**\n```\nMonthly burn: $50k\nMonthly revenue: $30k\nNet burn: $20k\nRunway: $500k bank / $20k = 25 months\nVerdict: Default Alive (25 months > 18 month threshold)\n\nvs.\n\nMonthly burn: $100k\nMonthly revenue: $10k\nNet burn: $90k\nRunway: $500k bank / $90k = 5.5 months\nVerdict: Default Dead (URGENT — need to raise or cut burn NOW)\n```\n\n**YC principle:** Be default alive. Then you negotiate from strength. Investors know you can survive without them — that's powerful.\n\n**Red flag:** \"We're growing 20% MoM!\" (high growth, default dead = fragile. One bad month and you're out of runway)\n\n---",
+      "words": 230,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 5: Default Alive vs Default Dead (The Runway Reality Check)"
+    },
+    {
+      "id": "lean-7-innovation-accounting-measuring-learning-progress-part1",
+      "framework_id": "lean",
+      "section": "7. Innovation Accounting (Measuring Learning Progress)",
+      "content": "**Ries's most distinctive contribution:** How do you know if you're making progress when you're in discovery mode? Traditional metrics (revenue, users) are lagging indicators. Innovation accounting measures LEARNING progress.\n\n**The insight:** A startup's progress isn't \"Did we hit our numbers?\" It's \"Are we learning faster than we're burning cash?\"\n\n**The Innovation Accounting Process:**\n\n**Step 1: Establish a Baseline (Where You Are)**\n```\nStart with the MVP in the current state:\n- Conversion rate: 2% (from landing page → signup)\n- Activation: 15% (from signup → first use)\n- Retention: 8% (from first use → week 1 return)\n- Revenue per user: $0 (MVP is free)\n\nOverall score: We convert 2 people per 100, of which 15% activate, of which 8% stay = 0.024 people per 100 actually using it.\n\nThis is your BASELINE.\n```\n\n**Step 2: Tuning (Test Specific Assumptions)**\n\nYou have 3 levers:\n- **Acquisition lever:** Can we get more people to signup?\n- **Activation lever:** Can we get more signups to actually use the product?\n- **Retention lever:** Can we keep users around longer?\n\nPick ONE lever and run 3-4 experiments:\n\n```\nLEVER: Activation\nHypothesis: \"Users don't activate because onboarding is confusing\"\n\nExperiment 1: Simplify onboarding (remove 5 steps)\nResult: Activation goes from 15% → 18% ✓ Pivot\n\nExperiment 2: Add in-app tooltips (explain key concepts)\nResult: Activation goes from 18% → 22% ✓ Pivot\n\nExperiment 3: Personalize onboarding (ask what they want to track first)\nResult: Activation goes from 22% → 19% ✗ Revert\n\nNEW BASELINE (after successful tuning):\n- Conversion: 2%\n- Activation: 22% (was 15%)\n- Retention: 8%\n```\n\n**Step 3: Pivot or Persevere (Strategic Decision)**\n\nAfter tuning one lever, ask:\n```\nAre the improvements significant?\n- Activation improved from 15% → 22% = 46% improvement ✓ Significant\n- Overall baseline improved from 0.024 → 0.035 people per 100 = Major progress\n\nDo we see a path to product-market fit?\n- If we get activation to 40%, retention to 20%, and convert to paid at $10/month LTV:\n  100 users → 2 signup → 0.8 activate → 0.16 stay → $1.60 LTV\n  Still not PMF (need > $50). But the metrics are moving in the right direction.\n\nDecision: PIVOT (try different activation strategy, market, or value prop) OR PERSEVERE (optimize this lever further)?\n```\n\n**Innovation Accounting Metrics (The Ones That Matter):**\n\n| Metric | What it measures | When to use | Red flag |\n|--------|---|---|---|\n| **Activation Rate** | % of users who take first valuable action | Early stage (weeks 1-4) | < 20% |\n| **Retention Rate** | % of users active in week 2, month 2, month 3 | Early stage (weeks 2+) | < 30% at month 1 |\n| **Repeat Purchase Rate** | % of customers who return (for paid products) | After PMF | < 40% |\n| **Net Promoter Score** | How many users would recommend? (scale 0-10) | Early stage (qualitative) | < 7 |\n| **Revenue per User** | Total customer value / total customers | After pricing test | Need to beat cost of acquisition |\n| **Runway** | Months of cash left at current burn | Ongoing | < 6 months |\n\n**Why innovation accounting matters (Example):**\n\n```\nFounder A says: \"We're failing. Only 100 users this month.\"\nReality check via innovation accounting:\n- Last month: 40 users, 5% activation, $0 LTV\n- This month: 100 users, 22% activation, $5 LTV per user\n- Progress: Revenue up 22x, learning velocity is high\n\nVERDICT: Not failing. Learning fast. Pivot in the right direction.\n```",
+      "words": 589,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/7. Innovation Accounting (Measuring Learning Progress)"
+    },
+    {
+      "id": "yc-4-conversation-driven-development",
+      "framework_id": "yc",
+      "section": "4. Conversation-Driven Development",
+      "content": "**Principle:** The best product decisions come from talking to users, not from introspection.\n\n**The conversation pattern:**\n\n```\nEvery week, talk to 5+ users.\n\n1. PICK A TOPIC: \"How are you using our product?\" or \"What's frustrating?\"\n2. LISTEN: Write down what they say word-for-word\n3. PROBE: \"Why? Can you give me an example? What did you try before?\"\n4. QUIET: Don't explain your vision or defend the product\n5. EXTRACT INSIGHT: \"What did I learn that I didn't know last week?\"\n6. ACT: Change the product based on what you learned\n\nAfter 5 conversations:\n- Delete 1 feature you thought was important but nobody uses\n- Add 1 thing that 3+ people asked for\n- Improve 1 thing that frustrated people\n```\n\n**The discipline:**\n- ✓ \"I have a theory. Let me test it with users.\"\n- ✗ \"I think I should add feature X\" (without talking to users)\n\n**Red flag:** If you haven't talked to a customer this week, you're doing it wrong.\n\n---",
+      "words": 165,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/4. Conversation-Driven Development"
+    },
+    {
+      "id": "indydev-dan-3-the-prompt-architecture-system",
+      "framework_id": "indydev-dan",
+      "section": "3. The Prompt Architecture System",
+      "content": "Dan advocates for treating prompts as architecture, not afterthoughts:\n\n**Prompt Layers:**\n1. **System Layer:** Identity, rules, non-negotiable behaviors (constitutional)\n2. **Context Layer:** What the AI needs to know about the current situation\n3. **Task Layer:** What specifically to do right now\n4. **Memory Layer:** Relevant past interactions and learnings\n5. **Constraint Layer:** Guardrails, format requirements, quality gates\n\n**Key Principles:**\n- Prompts are code. Version them. Test them. Review them\n- The system prompt is your application's most important architecture decision\n- Context injection at the right time is more powerful than fine-tuning\n- Constraints in the prompt are more reliable than post-processing filters\n\n**Pattern for Thinking Sessions:**\n- Phase prompt = System Layer + Task Layer\n- Context from previous phases = Memory Layer\n- Knowledge base content = Context Layer\n- Session rules = Constraint Layer",
+      "words": 137,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/3. The Prompt Architecture System"
+    },
+    {
+      "id": "nate-b-jones-2-the-inversion-principle-failure-resistant-design",
+      "framework_id": "nate-b-jones",
+      "section": "2. The Inversion Principle (Failure-Resistant Design)",
+      "content": "**What it is:** Instead of asking \"How do I succeed?\" ask \"How would I guarantee failure?\" Then design to avoid every failure mode.\n\nCharlie Munger: \"All I want to know is where I'm going to die, so I never go there.\"\n\n**Why it's powerful:**\n- Positive thinking: \"What could succeed?\" (too many possibilities, impossible to cover all)\n- Inversion: \"What could fail?\" (smaller set, more concrete, actionable)\n\n**The process:**\n\n**Step 1: Identify all failure modes**\n```\nQuestion: \"How would I guarantee this product fails?\"\n\nFailure modes for a SaaS startup:\n- No customers sign up (marketing doesn't work)\n- Customers sign up but don't use (UX is bad)\n- Customers use but don't renew (value doesn't stick)\n- Customers renew but churn accelerates (product stales)\n- Customers stay but cost too much to acquire (unit economics broken)\n- Customers stay and pay but we run out of money (burn rate too high)\n```\n\n**Step 2: Categorize by control**\n```\nWithin our control:\n- Build a bad product (we control this)\n- Waste money (we control this)\n- Demoralize the team (we control this)\n\nOutside our control:\n- Market disappears (market risk)\n- Recession (macro risk)\n- Competitor with unlimited capital (competitive risk)\n```\n\n**Step 3: Prevention mechanisms**\n```\nFailure mode: \"Customers don't renew\"\n→ Causes:\n   a) Product value isn't clear\n   b) Product breaks after update\n   c) Competitor has better option\n→ Prevention:\n   a) Customer feedback every month (not quarterly)\n   b) Regression testing for every release\n   c) Run competitive analysis quarterly, have 1 differentiator we own\n```\n\n**Step 4: Accept the uncontrollable ones (Stoic integration)**\n```\nRecession: \"If there's a downturn, we'll cut burn to X/month, focus on profitability, extend runway\"\nUnlimited competitor: \"We can't outspend them, so we own a specific niche better than anyone\"\n```\n\n**Real example: Stripe's inversion**\n```\nHow would Stripe fail?\n- Developers don't adopt (build great API docs, respond in minutes to support)\n- Developers adopt but churn (pricing is fair, support never lets them down)\n- Developers stay but we can't scale (hire ops-focused, build tooling, not just product)\n```\n\n**The output:** A plan that's failure-resistant by design, not just hope.\n\n**AI Prompt Pattern:**\n> \"Let's invert. How would you guarantee this fails spectacularly? List every way. Now for each one, what prevents it? Your plan should prevent every preventable failure.\"",
+      "words": 387,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/2. The Inversion Principle (Failure-Resistant Design)"
+    },
+    {
+      "id": "hormozi-if-user-is-competing-on-price",
+      "framework_id": "hormozi",
+      "section": "If user is competing on price",
+      "content": "\"Premium price + commodity results = brand death. Either (A) charge commodity price and accept volume model, or (B) deliver premium results to justify premium price. Which is it?\"\n\n---\n\n## Hormozi vs Other Frameworks\n\n| Dimension | Hormozi | McKinsey | IDEO |\n|-----------|---------|----------|------|\n| **Focus** | Making money, revenue engine | Strategic planning, efficiency | Human-centered design |\n| **Audience** | Founders, entrepreneurs, solopreneurs | Fortune 500 executives | Product/UX teams |\n| **When to use** | Pricing, offers, customer acquisition, scaling | Strategic planning, operations, structure | New product, UX research |\n| **Teaching** | Specific examples, case studies, candid | Analytical frameworks, matrices | Prototyping, iteration |\n| **Weakness** | Doesn't cover long-term strategy well | Disconnected from revenue math | Focused on process, not outcomes |\n\n**How they work together:**\n- Use IDEO to understand the user (empathy feeds your Value Stack)\n- Use Hormozi to price based on value delivered\n- Use McKinsey to structure decision-making\n- Use Lean to test the offer before scaling\n\n---\n\n## Integration Notes\n\nHormozi's frameworks are the **revenue and offer engine** of a business.\n\n**When to recommend:** User is thinking about pricing, customer acquisition, positioning, scaling, profitability, or understanding why their business isn't working.\n\n**When NOT to recommend:** User needs long-term strategic planning (use McKinsey), user research (use IDEO), organizational design (use McKinsey).\n\n**Key insight:** Hormozi forces you to think in terms of value and revenue from day one. \"We'll figure out monetization later\" is not an option.\n\n---",
+      "words": 251,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/If user is competing on price"
+    },
+    {
+      "id": "hormozi-2-the-grand-slam-offer",
+      "framework_id": "hormozi",
+      "section": "2. The Grand Slam Offer",
+      "content": "An offer so compelling that people feel stupid saying no—not because it's cheap, but because the VALUE is overwhelming.\n\n**Construction:**\n1. Identify the Dream Outcome (what transformation?)\n2. List Every Problem (ALL obstacles between them and outcome)\n3. Turn Problems into Solutions (become your offer components)\n4. Assign Delivery Methods (highest-value, lowest-cost for each)\n5. Stack the Value (add bonuses, guarantees, urgency, scarcity)\n\n**Example Problem-Solution Stack:**\n| Customer Problem | Your Solution | Delivery |\n|---|---|---|\n| \"I don't know where to start\" | Step-by-step onboarding | Automated sequence |\n| \"What if it doesn't work?\" | 30-day money-back guarantee | Policy |\n| \"I don't have time\" | Done-for-you setup | Service |\n| \"I've failed before\" | Success stories + accountability | Community |\n\n**Pricing principle:** Price based on value of outcome, not cost of delivery. If outcome is worth $100k, charging $10k is a bargain.\n\n---",
+      "words": 149,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/2. The Grand Slam Offer"
+    },
+    {
+      "id": "indydev-dan-1-the-learning-system-architecture-ai-that-improves-over-time",
+      "framework_id": "indydev-dan",
+      "section": "1. The Learning System Architecture (AI That Improves Over Time)",
+      "content": "**Dan's most distinctive contribution.** Most AI implementations reset to zero every session. Dan's Learning System means the AI gets better over time — not through fine-tuning, but through accumulated contextual knowledge.\n\n**The Learning Loop (4 Phases):**\n\n**Phase 1: Capture**\nEvery interaction generates a learning signal:\n- What worked? (keep doing this)\n- What didn't work? (avoid this)\n- What was surprising? (update model)\n- What changed? (track evolution)\n\nExample: Prompt A produces great output. Prompt B produces mediocre. Capture both + outcome.\n\n**Phase 2: Index**\nOrganize learnings with metadata:\n```\nLearning: \"Prompt structure X produces better outputs for constraint type Y\"\nCategory: \"prompt_engineering\"\nConfidence: \"high\" (tested 50+ times)\nContext: \"code_generation, edge_cases\"\nSource: \"session_2026_03_15\"\nRelated: [\"learning_123\", \"learning_456\"]\n```\n\n**Phase 3: Surface**\nBefore any task, query relevant learnings:\n```\nCurrent task: \"Generate JavaScript code for async retry logic\"\nRelevant learnings:\n- \"For complex async logic, use example-first prompts\" (confidence: high)\n- \"Include failure scenarios in the prompt\" (confidence: medium)\n- \"Avoid ternary operators, use explicit if/else\" (confidence: high)\n```\n\n**Phase 4: Apply**\nInject learnings into the system prompt:\n```\nSystem prompt baseline:\n\"You are an expert JavaScript developer...\"\n\n+ Learning injection:\n\"Based on similar tasks, we know:\n- Example-first prompts work best for async logic\n- Always include failure scenarios\n- Prefer explicit conditionals\"\n```\n\n**Why this works:**\n- Without: Every session starts at zero. Same mistakes repeated. No compounding.\n- With: Each session starts better than the last. Patterns emerge. Reliability increases.\n\n**Implementation patterns:**\n- Store in database with search capability (Supabase, vector DB)\n- Update learning confidence as you gather more evidence\n- Periodically review low-confidence learnings (might be wrong)\n- Prune outdated learnings (AI model improvements make old learnings stale)\n\n**The meta-learning insight:**\nThe system isn't learning on its own. YOU are learning. The system is just making your learning available to future-you.\n\n**AI Prompt Pattern:**\n> \"What have we learned from similar problems before? Which patterns work? Which don't? Let's inject that knowledge here so we don't repeat mistakes.\"",
+      "words": 331,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/1. The Learning System Architecture (AI That Improves Over Time)"
+    },
+    {
+      "id": "ideo-6-the-how-might-we-technique-reframing-problems-into-opportunities",
+      "framework_id": "ideo",
+      "section": "6. The \"How Might We\" Technique (Reframing Problems Into Opportunities)",
+      "content": "**The insight:** The way you phrase a problem determines what solutions you'll find. \"How might we?\" rephrases constraints as creative possibilities.\n\n**The problem with problem statements:**\n- ❌ \"We need to reduce customer churn\" → implies cutting costs\n- ❌ \"Our onboarding is confusing\" → implies UI design fix only\n- ✓ \"How might we make customers feel so welcome they never want to leave?\" → implies culture, experience, relationship\n\n**HMW Format:**\n```\nHow might we [reframe the constraint as an opportunity]?\n```\n\n**Example transformations:**\n\n| Original Problem | HMW Reframe | Mindset Shift |\n|---|---|---|\n| \"Users forget to use the app\" | \"How might we make the app so useful that they crave it?\" | From reminder-pushing to value creation |\n| \"Customer support is expensive\" | \"How might we turn support into a delightful brand moment?\" | From cost-cutting to competitive advantage |\n| \"Founders don't know how to pitch\" | \"How might we make pitching feel natural and authentic?\" | From rigid rules to expression |\n| \"Onboarding takes too long\" | \"How might we make the first 5 minutes so compelling they can't stop?\" | From process efficiency to experience design |\n\n**Why it works:** HMW gives your brain permission to be creative while staying focused on the real constraint.\n\n**How to generate HMW statements (Brainstorm format):**\n1. Start with the problem: \"Users churn after week 1\"\n2. Ask \"Why?\" 5 times to get to root: \"Because they don't see value yet\"\n3. Reframe as opportunity: \"How might we help them see value in the first 3 days?\"\n4. Generate 10 HMW variations by adjusting the focus:\n   - \"How might we onboard them gradually instead of dumping everything on day 1?\"\n   - \"How might we celebrate their first win, no matter how small?\"\n   - \"How might we show them success stories of people like them?\"\n   - \"How might we let them experience the outcome before committing?\"\n5. Pick the HMW that feels most aligned with your user insight\n\n**HMW in a Thinking Foundry session:**\nWhen a founder is stuck: \"You've identified the constraint. Now, how MIGHT we turn this into an opportunity? What's the inverse of this problem?\"\n\n---",
+      "words": 364,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/6. The \"How Might We\" Technique (Reframing Problems Into Opportunities)"
+    },
+    {
+      "id": "hormozi-7-warm-affiliate-referral-architecture-100m-leads-expansion",
+      "framework_id": "hormozi",
+      "section": "7. Warm Affiliate & Referral Architecture ($100M Leads Expansion)",
+      "content": "**Why warm channels matter:** Cold outreach scales, but warm channels are your moat. A referral customer costs 1/10th the CAC and has 3x the lifetime value.\n\n**The Warm Channel Blueprint:**\n\n**Layer 1: Your Customer Referral Loop**\n```\nDeliver remarkable results\n  ↓\nAsk: \"Who else struggles like you did?\"\n  ↓\nIncentivize: $500 finder fee per referral (affiliate model)\n  ↓\nTrack: Each referral → Commission tracking system\n  ↓\nRepeat: Best customers = your sales team\n```\n\nExample economics: Customer LTV = $3,000 | Referral commission = $500 | Net gain = $2,500 per referral customer\n\n**Why this works:** Your happiest customers already know people like them. The referral is pre-endorsed.\n\n**Layer 2: Strategic Partner Affiliates**\nIdentify businesses that serve YOUR exact customer but don't compete:\n- Email list: To businesses with parallel offers but no overlap\n- Joint webinar: Co-present value with partner\n- Affiliate dashboard: Partner can see commissions live\n- Recurring commission: If they sell annuals, commission every year (not just year 1)\n\nExample: If you sell \"sales training for SaaS\" → partner with \"SaaS business accounting software\" (complementary, same customer)\n\n**Layer 3: Cold Affiliate Recruitment**\nOnce warm affiliates are working:\n- Pay them 10-20% commission (transparent, above-market)\n- Provide: Landing page, email sequences, one-sheet, testimonials\n- Track performance: Who drives most qualified customers?\n- Double down: Offer exclusive territory + higher commission to top performers\n\n**The Affiliate Funnel Mindset:**\nMost founders think: \"Build product → Sell it\"\nHormozi thinks: \"Build product → Make it so good customers refer → Pay referrers → Repeat\"\n\n**Red flag:** If you can't afford 10% commission and still be profitable, your unit economics are broken.\n\n---",
+      "words": 272,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/7. Warm Affiliate & Referral Architecture ($100M Leads Expansion)"
+    },
+    {
+      "id": "ideo-7-analogous-inspiration-solving-problems-from-other-domains",
+      "framework_id": "ideo",
+      "section": "7. Analogous Inspiration (Solving Problems from Other Domains)",
+      "content": "**The principle:** The best solutions to your problem might already exist in a completely different industry. IDEO solves problems by finding analogies.\n\n**Why analogies work:** Different industries have solved similar human needs in different ways. A design system problem might be solved by looking at how hospital workflows organize information.\n\n**How to find analogies:**\n\n**Step 1: Identify the core human need (not the surface problem)**\n- Surface problem: \"Freelancers forget to track time\"\n- Core need: \"Humans need small, frequent reminders to capture important moments\"\n\n**Step 2: Find industries solving the same need**\n- Insurance: Captures small claims efficiently → Autopsy form structure\n- Fitness apps: Capture tiny workouts → Streak gamification\n- Museums: Capture visitor movement → Breadcrumb trails\n- Restaurants: Capture order preferences → Muscle memory shortcuts\n\n**Step 3: Adapt the solution to your context**\n- Fitness app's streak mechanic → \"Track 7 consecutive days of time entry\" gamification\n- Insurance form structure → \"3-field capture\" vs \"20-field form\" (why does insurance form work despite being boring?)\n- Breadcrumb trails → Visual timeline showing \"You've tracked X% of this week\"\n\n**Real IDEO example:** Designing a better hospital experience for patients\n- Analogous domain 1: Hotels (hospitality + wayfinding) → Inspired calming lobby design\n- Analogous domain 2: Airports (clarity under stress) → Inspired visual wayfinding (patients are stressed, need obvious directions)\n- Analogous domain 3: Restaurants (multi-sensory experience) → Inspired adding plants/art (sensory experience improves emotional state)\n- Result: Hospital felt less clinical, patients reported lower anxiety\n\n**Analogous inspiration for Thinking Foundry:**\n\"This founder's problem is helping users trust an AI system with their thinking. Let's look at:\n- How therapists build trust (consistency, listening, confidentiality)\n- How pilots trust automated systems (checklists, override capability, transparency)\n- How teachers establish classroom trust (explaining their reasoning, admitting mistakes)\"\n\n**The analogous search process (Fast version):**\n```\n1. What's the user's core need?\n   \"Feel heard and understood\"\n\n2. What other domains address this need?\n   Therapists, coaches, mentors, best friends, confessionals, support groups\n\n3. Pick one: How do therapists build trust?\n   Active listening, asking follow-up questions, remembering details, avoiding judgment\n\n4. Adapt to your context:\n   \"Our AI should ask follow-up questions it discovered in previous sessions\"\n   \"Our AI should remember details about the founder's situation\"\n   \"Our AI should avoid being preachy or judgmental\"\n```\n\n**Anti-pattern (What doesn't work):**\n- ❌ Finding analogies that are too surface-level (\"Uber uses location, so should we\")\n- ❌ Forcing analogies that don't exist (\"Nothing analogous to our problem\")\n- ✓ Finding analogies at the human-need level, then adapting the system design\n\n---\n\n## Sources & Maintenance\n\n**Primary:**\n- Tim Brown, *Change by Design* (Design Thinking methodology)\n- David Kelley, *Creative Confidence* (mindset + exercises)\n- IDEO's free resources (ideo.org/case-studies)\n- IDEO Design Thinking Kit (open-source tools)\n\n**Maintenance:** Quarterly review of case studies, semi-annual refresh with new examples\n\n---\n\n**Last Updated:** 2026-03-29\n**File Size:** 461 lines\n**Confidence Level:** Encyclopedic (process + mindset + HMW + analogous inspiration)",
+      "words": 490,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/7. Analogous Inspiration (Solving Problems from Other Domains)"
+    },
+    {
+      "id": "ideo-5-rapid-experimentation-the-ideo-speed",
+      "framework_id": "ideo",
+      "section": "5. Rapid Experimentation (The IDEO Speed)",
+      "content": "**Principle:** Get to prototypes FAST (hours, not weeks).\n\n**The speed loop:**\n\n```\nMonday AM: Define problem statement (1 hour)\nMonday afternoon: Brainstorm (2 hours)\nTuesday AM: Build 3 prototypes (3-4 hours total)\nTuesday PM: Test with 3 users (2 hours)\nWednesday AM: Iterate (2-3 hours)\nWednesday PM: Test again (1-2 hours)\n\nTotal: 3 days to validated insights\n```\n\n**How to move fast:**\n- Use existing tools (Figma, not code; paper, not Figma; roleplay, not paper)\n- Recruit users EARLY (before you have a prototype, tell them \"I want to show you something and get feedback\")\n- Make decisions quickly (good enough now beats perfect later)\n- Embrace constraints (limited budget = creative solutions)\n\n---\n\n## When NOT to Use Design Thinking (Critical)\n\nDesign Thinking excels at **novel problems and human needs**. It fails at:\n- ❌ Pure infrastructure problems (database optimization)\n- ❌ Compliance/regulatory work (you don't have flexibility)\n- ❌ Problems where users are wrong about what they need (AI/emerging tech)\n- ❌ When time is critical (Design Thinking takes 4-12 weeks; emergency fixes don't)\n\n**When to combine:** Design Thinking + Lean (test + measure + pivot fast)\n\n---\n\n## When to Apply (Phase by Phase)\n\n| Phase | IDEO Application | Example |\n|-------|------------------|---------|\n| **0 - User Stories** | Empathize with your user; map their journey | \"What is Sarah's real obstacle? Not what she SAYS, what does she actually FEEL?\" |\n| **1 - MINE** | Empathy mapping; identify the real problem | \"We thought they wanted X, but they actually fear Y\" |\n| **2 - SCOUT** | Ideate multiple possible solutions to the real problem | \"Given what we learned, here are 5 radically different approaches\" |\n| **3 - ASSAY** | Design the solution that best serves the user | \"Which solution aligns with user values and willingness to pay?\" |\n| **4 - CRUCIBLE** | Prototype and test the key value proposition | \"Do users actually value this, or are we assuming?\" |\n| **5 - AUDITOR** | Test messaging and go-to-market approach | \"Does the marketing language match what users actually want?\" |\n| **6 - PLAN** | Plan based on what you've learned about the user | \"What's the user journey we're optimizing for?\" |\n| **7 - VERIFY** | Did the product match the user we empathized with? | \"Did we build for the real user, or the imaginary one?\" |\n\n---\n\n## Common Founder Mistakes (And IDEO Solutions)",
+      "words": 410,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/5. Rapid Experimentation (The IDEO Speed)"
+    },
+    {
+      "id": "yc-situation-6-startup-growth-paul-graham-s-definition",
+      "framework_id": "yc",
+      "section": "Situation 6: \"Startup = Growth\" (Paul Graham's Definition)",
+      "content": "**What it is:** Paul Graham defines a startup as a company designed to grow fast, not just a small business.\n\n**The distinction matters:**\n- **Small business:** Make $50k/year, keep the profit, stay small. Goal is profitability + stability.\n- **Startup:** Design for 10x growth in 2-3 years. Goal is massive scalability + venture return.\n\n**Why this changes everything:**\n\nIf you're building a startup, you optimize for GROWTH above profitability in the early years.\n- Growth ≠ revenue (it's percentage growth in your key metric)\n- Profitability ≠ efficiency (you'll be unprofitable if growth requires it)\n- You need capital because you're investing in future scale\n\n**Example:**\n- Coffee shop: Profitable from day 1, slow growth, small business\n- SaaS startup: Unprofitable for 2 years, 30% MoM growth, raises capital, targets VC exit\n\n**The application to your thinking:**\n- Are you building for growth (startup) or stability (business)?\n- If growth: Optimize for unit growth metrics (MoM %, user growth rate)\n- If business: Optimize for profitability (keep what you make)\n\n**YC founder perspective:**\n\"Is this a business or a startup?\" is the first question. Your answer determines everything about the strategy.\n\n---",
+      "words": 192,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 6: \"Startup = Growth\" (Paul Graham's Definition)"
+    },
+    {
+      "id": "yc-5-founder-psychology-resilience",
+      "framework_id": "yc",
+      "section": "5. Founder Psychology & Resilience",
+      "content": "**Founders will face:**\n- Rejections (investors, customers, partners)\n- Self-doubt (\"Am I crazy?\")\n- Pressure (\"When will you make money?\")\n- Burnout (\"How long can I sustain this?\")\n- Impostor syndrome (\"I'm not good enough\")\n\n**YC wisdom on resilience:**\n\n**Paul Graham:** \"Determination is the main thing. You have to have the determination to keep going even when things look hopeless.\"\n\n**The founder's paradox:**\n- You need enough confidence to bet your career on an idea\n- You need enough doubt to listen to criticism and improve\n- You need enough realism to know when to pivot\n- You need enough optimism to keep going\n\n**The practice:**\n1. Find co-founders who believe in the mission (you need someone to believe with you)\n2. Build for users who love you (not for skeptics)\n3. Celebrate small wins (first customer, first paying customer, first renewal)\n4. Keep burn rate low (more runway = more chances)\n5. Focus on metrics that matter (retention, growth, revenue — not press mentions)\n\n---",
+      "words": 166,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/5. Founder Psychology & Resilience"
+    },
+    {
+      "id": "lean-7-innovation-accounting-measuring-learning-progress-part2",
+      "framework_id": "lean",
+      "section": "7. Innovation Accounting (Measuring Learning Progress)",
+      "content": "```\nFounder B says: \"We're crushing it. 10,000 users this month!\"\nReality check via innovation accounting:\n- Last month: 9,500 users, 18% activation, 0.5 month retention\n- This month: 10,000 users, 15% activation, 0.3 month retention\n- Progress: Metrics declining despite growth. Growth is paid/artificial.\n\nVERDICT: Failing. Scaling the wrong thing. High churn means product doesn't work.\n```\n\n**Innovation Accounting in a Thinking Foundry Session:**\n\"You've built an MVP. Before you call it 'success' or 'failure', let's establish the baseline metrics. Then we'll design 3 experiments to move one lever. After 2 weeks, we check: Are we learning?\"\n\n---\n\n## When NOT to Use Lean (Critical)\n\nLean is for **discovering the right product**. It fails when:\n- ❌ You already have product-market fit (now optimize, don't pivot constantly)\n- ❌ The problem requires long development (hardware, infrastructure)\n- ❌ Regulations require full completeness (healthcare, finance)\n- ❌ You have massive constraints (capital required upfront)\n\n**When to combine:** Lean (discovery) + Hormozi (once you find PMF, optimize pricing/growth)\n\n---\n\n## When to Apply (Phase by Phase)\n\n| Phase | Lean Application | Example |\n|-------|---|---|\n| **0 - User Stories** | Identify core assumption you're testing | \"Our assumption: People will pay to track time. How do we test?\" |\n| **1 - MINE** | Define the hypothesis precisely | \"Hypothesis: Time-tracking reveals valuable insights about spending\" |\n| **2 - SCOUT** | Build MVP for the fastest learning | \"What's the minimum we need to test the hypothesis?\" |\n| **3 - ASSAY** | Test pricing via MVP (not perfect design) | \"Release MVP at $100/month, see if anyone converts\" |\n| **4 - CRUCIBLE** | Stress-test assumptions — have we tested everything critical? | \"We assumed users want feature X, but we never tested it.\" |\n| **5 - AUDITOR** | Measure acquisition channels with real metrics | \"Not: Did ads get clicks? Question: Did they get paying customers?\" |\n| **6 - PLAN** | Plan based on what Lean taught us | \"We learned Y. So the plan is Z.\" |\n| **7 - VERIFY** | Validated learning — did we actually test our core assumptions? | \"Did we have real evidence? Or were we hoping?\" |\n\n---\n\n## Example AI Prompts",
+      "words": 374,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/7. Innovation Accounting (Measuring Learning Progress)"
+    },
+    {
+      "id": "hormozi-10-churn-reduction-framework-gym-business-lessons",
+      "framework_id": "hormozi",
+      "section": "10. Churn Reduction Framework (Gym Business Lessons)",
+      "content": "**Why it matters:** 1% per month churn at 100 customers = 37 customers left after 1 year. 2% churn = 12 customers left. Churn kills revenue.\n\n**Hormozi's gym churn discovery:**\n- Problem: 30% churn/month in fitness industry (typical)\n- Solution: Identify WHY people quit, fix each reason\n- Result: 5% churn/month at Gym Launch clients (6x improvement = revenue multiplier)\n\n**The Five Churn Reasons (In Priority Order):**\n\n**Reason 1: They Didn't See Results (Biggest)**\n- Person joins, expects transformation in 2 weeks, gets frustrated at week 3\n- Fix: Set expectations upfront (\"Most see results in 4-6 weeks\")\n- Fix: Deliver FAST early wins (even if small)\n- Fix: Measure progress visibly (track calories, weight, strength)\n- Example: First week of gym = easy wins + mobile app showing progress = feels productive\n\n**Reason 2: They Stopped Using It (Second Biggest)**\n- Gym: \"I'll go Monday-Friday\" → Skips week 1 → Never returns\n- SaaS: \"I'll use this daily\" → Tries once, forgets → Churn\n- Fix: Onboarding hook (first 3 days = critical)\n- Fix: Friction removal (make it stupidly easy to start)\n- Fix: Streak gamification (if you miss 1 day, bad; if you miss 2, you're out)\n- Example: Slack onboarding = loads first workspace, shows first message → you're committed\n\n**Reason 3: Cost Became Unbearable**\n- Gym: $99/month feels cheap until month 4, then \"Why am I paying for this?\"\n- Solve: Payment plan (smaller monthly payment feels different than annual)\n- Solve: Price perception anchor (\"Therapist costs $200/hr, you pay $1.50/session\")\n- Solve: Pause option (instead of cancel, pause 2 months = saves 50% of churned customers)\n\n**Reason 4: Feeling Stuck / Not Progressing**\n- Gym: Same routine for 3 months = no strength gains = bored\n- SaaS: Same features, same workflow = not improving their life\n- Fix: Refresh mechanism (new challenges, expanded features, progression path)\n- Fix: Coaching/support (\"You're plateauing; let's try this new approach\")\n- Fix: Community (other people at your level = motivation)\n\n**Reason 5: Switching to Competitor**\n- Usually symptom of #1-4 (didn't get results, too expensive, got bored)\n- Only address after fixing above\n- Retention > Acquisition (10x cheaper)\n\n**The Churn Audit (Do This Quarterly):**\n```\nSurvey churned customers:\n\"On a scale of 1-5, how happy were you? Why did you leave?\"\n\nGroup responses by reason:\n- 40% \"Didn't see results\" → Fix expectations + deliver faster wins\n- 30% \"Too expensive\" → Create payment plan or pause option\n- 20% \"Forgot to use it\" → Improve onboarding, add reminders\n- 10% \"Found competitor\" → Fix #1-3, that competitor isn't your real threat\n```\n\n**The Metric That Matters:**\nNot: \"How many customers do we have?\"\nBut: \"What % of customers are still here after 6 months?\"\n\nCohort retention at >70% at 6 months = sustainable business\nCohort retention <50% at 6 months = you're leaking faster than adding\n\n**Quick calc:** 100 customers, 2% monthly churn = 22 customers lost in year 1. New customers better exceed 22/month or you shrink.\n\n---\n\n## Sources & Maintenance\n\n**Primary Source:** Alex Hormozi YouTube (100+ videos on business, offers, pricing, leads, sales)\n\n**Books:**\n- \"$100M Offers\" — Offer creation, pricing, value stack, Grand Slam Offer framework\n- \"$100M Leads\" — Customer acquisition, lead generation, scaling the funnel\n\n**Secondary:**\n- \"Monopoly\" (book) — Positioning strategy\n- hormozi.com essays\n- Podcast interviews (Naval Ravikant, Tim Ferriss, etc.)\n\n**Maintenance:** Monthly review of new Hormozi YouTube releases, quarterly content updates\n\n---\n\n**Last Updated:** 2026-03-29\n**File Size:** 542 lines\n**Confidence Level:** Encyclopedic (frameworks + patterns + churn/affiliate strategies)",
+      "words": 592,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/10. Churn Reduction Framework (Gym Business Lessons)"
+    },
+    {
+      "id": "ideo-phase-b-define-problem-statement",
+      "framework_id": "ideo",
+      "section": "Phase B: Define (Problem Statement)",
+      "content": "**Goal:** Reframe your understanding into a **clear, empathy-driven problem statement**, not a solution.\n\n**The statement format:**\n```\n[User type] needs [need] because [insight from empathy].\n```\n\n**Example:**\n- ❌ \"Build a time-tracking app\"\n- ✓ \"Freelancers need transparency about how they spend time WITHOUT feeling monitored, because they value autonomy and trust with clients\"\n\n**Key principle:** The problem statement should inspire multiple solution approaches, not lead to one obvious solution.\n\n**Testing the statement:**\n- Does it reflect what you learned in Empathize? (tie back to user interviews)\n- Does it suggest the scope (too broad? too narrow?)\n- Could this problem be solved 5 different ways? (if yes, it's good; if it leads to one solution, it's too narrow)",
+      "words": 119,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "ideo/Phase B: Define (Problem Statement)"
+    },
+    {
+      "id": "indydev-dan-agentic-vs-deterministic-task-assignment",
+      "framework_id": "indydev-dan",
+      "section": "Agentic vs Deterministic Task Assignment",
+      "content": "Not everything needs AI. Assign tasks to the right processing type:\n- **Deterministic:** Validation, formatting, calculation, file operations, state management\n- **Agentic:** Creative generation, analysis, synthesis, conversation, judgment calls\n- **The mistake:** Using AI for tasks that should be deterministic (e.g., regex matching, file I/O)\n\n---\n\n## When to Apply (Session Phases)\n\n| Phase | IndyDev Dan Application |\n|-------|------------------------|\n| **0 - User Stories** | Context management -- what background knowledge is relevant? Load it |\n| **1 - MINE** | Learning system -- what have we learned before about similar problems? |\n| **2 - SCOUT** | Blueprint pattern -- generate options (agentic), then structure them (deterministic) |\n| **3 - ASSAY** | Evaluator pattern -- evaluate options with explicit criteria, not just gut feel |\n| **4 - CRUCIBLE** | Stress test protocol -- adversarial review of surviving options |\n| **5 - AUDITOR** | Confidence scoring -- rate confidence 1-10 with evidence for each element |\n| **6 - PLAN** | AI continuity -- plan must survive session boundaries, context resets |\n| **7 - VERIFY** | Runtime-first verification -- simulate/test the plan, don't just review it |\n\n---\n\n## Example AI Prompts",
+      "words": 197,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/Agentic vs Deterministic Task Assignment"
+    },
+    {
+      "id": "mckinsey-3-the-mckinsey-7s-framework-organizational-alignment",
+      "framework_id": "mckinsey",
+      "section": "3. The McKinsey 7S Framework (Organizational Alignment)",
+      "content": "**What it is:** A tool for evaluating whether your organization is aligned. Use it when strategy isn't working (often the problem is organizational misalignment, not strategy).\n\n**The 7 elements:**\n\n```\n                STRATEGY\n                   |\n     ┌─────────────┼─────────────┐\n     |             |             |\n  STRUCTURE   SYSTEMS        STYLE\n     |             |             |\n     └─────────────┼─────────────┘\n                   |\n     ┌─────────────┼─────────────┐\n     |             |             |\n  SKILLS      STAFF         SHARED VALUES\n```\n\n**Definitions:**\n\n| Element | What it is | Founder Questions |\n|---------|-----------|-------------------|\n| **Strategy** | The plan and competitive positioning | What are we trying to do? Who are we for? |\n| **Structure** | How the organization is organized (teams, roles, hierarchy) | Does our org structure support the strategy? Or does it fight it? |\n| **Systems** | Processes, tools, metrics, how work gets done | Are our processes aligned with strategy? Or do they enforce the old way? |\n| **Style** | Culture, decision-making approach, how leadership behaves | Does the team culture match the strategy? Does leadership model it? |\n| **Skills** | What the team is actually good at | Do we have the skills this strategy requires? |\n| **Staff** | Who is on the team, recruitment, development | Have we hired people who fit the new strategy? |\n| **Shared Values** | Core purpose, beliefs, what the organization stands for | Do we all believe in this direction? |\n\n**The diagnostic:**\n1. List your strategy (where you're going)\n2. For each 7S element, ask: \"Is this aligned with the strategy?\"\n3. The misalignments are your problems\n\n**Example:**\n```\nSTRATEGY: \"We're going to be a self-serve B2B SaaS (not custom consulting)\"\n\nSTRUCTURE: ❌ Misaligned — we still have a large consulting team\n→ FIX: Hire product/engineering, shrink consulting\n\nSYSTEMS: ❌ Misaligned — we measure success by \"customer satisfaction\" not \"NRR\"\n→ FIX: Change metrics to align with self-serve SaaS model\n\nSKILLS: ❌ Misaligned — team is expert at custom delivery, not product\n→ FIX: Hire product managers, retrain on product thinking\n\nSTYLE: ❌ Misaligned — leadership still acts like a services firm (custom solutions)\n→ FIX: Leadership must model \"we are product-driven\"\n\nSTAFF: ❌ Misaligned — hired for consulting expertise, not product scaling\n→ FIX: Recruit product/growth people\n\nThe insight: The strategy isn't wrong; the organization isn't built for it yet.\n```\n\n---",
+      "words": 372,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "mckinsey/3. The McKinsey 7S Framework (Organizational Alignment)"
+    },
+    {
+      "id": "stoicism-7-the-four-virtues-as-decision-framework",
+      "framework_id": "stoicism",
+      "section": "7. The Four Virtues as Decision Framework",
+      "content": "**The core stoic principle:** The ONLY good is virtue. Everything else (money, status, health) is \"preferred\" but not \"good.\"\n\n**The Four Cardinal Virtues (From Stoic Philosophy):**\n\n1. **Wisdom (Phronesis)**\n   - Seeing clearly what is real vs. what is illusion\n   - Making decisions based on evidence, not emotion\n   - **Application:** Before deciding, ask: \"What do I actually know here? What am I assuming?\"\n\n2. **Courage (Andreia)**\n   - Facing difficult things without fear controlling you\n   - Taking action despite risk\n   - **Application:** \"What's the right thing to do? Fear is data, not a stop sign.\"\n\n3. **Temperance (Sophrosyne)**\n   - Moderation and self-discipline\n   - Not being ruled by desire or impulse\n   - **Application:** \"Can I say no to this opportunity? Or is it owning me?\"\n\n4. **Justice (Dikaiosyne)**\n   - Treating others fairly, considering their dignity\n   - Acting for the common good, not just self-interest\n   - **Application:** \"How would I want to be treated in their position? Would I do this to a friend?\"\n\n**The Decision Framework (Using the Four Virtues):**\n\nWhen facing a decision, ask:\n```\nIs this WISE?\n- Do I have clear information or am I operating on assumptions?\n- Have I tested my thinking against reality?\n\nIs this COURAGEOUS?\n- Does it require me to face something difficult?\n- Or am I avoiding the hard thing because I'm afraid?\n\nIs this TEMPERATE?\n- Does this serve a purpose or am I doing it from impulse?\n- Will this decision own me or strengthen me?\n\nIs this JUST?\n- How does this affect others?\n- Would I do this if everyone knew about it?\n```\n\n**If all four are yes:** The decision is virtuous. Execute it.\n**If any is no:** Reconsider. The discomfort is the signal.\n\n**Example application (Pricing decision):**\n- Is it wise? \"Do I know the customer's real need or am I guessing?\" (Research needed)\n- Is it courageous? \"Am I charging what it's worth or discounting because I'm nervous?\" (Courage test)\n- Is it temperate? \"Am I raising price for ego or for sustainability?\" (Temperance check)\n- Is it just? \"Is the customer getting clear value for this price?\" (Justice check)\n\n---\n\n## Integration With Other Frameworks\n\n| Framework | Stoic Complement | How They Work Together |\n|-----------|-----------------|------------------------|\n| **Hormozi (Pricing/Growth)** | Virtue guides ambition | Hormozi gives you the levers to pull. Stoicism ensures you pull them with integrity and clear-eyed thinking. |\n| **IDEO (Design/Empathy)** | Virtue guides empathy | IDEO focuses on the user. Stoicism adds: \"What is YOUR duty to that user? What's virtuous?\" |\n| **McKinsey (Strategy)** | Virtue guides ambition | McKinsey helps you think through decisions. Stoicism asks: \"Is this the right decision given your values?\" |\n| **Lean (Speed)** | Virtue guides iteration | Lean says move fast. Stoicism says: move fast AND maintain integrity. Shortcuts are vices. |\n\n---\n\n## Example AI Prompts (AI Can Say These Things)",
+      "words": 480,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/7. The Four Virtues as Decision Framework"
+    },
+    {
+      "id": "yc-situation-9-nuclear-launch-codes-founder-commitment-signals",
+      "framework_id": "yc",
+      "section": "Situation 9: Nuclear Launch Codes (Founder Commitment Signals)",
+      "content": "**What it means:** How do you know if a founder is truly committed vs. hedging their bets?\n\n**The signals:**\n- They quit their job (skin in the game)\n- They moved closer to the opportunity (dedicated)\n- They've been working on the problem for months before \"startups\" (not opportunistic)\n- They've turned down other opportunities (prioritization)\n- They talk to customers constantly (obsession)\n\n**Why YC cares:** Commitment > intelligence. Mediocre founders who commit outlast brilliant founders who hedge.\n\n**The inverse signal (red flags):**\n- ❌ Still working a day job \"until we raise\"\n- ❌ Built it as a side project, launched to see what sticks\n- ❌ Vague on why they're solving THIS problem (not personal)\n- ❌ Optimizing for investor interest, not customer fit (chasing money)\n\n**For yourself:** What are YOUR nuclear launch codes? Have you truly committed?\n\n---",
+      "words": 141,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/Situation 9: Nuclear Launch Codes (Founder Commitment Signals)"
+    },
+    {
+      "id": "yc-2-build-something-people-want-not-what-you-think-is-clever",
+      "framework_id": "yc",
+      "section": "2. Build Something People Want (Not What You Think is Clever)",
+      "content": "**The distinction:**\n- ❌ \"I have a clever idea for an AI that will revolutionize [X]\"\n- ✓ \"We talked to 20 [X] professionals. They all said they waste 5 hours/week on [Y]. We built a solution.\"\n\n**How to know if people want it:**\n\nThe only way: **They use it** and **they pay for it** (or they would if it cost money).\n\n**Signals of \"people want it\":**\n1. Users ask for it (unprompted)\n2. Users use it regularly (daily/weekly)\n3. Users invite others (word-of-mouth)\n4. Users defend the product if criticized\n5. Users would be upset if it went away\n6. Users pay for it (willingly, not tricks)\n\n**Signals of \"people don't want it\":**\n1. You have to explain the value prop\n2. Users use it once, then forget\n3. Users compare to competitors constantly\n4. Users ask for lots of alternative features\n5. Churn is high or growth stalls\n6. People won't pay for it\n\n**The danger:** Confirmation bias. You believe people want it because:\n- A few users said something nice (they were being polite)\n- Your friends downloaded it (they're biased)\n- An advisor said \"that's a good idea\" (they were being kind)\n- You got X downloads (downloads ≠ usage ≠ retention)\n\n**How to actually know:**\n- Talk to churned users: \"Why did you stop using us?\"\n- Measure retention: What % still use it after 1 month? 3 months?\n- Measure organic growth: Are users inviting others?\n- Ask users directly: \"Would you be upset if this went away?\"\n\n---",
+      "words": 255,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "yc/2. Build Something People Want (Not What You Think is Clever)"
+    },
+    {
+      "id": "lean-5-the-metrics-that-matter",
+      "framework_id": "lean",
+      "section": "5. The Metrics That Matter",
+      "content": "**Vanity metrics** (feel good, don't guide decisions):\n- Total users\n- Page views\n- Downloads\n- Twitter followers\n- Positive feedback\n\n**Actionable metrics** (tell you what to do):\n- **Activation:** % of signups who complete first use\n- **Retention:** % of users who return after day 1, week 1, month 1\n- **Revenue:** $ of monthly recurring revenue\n- **Unit Economics:** LTV (lifetime value) vs CAC (customer acquisition cost)\n- **Churn:** % of customers who leave per month\n\n**Why actionable metrics matter:**\n- ✓ They tell you if your product is working\n- ✓ They isolate problems (low retention? Fix product. Low activation? Fix onboarding)\n- ✓ They show causation (did THIS change improve metrics?)\n\n**Cohort analysis (The power move):**\n\nInstead of \"our retention is 50%\", ask: \"What's retention for users who signed up in January? February? March?\"\n\n```\nJanuary cohort: 40% return after 1 month (they got an old version)\nMarch cohort: 55% return after 1 month (they got the new version)\nMay cohort: 60% return after 1 month (we improved onboarding)\n\nSignal: Changes are working. Keep improving.\n```\n\n---",
+      "words": 181,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/5. The Metrics That Matter"
+    },
+    {
+      "id": "nate-b-jones-3-probabilistic-thinking-replace-certainty-with-ev",
+      "framework_id": "nate-b-jones",
+      "section": "3. Probabilistic Thinking (Replace Certainty with EV)",
+      "content": "**Stop:** \"This will work\" vs. \"This won't work\" (binary thinking)\n**Start:** \"What's the probability and expected value?\"\n\n**Framework:**\n\n```\nOption A: New market entry\nProbability of success: 40%\nIf success: $10M revenue\nProbability of failure: 60%\nIf failure: -$2M sunk\nExpected value: (0.4 × $10M) + (0.6 × -$2M) = $4M - $1.2M = $2.8M\n\nOption B: Optimize existing market\nProbability of success: 75%\nIf success: $5M revenue\nProbability of failure: 25%\nIf failure: -$500k\nExpected value: (0.75 × $5M) + (0.25 × -$500k) = $3.75M - $125k = $3.625M\n\nOption A has higher EV ($2.8M vs $3.625M means Option B is actually better)\n```\n\n**This changes decisions:** You don't minimize risk; you maximize expected value based on probabilities.\n\n**Practice:**\n- Always ask: \"What's the probability this works?\"\n- Don't estimate 0% or 100% (wrong on both ends)\n- Be realistic about odds\n- Calculate EV, not just \"which is riskier\"",
+      "words": 151,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/3. Probabilistic Thinking (Replace Certainty with EV)"
+    },
+    {
+      "id": "hormozi-5-the-lead-generation-framework-100m-leads",
+      "framework_id": "hormozi",
+      "section": "5. The Lead Generation Framework ($100M Leads)",
+      "content": "**Four ways to get customers (in order of control):**\n\n**Warm Outreach** (free, slow)\n- Reach out to people who know you\n- Personal messages, not blasts\n- \"I'm working on [X]. Know anyone who struggles with [Y]?\"\n\n**Content** (free, slow, compounds)\n- Give away your best ideas\n- Hook → Retain → Reward pattern\n- Requires 100+ pieces before judging what works\n\n**Cold Outreach** (free, fast, doesn't scale forever)\n- Personalized to strangers\n- Lead with value, not pitch\n- \"I noticed [specific]. I made [specific thing for them]...\"\n\n**Paid Ads** (costs money, fast, scales)\n- Only after validating offer organically\n- Target look-alikes of best customers\n- Creative > targeting in 2024+\n\n**Scaling Sequence:**\n1. Validate with warm outreach (0-10 customers)\n2. Prove repeatable with cold outreach (10-50 customers)\n3. Amplify with content (build authority)\n4. Scale with paid ads (proven offer + audience)\n\n---",
+      "words": 146,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/5. The Lead Generation Framework ($100M Leads)"
+    },
+    {
+      "id": "hormozi-9-content-as-lead-gen-framework",
+      "framework_id": "hormozi",
+      "section": "9. Content-as-Lead-Gen Framework",
+      "content": "**The insight:** Content is not a marketing expense. Content IS your sales funnel.\n\n**Three Content Tiers (Hook → Retain → Reward):**\n\n**Tier 1: Hook Content** (Free, viral, attention)\n- YouTube shorts, TikToks, Twitter threads, Instagram reels\n- Give away your BEST idea in 60 seconds\n- Hook: \"What if I told you [common belief is wrong]?\"\n- Call-to-action: Link to longer form\n- Volume: 5-10 per week\n- Goal: Get people to notice you exist\n\n**Tier 2: Retain Content** (Free, substantial, depth)\n- YouTube long-form, blog posts, email sequences, podcasts\n- Go deeper on the problems your Hook content surfaced\n- 10-30 minute investment from viewer\n- Call-to-action: Join community or watch next video\n- Volume: 1-2 per week\n- Goal: Build an audience of people who understand your problem\n\n**Tier 3: Reward Content** (Paid, transformation, results)\n- Your actual offer (course, coaching, software, services)\n- Reward people who consumed 50+ pieces of Hook + Retain\n- Price: 100-1000x the free content investment\n- The path: Hook → Retain (50 pieces) → Reward (1 paid offer)\n- Goal: Convert attention into revenue\n\n**Content Velocity Rule (From $100M Leads):**\n- Don't judge what works after 10 pieces\n- Create 50 Hook pieces → See patterns in what gets traction\n- 50+ pieces = statistically valid signal\n\n**Why this works:**\n- Google Ads person: \"I'll spend $100k on ads\"\n- Content person: \"I'll invest 2 hours/day in content, 6 months from now traffic is free forever\"\n- 6-month timeline: Content person now has free customer acquisition machine\n\n**The Compounding Effect:**\nMonth 1: 100 views on Hook content\nMonth 2: 500 views (people sharing)\nMonth 3: 2,000 views (YouTube algorithm picks up)\nMonth 6: 10,000+ views (momentum)\n\nOne piece of Hook content from Month 1 is still getting views in Month 12.\n\n**Application to Thinking Foundry:**\nImagine Roderic creates Hook content around \"Here's how I think about decisions\" (60-90 sec clips). Retain: Full thinking sessions (30 min). Reward: Private 1-on-1 coaching on your decision ($5k/month).\n\n---",
+      "words": 333,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/9. Content-as-Lead-Gen Framework"
+    },
+    {
+      "id": "lean-2-mvp-minimum-viable-product-the-discipline",
+      "framework_id": "lean",
+      "section": "2. MVP (Minimum Viable Product) — The Discipline",
+      "content": "**What MVP is:**\n- **Minimum:** The smallest thing you can build to test your core assumption\n- **Viable:** Functional and useful enough to get customer feedback\n- **Product:** An actual thing customers interact with, not a survey\n\n**What MVP is NOT:**\n- ❌ A sketch or wireframe (too fake to get real feedback)\n- ❌ A full-featured version of your vision (too slow to build)\n- ❌ A crude version that embarrasses you (embarrassment is a sign you're releasing at the right time)\n\n**The MVP scope:**\n\n| Too Small (Won't Tell You Much) | Right Scope | Too Big (Takes Too Long) |\n|----------------------------------|-------------|-------------------------|\n| \"We'll show a landing page\" | \"Here's a working prototype users can use\" | \"Full product with 10 features\" |\n| \"We'll describe the value prop\" | \"Customers can experience the core value\" | \"Complete UI and all edge cases\" |\n| \"Survey asking about pain\" | \"Prototype they interact with\" | \"Pixel-perfect design\" |\n\n**Defining MVP for your product type:**\n\n**B2B SaaS MVP:**\n- One core workflow, fully functional\n- Example: Time-tracking app → Can you start/stop timer, see report? That's MVP.\n\n**B2C Consumer MVP:**\n- One use case, works end-to-end\n- Example: Food delivery → Can you order food and have it arrive? That's MVP.\n\n**Marketplace MVP:**\n- Basic supply/demand functioning\n- Example: Freelance marketplace → Can sellers sign up and get jobs, buyers post jobs? That's MVP.\n\n**Hardware MVP:**\n- Prototype of core functionality\n- Example: Robot arm → Can it perform the core task? That's MVP.\n\n**The MVP principle:** Cut scope until you can ship it in 1-4 weeks. If it takes longer, you're building too much.\n\n---",
+      "words": 277,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/2. MVP (Minimum Viable Product) — The Discipline"
+    },
+    {
+      "id": "indydev-dan-7-prompt-chaining-patterns-breaking-complex-tasks-into-steps",
+      "framework_id": "indydev-dan",
+      "section": "7. Prompt Chaining Patterns (Breaking Complex Tasks Into Steps)",
+      "content": "**The problem:** Complex LLM tasks fail because you ask one model to do too much. Solution: Break into sequential steps, each with its own prompt.\n\n**Simple chaining (2-step problem):**\n\nTask: \"Take a customer complaint, determine sentiment, and suggest response\"\n\n**❌ WRONG (one prompt trying to do everything):**\n```\nSystem: \"You are a customer service AI. Analyze this complaint, determine if it's angry/neutral/happy, and write a response.\"\nUser: \"[long complaint email]\"\nOutput: [often confused, tries to do too much, lower quality]\n```\n\n**✅ RIGHT (two chained prompts):**\n```\nSTEP 1 (Analyze):\nSystem: \"You are a sentiment analyst. Classify this complaint as: ANGRY, FRUSTRATED, NEUTRAL, or SATISFIED.\"\nUser: \"[complaint email]\"\nOutput: \"ANGRY\" ← just the classification\n\nSTEP 2 (Respond):\nSystem: \"You are a customer service specialist responding to ANGRY customers.\"\nUser: \"Customer's complaint: [original email]\"\nOutput: \"Dear customer, I sincerely apologize...\"\n```\n\n**Why chaining works:**\n- Step 1 is specialized (sentiment only) → higher accuracy\n- Step 2 knows the sentiment upfront → better response\n- Each step is testable independently\n- Error doesn't cascade (if Step 1 fails, you know why)\n\n**Complex chaining (5-step problem):**\n\nTask: \"Take research paper, extract key findings, identify relevance to our product, score impact, suggest follow-up research\"\n\n```\nSTEP 1 (Extract):\nInput: Paper PDF\nOutput: Summary of key findings\n\nSTEP 2 (Relevance):\nInput: Findings + Product description\nOutput: \"Highly relevant\" with reasoning\n\nSTEP 3 (Impact Score):\nInput: Findings + Relevance assessment\nOutput: Numerical impact score (1-10)\n\nSTEP 4 (Risk Assessment):\nInput: Findings + Impact\nOutput: Any risks or downsides?\n\nSTEP 5 (Follow-up):\nInput: All above\nOutput: \"You should research [topic]\"\n```\n\nEach step:\n- Gets exactly the context it needs\n- Has a single, clear output format\n- Can be eval'd independently\n- Can be parallelized if steps don't depend on each other\n\n**When to chain vs when to do it in one prompt:**\n- Chain if: Output quality degrades with complexity, hard to eval, multiple distinct jobs\n- One prompt if: Simple task, <2 sequential steps, can describe in clear English\n\n---",
+      "words": 337,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/7. Prompt Chaining Patterns (Breaking Complex Tasks Into Steps)"
+    },
+    {
+      "id": "nate-b-jones-1-the-thinking-stack-your-personal-cognitive-architecture-part1",
+      "framework_id": "nate-b-jones",
+      "section": "1. The Thinking Stack (Your Personal Cognitive Architecture)",
+      "content": "**What it is:** A curated set of mental models organized in three layers that you apply consistently to every decision.\n\n**Layer 1: Perception (How you see the problem)**\n\n**First Principles Thinking:**\n- Strip away layers of abstraction and assumptions\n- Ask: \"What is actually, provably true here?\"\n- Rebuild your understanding from fundamentals\n\nExample: \"We need better time-tracking software\"\n- ❌ Surface layer: \"Software helps people track time\"\n- ✓ First principles: \"People struggle to remember what they did yesterday. Tracking forces them to pay attention. What if they just paid more attention in real-time?\"\n- Insight: The problem isn't software, it's awareness\n\n**Inversion:**\n- Instead of \"How do I succeed?\" ask \"How would I guarantee failure?\"\n- List every way the project could fail\n- Systematically prevent each failure\n\nExample: \"How would I guarantee this time-tracking business fails?\"\n- No users sign up (pricing too high)\n- Users sign up but don't return (product doesn't work)\n- Users return but don't pay (no perceived value)\n- Users pay but we burn through money (unit economics broken)\nNow prevent each one.\n\n**Second-Order Thinking:**\n- First order: \"I launch this product, users like it\"\n- Second order: \"Users like it, then word spreads, then competitors notice\"\n- Third order: \"Competitors copy, market becomes crowded, I'm no longer differentiated\"\n- Fourth order: \"How do I stay ahead in a crowded market?\"\n\nThis thinking changes the strategy from \"just launch\" to \"how do I build defensible moats?\"\n\n**Layer 2: Analysis (How you evaluate options)**\n\n**Opportunity Cost Awareness:**\n- Every \"yes\" is a \"no\" to something else\n- Not explicit: If you spend 6 months building feature A, that's 6 months you're NOT building feature B or improving customer service\n\nQuantify it: \"If I do option A ($X cost), what am I giving up?\" Forced comparison.\n\n**Reversibility Test (The Key Decision Filter):**\n\n| Decision Type | Reversibility | Decision Time | Example |\n|---|---|---|---|\n| **Type 1 (One-Way Door)** | Hard to undo | Take days, consult others | Hiring, raising capital, product pivot, major marketing |\n| **Type 2 (Two-Way Door)** | Easy to undo | Decide in hours | Marketing test, small feature, new vendor |\n\n**The insight:** Most founders treat Type 2 decisions like Type 1. This creates decision fatigue.\n\nDecision speed by type:\n- ✓ Type 1: Slow, deliberate, lots of input (but not paralyzed)\n- ✓ Type 2: Fast (2 hours), but monitor and be ready to reverse\n\n**Asymmetric Upside:**\nLook for bets where:\n- Downside is limited (you can afford to lose it)\n- Upside is 10x the downside\n\nExample:\n- Option A: Invest $10k in marketing. Best case 50% return ($5k), worst case -$10k. EV = -$2.5k (bad)\n- Option B: Invest $10k in product. Best case 300% return ($30k), worst case -$5k. EV = $17.5k (good)\n\nChoose B despite higher risk.\n\n**Layer 3: Action (How you decide and move)**\n\n**Decision Velocity:**\n- Speed of decision matters more than precision for most decisions\n- Analysis paralysis = you're making a decision to NOT decide (wrong decision, wrong speed)\n- Rule: Decide when you have 70% of the information you'd ideally like\n\n**Regret Minimization:**\n- Imagine yourself at 80, looking back\n- Which choice would you regret NOT taking?\n- Usually points to the harder, more interesting path (not the safe path)",
+      "words": 554,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/1. The Thinking Stack (Your Personal Cognitive Architecture)"
+    },
+    {
+      "id": "indydev-dan-6-evals-first-development-ai-product-architecture",
+      "framework_id": "indydev-dan",
+      "section": "6. Evals-First Development (AI Product Architecture)",
+      "content": "**The most important AI product contribution:** Build evals BEFORE code. This flips traditional software development.\n\n**Traditional software development:**\n```\nWrite code\n  ↓\nWrite tests\n  ↓\nRun tests\n  ↓\nShip\n```\n\n**AI product development (Dan's method):**\n```\nDefine what \"correct\" looks like\n  ↓\nBuild evaluation harness (measures correctness)\n  ↓\nWrite code/prompts against eval criteria\n  ↓\nIterate until evals pass\n  ↓\nShip with confidence metrics\n```\n\n**Why it matters:** AI outputs are probabilistic. You can't test \"correctness\" with one example. You need:\n- 50+ test examples covering edge cases\n- Scoring criteria (not just pass/fail, but quality scores)\n- Baseline performance (what did old system do?)\n- Regression detection (did we break something that was working?)\n\n**How to build an eval:**\n\n**Step 1: Define the task**\n```\nTask: \"Extract customer name from support email\"\nInput: Raw email text\nOutput: Single name string\n```\n\n**Step 2: Create reference examples (ground truth)**\n```\nEmail: \"Hi, I'm Sarah Johnson with Acme Corp...\"\nExpected output: \"Sarah Johnson\"\n\nEmail: \"This is Dr. Margaret Smith-Williams writing about...\"\nExpected output: \"Margaret Smith-Williams\"\n\nEmail: \"To whom it may concern, I go by Raj...\"\nExpected output: \"Raj\"\n```\n\nAim for 30-100 examples covering:\n- Happy path (obvious names)\n- Edge cases (titles, hyphens, informal names)\n- Hard cases (only first name given, ambiguous text)\n\n**Step 3: Build scoring**\n```\nExact match: 1.0 points\nPartial match (first/last name present): 0.5 points\nWrong name: 0.0 points\n\nRun 50 examples:\nScore = (sum of points) / (number of examples)\n\nBaseline (old system): 0.87\nNew system: 0.92\nImprovement: 5.7%\n```\n\n**Step 4: Run evals before shipping any change**\n```\nChange prompt to: \"Extract customer name, prefer full name\"\n\nRun 50-example eval:\nNew system: 0.94\n\nIf > 0.92: Ship it\nIf < 0.87: Revert (regression)\nIf 0.87-0.92: Manual review (is it actually better for users?)\n```\n\n**The evaluation metrics that matter:**\n- **Accuracy:** % of correct outputs\n- **F1 Score:** Balance of precision (how many we got right) + recall (how many we caught)\n- **Latency:** Response time (5x slower = bad even if more accurate)\n- **Cost:** $ per 1000 requests\n- **User satisfaction:** Do real users prefer output A or B?\n\n**Why evals prevent disaster:**\nWithout evals: Prompt change feels good → Ship → Users report failures → Rollback (chaos)\nWith evals: Prompt change → Evals fail → Fix before shipping → No user impact\n\n---",
+      "words": 392,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/6. Evals-First Development (AI Product Architecture)"
+    },
+    {
+      "id": "hormozi-8-acquisition-offer-vs-monetization-offer-critical-distinction",
+      "framework_id": "hormozi",
+      "section": "8. Acquisition Offer vs Monetization Offer (Critical Distinction)",
+      "content": "**The Problem:** Most founders use ONE offer to do TWO different jobs (acquire customers + make money). This breaks both.\n\n**Acquisition Offer (Job: Get them in the door)**\n- Low price or free\n- Objective: Volume, social proof, list building\n- Example: Free tier of SaaS, lead magnet PDF, free trial\n- Questions: \"Can I get 100+ of these?\" \"Will they know I exist?\"\n- Success metric: How many people said yes?\n\n**Monetization Offer (Job: Make money from existing customers)**\n- Premium price\n- Objective: Profit margin, predictable revenue\n- Example: $300/month paid tier, $5k/month consulting upsell\n- Questions: \"Can I charge 10x more?\" \"Will they perceive this as high-value?\"\n- Success metric: How much money did we make?\n\n**The Mistake:** Using acquisition pricing on monetization offer = leaving $100k on the table\n\nExample timeline:\n```\nMonth 1: Free tier acquisition (1,000 signups @ $0)\nMonth 2-3: Build trust with free tier users\nMonth 4: Launch $300/month tier (only 50 convert, but profit > month 1 revenue)\nMonth 12: Paying tier = primary revenue, free tier = customer acquisition machine\n```\n\n**How Hormozi applies this:**\n- Acquisition: \"Join my free workshop\" → Build email list\n- Monetization: \"Join my $5k/month mastermind\" → Serve serious customers only\n- Same person, different offers for different stages\n\n**When you have two offers:**\n- Acquisition naturally flows into monetization\n- You can measure: What % convert from free → paid? (target: 5-20%)\n- Pricing is no longer a debate (free for acquisition, premium for money)\n\n---",
+      "words": 252,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "hormozi/8. Acquisition Offer vs Monetization Offer (Critical Distinction)"
+    },
+    {
+      "id": "nate-b-jones-1-the-map-is-not-the-territory-model-humility",
+      "framework_id": "nate-b-jones",
+      "section": "1. The Map Is Not the Territory (Model Humility)",
+      "content": "**Definition:** Your plan is a simplified representation. Reality is far more complex.\n\n**The principle:**\n- Maps are useful (they guide thinking)\n- Maps are incomplete (they simplify reality)\n- Reality always diverges from the map\n- Hold plans loosely\n\n**In practice:**\n- ✓ Make detailed plans (they organize thinking and align the team)\n- ✓ Commit to the plan short-term (alignment + execution speed)\n- ✗ Mistake: Treat the plan as gospel (it's outdated the moment it's written)\n\n**Example:**\n- Plan: \"We'll grow 20% MoM for 12 months\" (nice, linear)\n- Reality: \"Month 1: 20%, Month 2: 5%, Month 3: 35%, Month 4: -10%, Month 5: 50%\"\n- Response: \"The plan was wrong. Update it. Keep moving.\"",
+      "words": 117,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/1. The Map Is Not the Territory (Model Humility)"
+    },
+    {
+      "id": "indydev-dan-phase-7-verify",
+      "framework_id": "indydev-dan",
+      "section": "Phase 7 (VERIFY)",
+      "content": "- \"Let's not just review this plan -- let's simulate it. Walk through the first week of execution. What happens? Where does it break?\"\n- \"If we had to hand this plan to someone who knows nothing about our conversation, would they be able to execute it? If not, what's missing?\"\n\n---\n\n---\n\n## When NOT to Use Dan Thinking (Critical)\n\nDan's frameworks excel at **AI-assisted work and reliability**.\n\nThey're less useful for:\n- ❌ Pure human work (don't need the learning system if no AI)\n- ❌ Deterministic tasks (use simple code/logic, not AI)\n- ❌ Speed critical (Dan is deliberate; for speed, use Lean)\n\n---\n\n## Integration With Other Frameworks\n\n**Dan's role:** The quality and reliability layer. The meta-methodology for thinking WITH AI.\n\n**Pairs with:**\n- **All other frameworks** — Dan provides QA + learning systems for all\n- **McKinsey** — Dan validates McKinsey's analytical structure\n- **Lean** — Dan stress-tests Lean's experimental cycle\n- **Stoicism** — Dan demands the intellectual honesty Stoicism requires\n- **Hormozi** — Dan ensures Hormozi's execution plans work in reality\n\n**The biggest contribution:** Dan makes AI-assisted thinking RELIABLE.\n\nWithout Dan's patterns:\n- AI sessions produce confident-sounding mediocrity\n- Prompts work once, fail the next time\n- Same mistakes repeat across sessions\n- Nothing compounds\n\nWith Dan's patterns:\n- AI outputs are stress-tested and verified\n- Learnings accumulate across sessions\n- Reliability compounds\n- Quality improves over time\n\n---",
+      "words": 235,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/Phase 7 (VERIFY)"
+    },
+    {
+      "id": "lean-6-mvp-scope-the-concentric-circles",
+      "framework_id": "lean",
+      "section": "6. MVP Scope: The Concentric Circles",
+      "content": "**Visual way to think about MVP scope:**\n\n```\n                    Your Vision (Year 3)\n                    ╱─────────────────────╲\n                   ╱   Secondary Features   ╲\n                  ╱  ╱─────────────────────╲ ╲\n                 ╱  ╱   Nice-to-Have Features ╲ ╲\n                ╱  ╱  ╱───────────────────────╲ ╲ ╲\n               ╱  ╱  ╱ ╱─────────────────────╲ ╲ ╲ ╲\n              ╱  ╱  ╱ ╱    MVP: Core Value     ╲ ╲ ╲ ╲\n             ╱__╱__╱__╱_____________________╲__╲_╲_╲\n```\n\n**MVP is the innermost circle.** Everything else comes later (and most of it never gets built because you learn you don't need it).\n\n**Example: Notion**\n\n```\nVision: \"All-in-one workspace with databases, docs, views, API, templates, etc.\"\n\nYear 1 MVP: \"A page where you can create rich text documents and share them\"\n           (NO databases, NO templates, NO API)\n\nAfter learning, Year 2: Add basic databases\nAfter learning, Year 3: Add views, templates, API\n```\n\n**The discipline:** Cut scope until you can ship in 2 weeks. Feel embarrassed? Good. That's the right time to release.\n\n---",
+      "words": 145,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/6. MVP Scope: The Concentric Circles"
+    },
+    {
+      "id": "indydev-dan-4-the-stress-test-protocol-make-quality-non-negotiable",
+      "framework_id": "indydev-dan",
+      "section": "4. The Stress Test Protocol (Make Quality Non-Negotiable)",
+      "content": "**The problem Dan solves:** AI agents self-evaluate positively on mediocre work. They claim \"done\" at 80% confidence. The last 20% — the part that catches real bugs — only happens under adversarial pressure.\n\n**The protocol (4 stages):**\n\n**Stage 1: Runtime-First Verification**\nDon't just review — execute.\n\n```\n❌ \"This looks like good code\" (review only, false confidence)\n✓ \"Does this code actually run without errors?\" (runtime verification)\n✓ \"Does it handle the edge case we discussed?\" (test with real data)\n✓ \"Did performance improve or degrade?\" (measure impact)\n```\n\nExamples:\n- Don't review plans on paper — simulate the first week\n- Don't review code by reading — actually run it\n- Don't review prompts by eye — test with real examples\n\n**Stage 2: Adversarial Self-Review**\nAfter generating, switch to QA mode:\n\n```\n\"I just generated a plan for user onboarding. Now let me try to break it:\n- What if the payment provider is down? (not handled)\n- What if the user closes the browser mid-flow? (not handled)\n- What if they get the verification email in spam? (not mentioned)\n- What happens on day 1? Day 7? Day 30? (only planned day 1)\n\nNow fix each gap.\"\n```\n\n**Stage 3: Confidence Scoring**\nRate each component 1-10 with evidence:\n\n```\nComponent: \"User will complete onboarding in <10 minutes\"\nConfidence: 4/10\nWhy low: Only tested with tech-savvy users, no payment friction, didn't measure slower connections\nTo increase confidence: Run with 10 diverse users, measure actual time, include payment\n\nComponent: \"Error messages are clear\"\nConfidence: 7/10\nWhy not higher: Didn't test with non-native English speakers, no user testing\nTo reach 9: Run with 5 non-native speakers, refine language\n```\n\nRule: Anything below 8 = you need to fix it before shipping.\n\n**Stage 4: Fresh Eyes Pass**\nRe-read as if you've never seen it:\n\n```\n\"Ignoring everything I know about this project:\n- Is this confusing? (yes, this section is)\n- Are any steps missing? (yes, what about X)\n- Could someone execute this without my help? (no, they'd get stuck here)\n- What would an outsider critique?\" (this assumes knowledge they don't have)\n```\n\n**Why this matters:**\n- Skipping verification: 50% of AI-generated plans have critical gaps\n- With stress test: 95% catch rate (not perfect, but acceptable)\n\n**Application to thinking sessions:**\n- Never accept first answer as final\n- Always ask: \"What would break this? What am I assuming?\"\n- Score confidence explicitly (not just \"yes/no\" or \"looks good\")\n- Have someone else review if it's critical",
+      "words": 417,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/4. The Stress Test Protocol (Make Quality Non-Negotiable)"
+    },
+    {
+      "id": "lean-3-validated-learning-evidence-based-decisions",
+      "framework_id": "lean",
+      "section": "3. Validated Learning (Evidence-Based Decisions)",
+      "content": "**What it means:** Only believe what you can measure and verify, not what seems true.\n\n**The discipline:**\n\n| Assumption | Vanity Metric | Validated Learning |\n|-----------|---|---|\n| \"People want time-tracking\" | 10k downloads | Measure: 30% of users return after 1 week |\n| \"Freelancers will pay\" | \"Advisors said it's a good idea\" | Measure: 10% of active users convert to paid |\n| \"This messaging resonates\" | \"We got positive feedback\" | Measure: Landing page conversion rate 3% → 5% |\n| \"Our growth is strong\" | \"Traffic increased 50%\" | Measure: Cohort retention rate staying >30% |\n\n**The validated learning process:**\n\n```\nASSUMPTION: \"Customers will pay $100/month\"\n\nHYPOTHESIS: \"If we show pricing at 50% of market average, 20% will convert\"\n\nTEST:\n  - Build a landing page with pricing\n  - Drive 100 visitors\n  - Measure: How many click \"Sign up\"?\n\nRESULT: 2% conversion (not 20%)\n\nLEARNING: \"Pricing messaging doesn't work, or price is too high, or value prop isn't clear\"\n\nNEXT: A/B test messaging, not price. Test different value props.\n```\n\n**Red flags (Vanity metrics):**\n- ❌ \"We have X users\" (users ≠ engaged users)\n- ❌ \"Our ads are great\" (clicks ≠ retention)\n- ❌ \"People like it\" (compliments ≠ commitment)\n- ❌ \"We're growing 50%\" (growth without retention is unsustainable)\n\n**Real metrics:**\n- ✓ Retention (% of users active after 1 month)\n- ✓ Engagement (frequency of use, depth of use)\n- ✓ Conversion (% of users who pay or take next step)\n- ✓ Unit economics (LTV vs CAC)\n\n---",
+      "words": 256,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/3. Validated Learning (Evidence-Based Decisions)"
+    },
+    {
+      "id": "nate-b-jones-3-decision-quality-framework-the-type-1-type-2-matrix",
+      "framework_id": "nate-b-jones",
+      "section": "3. Decision Quality Framework (The Type 1 / Type 2 Matrix)",
+      "content": "**Not all decisions deserve the same cognitive investment.**\n\n**Decision Matrix: Impact × Reversibility**\n\n| | **Easy to Undo (Reversible)** | **Hard to Undo (Irreversible)** |\n|---|---|---|\n| **High Impact** | Try it, monitor closely (2-4 week trial period) | Full analysis, get input, deliberate (days) |\n| **Low Impact** | Delegate or decide in <1 hour | Decide in hours, don't agonize |\n\n**Real examples:**\n\n**Type 1 (One-Way Door):**\n- Hiring a VP of Sales (hard to undo, high impact) → spend 2 weeks, interview 20 people, get board input\n- Pricing decision change (impacts all customers) → analyze data, A/B test, decide once\n- Product pivot (might alienate existing customers) → full impact analysis, pivot is deliberate\n\n**Type 2 (Two-Way Door):**\n- Try new marketing channel ($5k spend) → A/B test, measure for 2 weeks, kill if not working\n- Reorganize team structure → try for 30 days, revert if it doesn't work\n- New vendor for service → test during trial period, switch back if bad\n\n**The insight:** 80% of decisions are Type 2. Founders treat them like Type 1 → decision paralysis.\n\n**The decision speed by type:**\n- Type 1: Slow (but not paralyzed) — 3-7 days, get input, deliberate\n- Type 2: FAST — 2-4 hours, decide, commit, monitor, be ready to reverse\n\n**Decision cost of being wrong:**\n- Type 1 wrong: Could cost the company\n- Type 2 wrong: Cost a week of lost time, learn something\n\n**Rule:** If the cost of being wrong is <$50k and reversible in <2 weeks, it's Type 2. Decide in a meeting.",
+      "words": 263,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/3. Decision Quality Framework (The Type 1 / Type 2 Matrix)"
+    },
+    {
+      "id": "indydev-dan-8-the-trust-but-verify-pattern-probabilistic-without-blind-faith",
+      "framework_id": "indydev-dan",
+      "section": "8. The Trust-But-Verify Pattern (Probabilistic Without Blind Faith)",
+      "content": "**The core tension:** AI is probabilistic. You can't trust it implicitly. But you can't manually verify everything either. Solution: Stratified verification.\n\n**The pattern:**\n\n**Layer 1: High-Risk Outputs (Always Verify)**\n- Financial transactions (wrong amount = real money lost)\n- Security/permissions changes (wrong access = breach)\n- Irreversible actions (deletion, publishing)\n- **Verification:** Human review + manual spot check\n\n**Layer 2: Medium-Risk (Spot-Check + Confidence Score)**\n- Customer-facing communication (tone/accuracy)\n- Data quality (formatting, completeness)\n- API integrations (wrong field mapping)\n- **Verification:** Random 5-10% human review + system confidence threshold (only pass if confidence > 0.85)\n\n**Layer 3: Low-Risk (Confidence Score Only)**\n- Internal documentation formatting\n- Thumbnail generation\n- Routine categorization\n- **Verification:** Confidence threshold only (no human review)\n\n**Confidence score implementation:**\n\n```\nTask: \"Generate email response to customer\"\n\nAI output options:\nA) \"Thank you for your feedback...\" (confidence: 0.92)\nB) \"We'll review this internally...\" (confidence: 0.78)\n\nDecision:\n- Option A (>0.85): Auto-send\n- Option B (0.70-0.85): Queue for human review\n- Below 0.70: Reject, ask AI to retry\n```\n\n**How to measure confidence:**\n- Multiple attempts: Generate 3 variations → score agreement (high agreement = high confidence)\n- Rubric scoring: Judge output against explicit criteria (all met = high confidence)\n- Meta-uncertainty: Ask model \"How confident are you?\" (biased, but useful signal)\n- Ensemble: Multiple models → if they agree = high confidence\n\n**Why this beats pure automation or pure human review:**\n- Pure automation: Misses errors, can't be trusted\n- Pure human: Too slow, doesn't scale\n- Trust-but-verify: Fast for simple cases, careful for risky cases\n\n---",
+      "words": 260,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/8. The Trust-But-Verify Pattern (Probabilistic Without Blind Faith)"
+    },
+    {
+      "id": "nate-b-jones-5-the-lindy-effect-prefer-time-tested-over-new",
+      "framework_id": "nate-b-jones",
+      "section": "5. The Lindy Effect (Prefer Time-Tested Over New)",
+      "content": "**Definition:** Things that have survived a long time will likely continue to survive.\n\n**Principle:**\n- 500-year-old business model: Likely survives next 500 years\n- 2-year-old business model: Likely survives next 2 years\n- Time is a screening mechanism for robustness\n\n**Application:**\n- New tech (AI, blockchain): Verify via your own testing. Don't trust age alone.\n- Ancient wisdom (compounding, focus, shipping): Trust. Has survived thousands of years for a reason.\n- Modern trends (viral growth hack, trending): Skeptical. What was hot last year?\n\n**In startup context:**\n- Prefer proven business models (SaaS, marketplace) over new models (crypto, Web3 startups — jury still out)\n- Don't ignore new tech, but require more evidence\n- For culture/team: Old patterns (accountability, clarity, consistency) outperform new philosophies",
+      "words": 123,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/5. The Lindy Effect (Prefer Time-Tested Over New)"
+    },
+    {
+      "id": "lean-4-the-pivot-or-persevere-decision",
+      "framework_id": "lean",
+      "section": "4. The Pivot or Persevere Decision",
+      "content": "**When to pivot:**\nA pivot is a structured course correction. It's not \"we give up.\" It's \"we learned something that changes direction.\"\n\n**Types of pivots:**\n\n| Pivot Type | What Changed | Example |\n|-----------|---|---|\n| **Feature Pivot** | Core offering changes | \"We thought time-tracking was the feature. Actually, the feature is the insight you get from tracking.\" |\n| **Customer Pivot** | Target market changes | \"We built for freelancers. They use it once. But our small agency customers love it.\" → Refocus on agencies |\n| **Value Prop Pivot** | The benefit you offer changes | \"We thought we offered 'efficiency.' Actually, we offer 'confidence in billing.'\" |\n| **Platform Pivot** | Distribution changes | \"We built web app. Users want Slack integration.\" → Become a Slack app |\n| **Technology Pivot** | Core tech changes | \"We built custom ML. Open-source library solves 80% better.\" → Use open source |\n| **Business Model Pivot** | Revenue model changes | \"We tried freemium (churn too high). Switch to premium.\" |\n\n**How to decide: Pivot or Persevere?**\n\n**Pivot if:**\n- You have clear evidence that the product isn't working\n- You've learned something specific about what customers actually want\n- There's a clear direction to test\n- You still have runway to test the new direction\n\n**Persevere if:**\n- Retention is improving (trajectory is good, even if absolute is low)\n- You're close to a major learning that would unlock growth\n- Small changes are moving metrics (don't abandon a working direction)\n- You haven't gathered enough evidence yet\n\n**The danger:** Pivoting without data (random direction changes). Or persevering without data (hoping things will improve).\n\n**Rule:** Pivot on evidence, not feelings.\n\n---",
+      "words": 284,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "lean/4. The Pivot or Persevere Decision"
+    },
+    {
+      "id": "nate-b-jones-4-the-compounding-framework-assets-vs-treadmills",
+      "framework_id": "nate-b-jones",
+      "section": "4. The Compounding Framework (Assets vs. Treadmills)",
+      "content": "**Core insight:** Most people think in linear terms (\"I do X effort, I get Y result\"). In reality, some choices create exponential returns (compounding) while others are eternal treadmills.\n\n**Positive Compounding (Creates Assets):**\n\n**Knowledge Compounding:**\n- Year 1: Learn marketing (hard, slow)\n- Year 2: Learn sales (easier, because you understand customer psychology from marketing)\n- Year 3: Learn pricing (even easier, now you understand value and customer acquisition costs)\n- Year 5: You're 100x more effective at any growth problem\n\n**Relationship Compounding:**\n- Year 1: Build 50 relationships (lots of networking)\n- Year 2: Your 50 relationships introduce you to their network (250 new relationships via introductions)\n- Year 3: Your 300 relationships are now resources for advice, customers, hires, capital\n\n**Content Compounding:**\n- Write 50 articles on a topic\n- Google surfaces all 50 (one article doesn't; 50 does)\n- Each article drives traffic that compounds (people share, link, quote)\n- You're still getting traffic from articles written 2 years ago\n\n**Systems Compounding:**\n- Build a hiring process\n- Next hire is faster (you've optimized the process)\n- 5 hires later, you've automated 80% of screening\n- System is now an asset\n\n**Negative Compounding (Things to Avoid):**\n\n**Technical Debt:**\n- Today: Skip testing to ship fast (saves 1 week)\n- Day 30: Bug in production (takes 3 days to fix, would've been caught by tests)\n- Day 60: Can't add new features without breaking old ones (takes 2x longer per feature)\n- Day 90: Can't onboard new engineers (codebase is too fragile)\n\n**Broken Trust:**\n- First broken promise: People give you 2nd chance\n- Second broken promise: They're skeptical\n- Third: You're not taken seriously anymore\n- Fourth: You're out\n\n**Bad Habits:**\n- Skip exercise for 1 week (no visible impact)\n- Skip for 1 month (you feel worse)\n- Skip for 3 months (health declines, energy drops, productivity suffers)\n- Hard to recover\n\n**The decision framework:**\nWhen choosing between options, ask: \"Which creates a compounding asset? Which is a treadmill?\"\n\nExample:\n- Option A: Hire a generalist to do lots of tasks (immediate help, but no leverage)\n- Option B: Invest in automation/systems (slower now, but compounds over time)\n\nFor a 5+ year business, Option B compounds better.\n\n**Time horizon matters:**\n- Short term (<6 months): Treadmill options OK (hire, push hard)\n- Medium term (1-3 years): Mix (some treadmill, some compounding)\n- Long term (5+ years): Optimize for compounding (systems, content, relationships, knowledge)\n\n**AI Prompt Pattern:**\n> \"Which option creates an asset that's more valuable next year? Which is a treadmill you have to be on forever? Prefer the asset.\"",
+      "words": 434,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/4. The Compounding Framework (Assets vs. Treadmills)"
+    },
+    {
+      "id": "nate-b-jones-2-circle-of-competence-know-your-limits",
+      "framework_id": "nate-b-jones",
+      "section": "2. Circle of Competence (Know Your Limits)",
+      "content": "**Definition:** Know what you know, know what you don't know, and know the difference.\n\n**The three zones:**\n\n| Zone | What to do | What NOT to do |\n|---|---|---|\n| **Core (You're expert)** | Execute with confidence. Make fast decisions. | Don't second-guess yourself |\n| **Adjacent (You can learn)** | Study, learn, apprentice. Expand here. | Don't pretend expertise yet |\n| **Far away (You don't understand)** | Hire/partner. Admit ignorance. Get help. | Don't pretend you understand. Ever. |\n\n**Founder trap:** \"I understand everything\" (Dunning-Kruger + startup ego = disaster)\n\n**The rule:**\n- Stay in core: Move fast\n- Expand adjacent: Deliberately learn (take 5-10% focus)\n- Partner for far: Don't fake it\n\n**Example:**\n```\nYou: Expert in customer acquisition\nAdjacent: Sales (similar skill set, different execution)\nFar away: Hardware manufacturing (partner, don't do it yourself)\n\nMistake: \"I'll learn hardware manufacturing and build it ourselves\"\n→ Cost: 10x the budget, 2x the timeline, team demoralization\nBetter: \"We'll partner with a manufacturer. Our edge is in customer acquisition.\"\n```",
+      "words": 171,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/2. Circle of Competence (Know Your Limits)"
+    },
+    {
+      "id": "indydev-dan-9-context-window-management-as-design-concern-not-an-afterthought",
+      "framework_id": "indydev-dan",
+      "section": "9. Context Window Management As Design Concern (Not an Afterthought)",
+      "content": "**The problem:** LLMs have finite context windows (4k, 128k, etc.). As you add more knowledge, prompt efficiency matters more than brevity.\n\n**Bad approach:** Stuff everything in, hope it fits\n**Good approach:** Design context strategy from day one\n\n**Context budget calculation:**\n\n```\nTotal window: 128k tokens\nReserved for output: 4k tokens\nInput budget: 124k tokens\n\nAllocation:\n- System prompt: 2k (20% of budget)\n- User query: 1k (8%)\n- Previous conversation: 20k (16%)\n- Knowledge base: 80k (65%)\n- Unused buffer: 21k (17%, for safety)\n```\n\n**This forces a choice:** Can we fit everything in 65k tokens of knowledge? If not, we need semantic search (query-specific knowledge injection).\n\n**Compression patterns:**\n\n**Pattern A: Abstractions (Full → One-liner)**\n```\n❌ Full context (2k tokens):\n\"The customer support system works like this:\n1. Customer submits ticket\n2. AI categorizes by urgency\n3. If urgent, routes to human\n4. If not, AI responds\n5. Customer can escalate\n6. Escalated tickets go to tier-2...\"\n\n✅ Abstraction (200 tokens):\n\"Support system: Triage by urgency → Route to AI or human → Allow escalation\"\n```\n\n**Pattern B: Relevance filtering (Everything → Only relevant)**\nInstead of: \"Here's ALL our documentation\"\nDo this: \"Based on your query about billing, here's billing + related docs only\"\n\n**Pattern C: Tiered detail (Comprehensive → Summary)**\n```\nLevel 1 (most used): One-liner summary\nLevel 2: 2-3 paragraph description\nLevel 3: Full spec (only load if needed)\n```\n\n**Context lifecycle management:**\n\nIn a 15-minute conversation:\n```\nMinute 1-3: Full context needed (system prompt, task details, knowledge base)\nMinute 5-10: Only recent conversation matters (previous context becomes \"warm\")\nMinute 12-15: Preparing for context reset (save key insights before boundary)\n```\n\n**Before context reset (15-min boundary in Thinking Foundry):**\n```\nCurrent context: [full knowledge]\nAction: Summarize into 500-token \"context snapshot\"\nOn reconnect: Inject snapshot instead of re-loading all 80k tokens\n```\n\n**Design checklist:**\n- [ ] How many tokens does system prompt + knowledge base consume?\n- [ ] Can we fit all essential knowledge in 60% of budget?\n- [ ] What knowledge is \"nice-to-have\" vs \"critical\"? (Can we cut 20% if needed?)\n- [ ] Do we have a semantic search layer for knowledge if it doesn't fit?\n- [ ] What's our compression strategy for old context?\n\n---\n\n## Sources & Maintenance\n\n**Primary Influences:**\n- Andrej Karpathy, \"Software 2.0\" (how AI changes development)\n- Andrej Karpathy, \"A Programmer's Intuition for Matrix Multiplication\" (systems thinking)\n- IndyDev Dan system insights (4000+ learnings captured)\n- DeepSeek, Claude, and other LLM architecture explorations\n\n**Key Insights:**\n- Karpathy's 90% × 7 = 47.8% (compound failure in sequential AI)\n- The Learning System concept (captured from multiple successful AI projects)\n- The Blueprint Pattern (emerges from code review best practices)\n- The Stress Test Protocol (safety engineering applied to AI)\n\n**Maintenance:** Continuous (as AI evolves, patterns evolve). Monthly review of new LLM capabilities, quarterly refresh with new patterns.\n\n---\n\n**Last Updated:** 2026-03-29\n**File Size:** 726 lines\n**Confidence Level:** Encyclopedic (frameworks + evals-first + prompt chaining + context management)",
+      "words": 499,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "indydev-dan/9. Context Window Management As Design Concern (Not an Afterthought)"
+    },
+    {
+      "id": "nate-b-jones-6-the-eisenhower-matrix-apply-ruthlessly",
+      "framework_id": "nate-b-jones",
+      "section": "6. The Eisenhower Matrix (Apply Ruthlessly)",
+      "content": "| | **Urgent** | **Not Urgent** |\n|---|---|---|\n| **Important** | DO FIRST (crises, deadlines) | **SCHEDULE** (growth lives here) |\n| **Not Important** | DELEGATE (or eliminate) | ELIMINATE (time wasters) |\n\n**The insight:** Most people spend all day in Urgent (both important and unimportant). Growth and compounding live in Important + Not Urgent.\n\n**Example time allocation:**\n- 30% Urgent Important (customer crisis, deal about to close)\n- 10% Urgent Not Important (meetings that could be emails)\n- 50% Not Urgent Important ← **THIS IS WHERE YOU SHOULD BE**\n  - Learning new skill\n  - Building a system that scales\n  - Writing that compounds\n  - Relationship building\n- 10% Not Urgent Not Important (eliminate these)\n\n---\n\n## When to Apply (Session Phases)\n\n| Phase | Nate B. Jones Application |\n|-------|--------------------------|\n| **0 - User Stories** | Perception layer -- how are we framing this? Is there a better frame? |\n| **1 - MINE** | Inversion -- what would guarantee failure? First principles -- what's fundamentally true? |\n| **2 - SCOUT** | Leverage framework -- which options create compounding advantages? |\n| **3 - ASSAY** | Decision quality matrix -- which options are reversible? Which need careful analysis? |\n| **4 - CRUCIBLE** | Second-order thinking -- \"and then what?\" for each surviving option |\n| **5 - AUDITOR** | Circle of competence check -- are we operating within what we actually know? |\n| **6 - PLAN** | Compounding framework -- does this plan create assets or accumulate debt? |\n| **7 - VERIFY** | Regret minimization -- at 80 years old, which choice would you regret NOT taking? |\n\n---\n\n## Example AI Prompts",
+      "words": 278,
+      "phases": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "nate-b-jones/6. The Eisenhower Matrix (Apply Ruthlessly)"
+    },
+    {
+      "id": "stoicism-4-virtue-as-the-only-true-good",
+      "framework_id": "stoicism",
+      "section": "4. Virtue as the Only True Good",
+      "content": "**The Core:** External things (money, status, investors, valuation) are \"preferred indifferents\" — nice to have, but not the measure of a good life.\n\n**The Stoic hierarchy:**\n```\nHighest: Virtue (living well, making right decisions, maintaining integrity)\nMiddle: Preferred indifferents (health, wealth, reputation, success)\nLowest: Vices (dishonesty, shortcuts, compromising values)\n```\n\n**Why this matters for founders:**\n- You can chase money and lose your integrity (and regret it)\n- You can optimize for valuation and build the wrong product\n- You can pursue growth at the cost of your mental health\n\n**The question:** \"If I lose the money, the status, the big exit — but I kept my integrity and built something real — would that be enough?\"\n\nIf the answer is NO, you're operating from the wrong foundation. Stoicism says: make sure the answer is YES.\n\n**Practical application:**\n- Should I pivot to what investors want? (Stoic: Only if it's also what you believe in)\n- Should I compromise on our values for faster growth? (Stoic: No. Virtue first.)\n- Should I fake it until I make it? (Stoic: Authenticity is virtue. Faking is vice.)\n\n**The paradox:** Founders who optimize for virtue (building real value, staying honest, thinking long-term) often end up with better financial outcomes AND better sleep.\n\n---",
+      "words": 210,
+      "phases": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source": "stoicism/4. Virtue as the Only True Good"
+    }
+  ]
+}
