@@ -2,10 +2,10 @@
 
 **The Thinking Foundry — Product Design**
 
-**Status:** Ready to Build (Post-Stress-Test)
-**Version:** 2.1
-**Date:** 2026-03-28
-**DU Estimate:** 15-20 (3-4 weeks)
+**Status:** MVP Rearchitecture — Drive-First Data Model
+**Version:** 3.0
+**Date:** 2026-03-29
+**DU Estimate:** 20-25 (4-5 weeks, autonomous build)
 
 ---
 
@@ -26,15 +26,18 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 **Tech Stack:**
 - Frontend: React + Web Audio API (Vercel)
 - Voice: Gemini 3.1 Flash Live API (Google Cloud billing)
-- Backend: Cloudflare Workers + Durable Objects
-- Storage: GitHub Issues (source-of-truth) + Google Drive (user-friendly, phase-organized)
-- Auth: MVP = link-based access (no login). Post-MVP = PIN + SMS
-- User Data: Google Drive + Google Docs (organized by Foundry phase)
+- Backend: Node.js + Express + WebSocket (Railway or Vercel Functions)
+- Storage: **Google Drive (source-of-truth database)** + GitHub Issues (public record)
+- Auth: **MVP = Link-based only** (unique session URL, no login required)
+- Database: Drive folders organized by phase, no Supabase
+
+**MVP Philosophy:** Drive IS the database. GitHub Issues point to Drive. No separate persistence layer.
 
 **Deferred to Post-MVP:**
-- PIN + SMS authentication (feature flag — not needed for first 2 months)
-- Dynamic plugin system (satellite services — base knowledge is sufficient for launch)
-- Stripe payment processing (free/open initially)
+- PIN + SMS authentication (not needed for first launch)
+- Database migration (if needed for scale)
+- Team collaboration features
+- Stripe payment processing (free initially)
 
 ---
 
@@ -57,65 +60,57 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 
 ## User Flows
 
-### Flow 1: New User (First Session - Free)
+### Flow 1: MVP User (Link-Based, Single Session)
 
 ```
-1. User lands on app
+1. User receives unique link: https://thinkingfoundry.app/s/abc123def456
    ↓
-2. Enter email
+2. Click link → Browser opens, auto-requests audio permission
    ↓
-3. Create 6-digit PIN
+3. Grant audio permission (Safari/Chrome popup)
    ↓
-4. Verify phone (SMS code)
+4. Server creates Google Drive folder structure:
+   /Thinking Foundry Sessions/
+   └── session-abc123def456/
+       ├── metadata.json (sessionId, timestamp, status)
+       ├── Phase-0-User-Stories/
+       ├── Phase-1-MINE/
+       ├── Phase-2-SCOUT/
+       ├── Phase-3-ASSAY/
+       ├── Phase-4-CRUCIBLE/
+       ├── Phase-5-AUDITOR/
+       ├── Phase-6-PLAN/
+       └── Phase-7-VERIFY/
    ↓
-5. System creates Google Drive folder for user
+5. [PHASE 0-7] Real-time session with AI
+   - User speaks → captured + transcribed
+   - Insights appear on screen in real-time (not verbatim, key points)
+   - Server writes phase summaries to Drive Docs as session progresses
+   - User can interrupt anytime (natural barge-in)
    ↓
-6. Click "Start Thinking Session"
+6. AI signals phase transition:
+   "OK, I think I understand Phase 0. We have these user stories.
+    Let's move to Phase 1 and dig deeper. Ready?"
    ↓
-7. Grant audio permission
+7. Phase 1 folder gets populated in Drive with Phase 1 notes (in real-time)
    ↓
-8. [PHASE 0-7] Guided conversation with AI
-   - User speaks problem
-   - AI listens, asks questions
-   - Conversation recorded + transcribed (real-time display)
-   - User can interrupt anytime
-   - System pulls relevant frameworks/services on-the-fly (plugins)
+8. Session completes (all 8 phases or user stops)
    ↓
-9. Session ends → GitHub issue created (backend)
+9. Server creates GitHub issue:
+   Title: "Session: [Problem Name] — 2026-03-29"
+   Body: Full transcript + link to Drive folder
+   Labels: session, phase-0, phase-1, ... (phases covered)
    ↓
-10. Google Drive organized by phases:
-    /MINE/[phase transcript]
-    /SCOUT/[possibilities generated]
-    /ASSAY/[relevant frameworks]
-    /CRUCIBLE/[risks tested]
-    /AUDITOR/[quality check]
-    /PLAN/[clear answers]
-    /VERIFY/[full transcript]
+10. Client shows: "Session complete! ✅ [GitHub Issue URL] • [Drive Folder URL]"
    ↓
-11. User sees their Drive folder, can open any phase to review
+11. User can:
+    - Share GitHub issue
+    - Share Drive folder
+    - Download transcript
+    - Continue thinking (new session)
 ```
 
-### Flow 2: Follow-Up Session
-
-```
-1. User enters PIN + SMS code
-   ↓
-2. See previous session in Drive
-   ↓
-3. Click "Continue Thinking"
-   ↓
-4. AI references previous session folder
-   ↓
-5. [PHASE 0-7] Same structure, deeper dive on specific topics
-   ↓
-6. New GitHub issue created, linked to previous one
-   ↓
-7. Drive folder updated with new phases + thinking
-   ↓
-8. All previous sessions visible in Drive history
-```
-
-### Flow 3: Team Training (Not MVP, but in architecture)
+### Flow 2: Follow-Up Session (Deferred to Post-MVP)
 
 ```
 1. VP invites team (share session URL)
@@ -133,68 +128,68 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 
 ---
 
-## Component Architecture
+## Component Architecture (MVP)
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │        Frontend (React + Web Audio — Vercel)        │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  Auth Layer                                         │
-│    ├─ Email input                                   │
-│    ├─ PIN creation (6-digit)                        │
-│    ├─ SMS verification (4-digit)                    │
-│    └─ PIN/SMS login on return visits                │
+│  LinkAuth (Stateless)                               │
+│    └─ Extract sessionId from URL path               │
+│       (/s/abc123def456 → session_abc123def456)      │
+│       No forms, no login, just click link            │
 │                                                     │
 │  ThinkingSession                                    │
 │    ├─ AudioCapture (Web Audio API)                  │
-│    ├─ TranscriptDisplay (real-time)                 │
+│    ├─ OutlineView (real-time insights)              │
+│    │   └─ User stories, research, framework refs    │
 │    ├─ PhaseIndicator + Timer                        │
 │    ├─ InterruptHint (soft indicator)                │
-│    └─ Plugin status (which frameworks loaded?)      │
-│                                                     │
-│  DriveExplorer                                      │
-│    └─ Show Google Drive folder structure by phase   │
-│        /MINE /SCOUT /ASSAY /CRUCIBLE /AUDITOR       │
-│        /PLAN /VERIFY (open any to read)             │
+│    ├─ PauseButton                                   │
+│    └─ ExportButton (end-of-session, show URLs)      │
 │                                                     │
 └─────────────────────────────────────────────────────┘
-         ↓ WebSocket + REST APIs ↓
+         ↓ WebSocket ↓
 ┌─────────────────────────────────────────────────────┐
-│   Backend (Cloudflare Workers)                      │
+│   Backend (Node.js + Express + WS on Railway)      │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  AuthHandler (PIN-based)                            │
-│    ├─ Email → PIN creation                          │
-│    ├─ SMS verification                              │
-│    └─ Session tokens (no passwords)                 │
+│  SessionManager                                     │
+│    ├─ Create sessionId from link token              │
+│    ├─ Persist session state in memory (Durable)     │
+│    └─ Drive folder initialization                   │
 │                                                     │
-│  SessionRouter                                      │
-│    ├─ Route audio → Gemini Live (your Ultra acct)   │
-│    ├─ Real-time transcription                       │
-│    └─ Phase state machine                           │
+│  AudioProcessor                                     │
+│    ├─ Receive audio chunks from client              │
+│    ├─ Send to Gemini Live (bidirectional)           │
+│    ├─ Handle barge-in interruption                  │
+│    └─ Stream responses back to client               │
 │                                                     │
-│  PluginSystem (Satellite Services)                  │
-│    ├─ Analyze user's problem statement              │
-│    ├─ Extract keywords/domains                      │
-│    ├─ Pull relevant frameworks (Nate B., Graham...) │
-│    ├─ Fetch web sources on-demand                   │
-│    └─ Inject into phase prompts dynamically         │
+│  TranscriptExtractor                                │
+│    ├─ Parse AI responses for key points             │
+│    ├─ Generate outline items (user stories, etc.)   │
+│    ├─ Send real-time outline to client              │
+│    └─ Store raw transcript in memory                │
 │                                                     │
-│  GitHubExporter                                     │
-│    ├─ Create issue per session                      │
-│    ├─ Tag by phase (MINE, SCOUT, ASSAY, etc.)       │
-│    └─ Link to previous sessions                     │
+│  DriveDatabase (Core Persistence)                   │
+│    ├─ Create Drive folder per session               │
+│    ├─ Create phase subfolders (Phase-0, Phase-1...) │
+│    ├─ Write phase summaries as docs (real-time)     │
+│    ├─ Update metadata.json per update               │
+│    └─ Share folder with user email (if provided)    │
 │                                                     │
-│  GoogleDriveManager                                 │
-│    ├─ Create user's Drive folder                    │
-│    ├─ Organize by phase subdirectories              │
-│    ├─ Create Google Docs per phase                  │
-│    └─ Expose folder URL to user                     │
+│  PhaseTransitionHandler                             │
+│    ├─ Detect AI's phase end signal                  │
+│    ├─ Send phase_change message to client           │
+│    ├─ Create new phase folder in Drive              │
+│    └─ Inject new phase prompt to Gemini             │
 │                                                     │
-│  SessionState (Durable Objects)                     │
-│    ├─ In-memory session history                     │
-│    └─ User session data (email, PIN hash)           │
+│  GitHubExporter (End-of-Session)                    │
+│    ├─ Collect full transcript from memory           │
+│    ├─ Create GitHub issue with transcript           │
+│    ├─ Link to Drive folder URL                      │
+│    └─ Tag by phases covered                         │
 │                                                     │
 └─────────────────────────────────────────────────────┘
          ↓ APIs ↓
@@ -202,15 +197,110 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 │   External Services                                 │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  Gemini 3.1 Flash Live (via Google Ultra account)   │
-│  GitHub REST API (store thinking issues)            │
-│  Google Drive API (user-friendly storage)           │
-│  SMS Provider (verification codes)                  │
-│  Cloudflare KV (session tokens, no passwords)       │
-│  Web Search API (plugin system to fetch sources)    │
+│  Gemini 3.1 Flash Live API (bidirectional audio)    │
+│  GitHub REST API (issue creation + labels)          │
+│  Google Drive API (real-time persistence)           │
+│  (No SMS, no Supabase, no Cloudflare KV for MVP)    │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Data Storage Model — Drive as Database
+
+**The critical architectural decision:** Google Drive IS the database. Not supplemental storage. The source of truth.
+
+### Drive Folder Structure
+
+```
+Google Drive (User's Personal Drive)
+└── Thinking Foundry Sessions/
+    └── session-abc123def456/
+        ├── metadata.json
+        │   {
+        │     "sessionId": "abc123def456",
+        │     "createdAt": "2026-03-29T14:32:00Z",
+        │     "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+        │     "githubIssueUrl": "https://github.com/...",
+        │     "status": "completed" | "in-progress" | "paused",
+        │     "totalDuration": 3600
+        │   }
+        │
+        ├── Phase-0-User-Stories/
+        │   └── notes.md (updated in real-time)
+        │
+        ├── Phase-1-MINE/
+        │   └── notes.md
+        │
+        ├── Phase-2-SCOUT/
+        │   └── notes.md
+        │
+        ├── Phase-3-ASSAY/
+        │   └── notes.md
+        │
+        ├── Phase-4-CRUCIBLE/
+        │   └── notes.md
+        │
+        ├── Phase-5-AUDITOR/
+        │   └── notes.md
+        │
+        ├── Phase-6-PLAN/
+        │   └── notes.md
+        │
+        └── Phase-7-VERIFY/
+            └── full-transcript.md
+```
+
+### Write Pattern (Server → Drive)
+
+**Real-time updates, NOT batch at end:**
+
+```
+Session starts (t=0)
+  ↓
+1. Server creates /session-abc123/
+2. Server creates /session-abc123/metadata.json (status: "in_progress")
+3. Gemini connects, server enters Phase 0
+
+Every AI response:
+  ├─ Parse response for key points
+  ├─ Append to /session-abc123/Phase-0/notes.md
+  ├─ Send outline_item to client (for real-time display)
+  └─ Store full transcript in memory
+
+AI signals phase end ("Ready to move to Phase 1?"):
+  ├─ Create /session-abc123/Phase-1/
+  ├─ Initialize Phase-1/notes.md
+  ├─ Send phase_change message to client
+  └─ Inject Phase 1 prompt to Gemini
+
+...repeat for all 8 phases...
+
+Session complete:
+  ├─ Finalize metadata.json (status: "completed")
+  ├─ Create /session-abc123/Phase-7/full-transcript.md
+  ├─ Create GitHub issue (body = full transcript, link = Drive folder)
+  ├─ Send export_complete to client
+  └─ Close WebSocket
+```
+
+### What Gets Written Where
+
+| Data | Destination | Frequency | Format |
+|------|-------------|-----------|--------|
+| Phase summaries | Drive (Phase-X/notes.md) | Real-time, after each AI response | Markdown |
+| Full transcript | Drive (Phase-7/full-transcript.md) | Once at session end | Markdown |
+| Session metadata | Drive (metadata.json) | On phase transitions + end | JSON |
+| Public record | GitHub Issue | Once at session end | Markdown + labels |
+
+### Why Drive as Database
+
+1. **User ownership:** Folder lives in user's Drive, they control it
+2. **No migration risk:** If we change backends, data is already in user's hands
+3. **Simple persistence:** Write markdown + JSON, no schemas
+4. **Real-time accessible:** User can open notes mid-session if they refresh browser
+5. **No vendor lock-in:** Pure Google APIs, portable to competitors if needed
 
 ---
 
@@ -353,98 +443,143 @@ At any point: User can interrupt → AI responds immediately
 
 ---
 
-## API Contracts
+## API Contracts (MVP)
 
-### Frontend → Backend: Start Session
+### Link-Based Access (No Authentication Required)
 
-```json
-POST /api/session/start
+**User clicks:** `https://thinkingfoundry.app/s/abc123def456`
+
+```
+GET /s/:accessToken
+  ↓
+1. Validate token (simple check: token exists + not expired)
+2. Extract sessionId from token (deterministic)
+3. Create Drive folder: session-{sessionId}
+4. Redirect to /session/{sessionId} with WebSocket URL embedded
+5. Client connects to WS, session begins
+```
+
+**Why link-based:**
+- No form complexity (MVP constraint)
+- Roderic controls who gets a link (external access control)
+- Simple token generation (UUID or HMAC-based)
+- Easy to share/revoke if needed
+
+### Frontend → Backend: WebSocket Connection
+
+```
+WS /session/{sessionId}
+
+Client immediately sends:
 {
-  "access_link": "unique link token (generated by Roderic per user)",
-  "user_email": "optional, for Drive folder creation",
-  "previous_session_id": "optional, for follow-ups"
+  "type": "start",
+  "sessionId": "abc123def456",
+  "frameworks": ["stoicism", "ideo", "mckinsey", "yc", "lean", "hormozi", "nate-b-jones", "indydev-dan"]
 }
 
-Response:
+Server responds:
 {
-  "session_id": "uuid",
-  "websocket_url": "wss://...",
-  "gemini_session_token": "ephemeral token",
-  "drive_folder_url": "https://drive.google.com/..."
+  "type": "ready",
+  "sessionId": "abc123def456",
+  "driveFolder": "https://drive.google.com/drive/folders/...",
+  "phase": 0
 }
 ```
 
-**MVP Auth:** Roderic generates a unique link per user (e.g., `thinkingfoundry.app/s/abc123`). User clicks link → session starts. No login required.
+### Frontend ↔ Backend: WebSocket Messages (Continuous)
 
-**Post-MVP Auth:** PIN + SMS system (see DESIGN-01 issue).
-
-### Frontend ↔ Backend: WebSocket (Continuous)
-
+**Client → Server (Audio):**
 ```json
-// Frontend sends audio chunks
 {
-  "type": "audio_chunk",
-  "data": "base64-encoded PCM audio"
+  "type": "audio",
+  "data": "base64-encoded PCM audio chunk",
+  "timestamp": 1234567890
 }
+```
 
-// Backend sends transcriptions + AI responses
+**Server → Client (Transcript + Outline):**
+```json
+// Real-time transcript
 {
   "type": "transcript",
   "speaker": "user | ai",
-  "text": "partial transcription",
-  "is_final": false
+  "text": "Partial or complete utterance",
+  "isFinal": true
 }
 
+// Real-time outline items (key points, user stories, research)
 {
-  "type": "transcript",
-  "speaker": "ai",
-  "text": "full final response",
-  "is_final": true
+  "type": "outline_item",
+  "phase": 0,
+  "label": "USER_STORY | RESEARCH | FRAMEWORK | INSIGHT",
+  "text": "One-line summary for display",
+  "icon": "📖 | 🔍 | 🏛️ | 💡"
 }
 
-// Server notifies phase change
+// Phase transition signal from AI
 {
-  "type": "phase_change",
-  "phase": "PHASE_2",
-  "duration_remaining": 1800
+  "type": "phase_transition",
+  "from": 0,
+  "to": 1,
+  "aiMessage": "Ready to move to Phase 1 — MINE. Agreed?"
+}
+
+// Status updates
+{
+  "type": "status",
+  "state": "connected | recording | reconnecting | paused"
+}
+
+// Error handling
+{
+  "type": "error",
+  "message": "Audio timeout — no speech for 30s. Still here?"
 }
 ```
 
-### Backend → GitHub: Create Issue
+### Backend → Drive: Real-Time Writes
 
 ```
-POST /repos/{user}/thinking-foundry-sessions/issues
+Per AI response:
+  PUT /drive/files/{phaseFolder}/notes.md
+  {
+    "summary": "Appended markdown summary",
+    "timestamp": "2026-03-29T14:32:00Z"
+  }
 
+Per phase transition:
+  POST /drive/folders
+  {
+    "parent": "session-abc123def456",
+    "name": "Phase-1-MINE"
+  }
+
+Session end:
+  PUT /drive/files/{sessionFolder}/metadata.json
+  {
+    "status": "completed",
+    "githubIssueUrl": "https://github.com/...",
+    "completedAt": "2026-03-29T15:30:00Z"
+  }
+```
+
+### Backend → GitHub: Issue Creation (Session End)
+
+```
+POST /repos/growthpigs/thinking-foundry/issues
 {
-  "title": "Session: Marketing Launch Problem — 2026-03-28",
-  "body": "# Thinking Session\n\n**Duration:** 67 minutes\n**Confidence:** 8/10\n\n## Problem\nI have a marketing problem...\n\n## Thinking\n...[full transcript]...\n\n## Answers\n1. Focus on X\n2. Then do Y\n\n[Full Transcript](link-to-gist)",
-  "labels": ["session", "completed"]
+  "title": "Session: [Problem Name] — 2026-03-29",
+  "body": "# Thinking Foundry Session\n\n[Full Transcript]\n\n## Next Steps\n[Drive Folder](https://drive.google.com/...)",
+  "labels": ["session", "phase-0", "phase-1", "phase-2", ... (phases covered)]
 }
 
 Response:
 {
-  "html_url": "https://github.com/..."
+  "html_url": "https://github.com/growthpigs/thinking-foundry/issues/123"
 }
 ```
 
-### Frontend Auth: Link-Based Access (MVP)
-
-```json
-// MVP: User clicks unique link generated by Roderic
-GET /s/{access_token}
-
-Response:
-{
-  "session_id": "uuid",
-  "user_name": "John",
-  "redirect": "/session/{session_id}"
-}
-
-// No login. No PIN. No SMS. Just a link.
-// Roderic controls access by who gets a link.
-```
-
-**Post-MVP (DEFERRED):** PIN + SMS authentication — see issue #10.
+**Post-MVP (DEFERRED):** PIN + SMS authentication, team sharing, follow-up sessions.
 
 ---
 
@@ -700,142 +835,229 @@ Ready to share? I'll give you the link."
 
 ---
 
-## Testing Checklist (Pre-Launch)
+## Testing Checklist (Pre-Launch MVP)
 
-### Functional Tests
-- [ ] Email + PIN creation works
-- [ ] SMS verification works
-- [ ] PIN login on return visit (no email needed)
-- [ ] Audio capture works (desktop + mobile)
-- [ ] Real-time transcription displays correctly
-- [ ] All 8 phases execute (take manual session)
-- [ ] Interruption works (cut off AI mid-sentence)
-- [ ] GitHub issue created with full transcript + phase tags
-- [ ] Google Drive folder created with phase subfolders
-- [ ] Google Docs created for each phase
-- [ ] Issue links to previous session (follow-up)
-- [ ] User can access Drive folder and open any phase
-- [ ] Session data persists (disconnect/reconnect)
-- [ ] Plugin system fetches relevant frameworks (SCOUT phase)
-- [ ] Plugin results appear in AI prompts
+### Critical Path Tests
+- [ ] **Link-based access:** Click unique link → session starts immediately
+- [ ] **Drive folder creation:** Folder created with correct structure (Phase-0, Phase-1, etc.)
+- [ ] **Audio capture:** Works on desktop + mobile (Safari + Chrome)
+- [ ] **Gemini connection:** Connects successfully, receives audio, sends back speech
+- [ ] **Barge-in (interruption):** AI stops mid-sentence when user speaks
+- [ ] **Real-time outline:** Outline items appear on screen as AI speaks
+- [ ] **All 8 phases execute:** Full 60-120 min session with all phases
+- [ ] **Phase transitions:** AI signals phase end, UI updates, new folder created
+- [ ] **Drive writes:** Check Drive folder after each phase — notes.md updated
+- [ ] **Session end:** GitHub issue created with full transcript + correct labels
+- [ ] **Export URLs:** Client receives both GitHub + Drive URLs at end
+
+### Drive Persistence Tests
+- [ ] Drive folder exists with correct structure
+- [ ] Phase-X/notes.md files are created and populated
+- [ ] metadata.json exists and updates correctly
+- [ ] Folder is shared with user email (if provided)
+- [ ] User can open Drive folder and read phase notes
+- [ ] Real-time updates work (notes appear while session running)
+- [ ] Session metadata accurately reflects phases covered
+
+### Outline View Tests
+- [ ] Outline items appear in real-time (not verbatim transcript)
+- [ ] User stories extracted and displayed
+- [ ] Research findings appear with context
+- [ ] Framework references appear when AI mentions them
+- [ ] Outline items are concise (one-liners for screen display)
+
+### AI Behavior Tests
+- [ ] AI stays in Phase 0 until user stories are clear
+- [ ] AI transitions to Phase 1 at the right moment
+- [ ] AI uses frameworks naturally (doesn't lecture)
+- [ ] AI keeps responses short (2-3 sentences + question)
+- [ ] AI challenges assumptions proactively
+- [ ] All 8 phases have distinct behavior (per prompt specs)
+
+### Error Handling Tests
+- [ ] Network disconnect mid-session → offer to resume
+- [ ] GitHub API fails → show Drive folder anyway
+- [ ] Drive API fails → show error but don't crash
+- [ ] Long silence (30s+) → AI asks "Still here?"
+- [ ] Audio permission denied → clear error message
+- [ ] WebSocket drops → client shows "reconnecting..."
 
 ### Performance Tests
-- [ ] Latency <500ms (first response)
-- [ ] Transcription appears <1s after speech
-- [ ] No audio dropouts in 60-min session
-- [ ] 10 concurrent sessions (test scaling)
-
-### Edge Case Tests
-- [ ] Network disconnect mid-session
-- [ ] GitHub API rate limit (rapid follow-ups)
-- [ ] Noisy environment (user still understood)
-- [ ] Fast speech (VAD catches it)
-- [ ] User doesn't speak (timeouts)
-- [ ] All 7 phases with no errors
-- [ ] Delete session, create new one
+- [ ] First AI response <500ms
+- [ ] Audio playback has <200ms latency
+- [ ] No audio dropouts in 90-min session
+- [ ] 5 concurrent sessions work (load test)
 
 ### User Experience Tests
-- [ ] Can new user understand how to use it?
-- [ ] Interruption feels natural?
-- [ ] GitHub issue is clear/useful?
-- [ ] User leaves with clarity (confidence ≥8/10)?
+- [ ] User can start session in <5 seconds
+- [ ] Interruption feels natural (no awkward pauses)
+- [ ] User can follow progress (phase indicator clear)
+- [ ] Final GitHub + Drive URLs are discoverable
+- [ ] User leaves with 8+/10 clarity confidence
 
 ---
 
-## Success Metrics (MVP)
+## Success Metrics (MVP Launch)
 
 | Metric | Target | How to Measure |
 |--------|--------|----------------|
-| **Auth Success** | 100% | PIN creation → SMS verification → login works |
-| **Completion Rate** | 90%+ | Sessions that finish without error |
-| **User Clarity** | 8+/10 avg | Post-session survey |
-| **Session Duration** | 60-120 min | WebSocket duration |
-| **GitHub Issues Created** | 100% | Sessions → Issues (no failures) |
-| **Google Drive Organization** | 100% | Folders created, Docs per phase |
-| **Plugin System Working** | 80%+ | Frameworks fetched for relevant domains |
-| **Latency (AI Response)** | <500ms | WebSocket message timestamps |
-| **Interruption Success** | 100% | Works every time user tries |
-| **Mobile Usability** | 90%+ | Easy to use on phone (not just desktop) |
+| **Link Access** | 100% | Unique link → session starts (no login) |
+| **Completion Rate** | 90%+ | Sessions complete all 8 phases |
+| **Drive Persistence** | 100% | Every phase creates folder with notes.md |
+| **GitHub Export** | 100% | Every session → one GitHub issue |
+| **Outline Display** | 100% | Real-time insights appear on screen |
+| **AI Response Latency** | <500ms | First response <500ms consistently |
+| **Barge-In Success** | 100% | Interruption works every time |
+| **User Clarity** | 8+/10 | Post-session assessment |
+| **Session Duration** | 60-120 min | Full 8 phases with no timeouts |
+| **Mobile Experience** | Fully Functional | No degradation on Safari/Chrome mobile |
 
 ---
 
-## Deployment Plan
+## Build Plan (MVP — Autonomous, 20-25 DUs)
 
-### Week 1: Setup & Testing
-- [ ] Gemini Live API account (Google Ultra account configured)
-- [ ] GitHub project + API token (for issue creation)
-- [ ] Google Cloud project + Drive API (for user folders)
-- [ ] SMS provider account (Twilio or similar for verification)
-- [ ] Cloudflare Workers project
-- [ ] Local development environment
-- [ ] Web search API (for plugin system)
+**Assumption:** PoC validated voice + Gemini Live works. Now building real MVP architecture.
 
-### Week 2: Core Build
-- [ ] Frontend: React scaffold (Vercel)
-- [ ] PIN auth system (email → PIN → SMS)
-- [ ] Audio capture + Gemini Live integration
-- [ ] Real-time transcription display
-- [ ] Phase transitions + plugin system skeleton
-- [ ] Google Drive folder creation + permissions
-- [ ] WebSocket server (Cloudflare Workers)
+### Phase 1: Data Layer (DriveDatabase)
+**DUs: 5-6**
 
-### Week 3: Integration & Launch
-- [ ] GitHub issue export (by phase, with tags)
-- [ ] Google Drive folder organization (subfolders per phase)
-- [ ] Google Docs creation for each phase
-- [ ] Plugin system completion (fetch frameworks for SCOUT)
-- [ ] E2E testing with real sessions
-- [ ] Deploy to production (Vercel frontend + Cloudflare backend)
-- [ ] Monitoring + error tracking (Sentry)
-- [ ] Go/No-Go decision
+- [ ] DriveDatabase class (wrapper around googleapis)
+- [ ] Session folder initialization
+- [ ] Real-time writes to Drive (Phase-X/notes.md)
+- [ ] Metadata.json creation + updates
+- [ ] Share folder with user email (optional MVP)
 
-### Launch Checklist
-- [ ] All FSD requirements met
-- [ ] 3+ test sessions completed (manual)
-- [ ] Error handling for all edge cases
-- [ ] Support plan (how to handle issues)
-- [ ] Monitoring dashboard (Sentry/PostHog)
-- [ ] Go/No-Go decision
+### Phase 2: Link-Based Auth + Session Init
+**DUs: 3-4**
+
+- [ ] Link token validation (/s/{token} route)
+- [ ] SessionManager (create + persist in memory)
+- [ ] WebSocket connection + authentication
+- [ ] Drive folder creation on session start
+
+### Phase 3: Real-Time Outline Extraction
+**DUs: 4-5**
+
+- [ ] TranscriptExtractor (parse AI responses)
+- [ ] Outline item generation (user stories, research, frameworks)
+- [ ] Real-time outline_item WebSocket messages
+- [ ] Client-side outline display (OutlineView component)
+
+### Phase 4: Phase Transitions + Drive Integration
+**DUs: 3-4**
+
+- [ ] Phase transition detection (AI signals readiness)
+- [ ] New phase folder creation in Drive
+- [ ] phase_transition WebSocket message
+- [ ] Phase prompt injection to Gemini
+
+### Phase 5: GitHub Export
+**DUs: 2-3**
+
+- [ ] Collect full transcript from memory
+- [ ] Create GitHub issue (title + body + labels)
+- [ ] Link to Drive folder in issue
+- [ ] Tag by phases covered
+
+### Phase 6: Testing + Refinement
+**DUs: 3-4**
+
+- [ ] Manual end-to-end session (all 8 phases)
+- [ ] Verify Drive folder structure
+- [ ] Verify GitHub issue creation
+- [ ] Verify outline view display
+- [ ] Error handling edge cases
+
+### Deployment Sequence
+
+**Step 1 (Local):** Build + test all components locally with Railway/Vercel staging
+**Step 2 (Staging):** Deploy to Railway backend + Vercel frontend (staging URLs)
+**Step 3 (Production):** Blue-green deploy (keep PoC running, parallel MVP on new URLs)
+**Step 4 (Go/No-Go):** Run 3+ test sessions, validate all critical path items
+
+**No rollback risk:** PoC stays alive during MVP build, parallel deployment
 
 ---
 
-## Post-MVP Roadmap
+## Post-MVP Roadmap (Deferred)
 
-### Phase 2: Team Training (Week 4-6)
-- Group sessions (2-10 people)
-- Team-level permissions + sharing
+### Post-MVP 1: User Persistence (Week 1-2 after launch)
+- PIN + SMS authentication (replace link-based)
+- User accounts + session history
+- Follow-up sessions (reference previous session in new session)
+- Session resumption (reconnect to incomplete session)
+
+### Post-MVP 2: Team + Sharing (Week 3-4)
+- Share session link with others (co-listening)
+- Group sessions (multiple people contribute)
 - Team license management
+- Shared Drive folder permissions
 
-### Phase 3: Enhancements (Week 7-8)
-- Session summaries (AI-generated)
+### Post-MVP 3: Enhancements (Week 5-6)
+- AI-generated session summaries (replace manual outline)
 - Email transcript export
-- Integration with Slack
-- Analytics (thinking patterns)
+- Slack integration (share results → Slack)
+- Analytics dashboard (thinking patterns, common problems)
 
-### Phase 4: Monetization (Week 9-10)
-- Subscription tier ($99/month for unlimited sessions)
+### Post-MVP 4: Monetization (Week 7-8)
+- Subscription tier ($29-99/month)
 - API for 3rd-party apps
-- White-label version
+- White-label / custom branding
+- Audit logs + compliance
 
 ---
 
-## Appendix: Research Summary
+## Appendix: MVP Architecture Changes (v3.0)
 
-**All Technical Research Complete:**
+**From POC → MVP: The Rearchitecture**
 
-✅ **RESEARCH-01:** Gemini Live API ($0.005/min input, $0.018/min output = $1.38/session)
-✅ **RESEARCH-02:** GitHub API (5,000 req/hour, sufficient for 800+ sessions/hour)
-✅ **RESEARCH-03:** Transcription (Automatic, real-time, 95%+ accuracy)
-✅ **RESEARCH-04:** Interruption (Barge-in built-in, natural UX, zero extra code)
+### What Changed
 
-**Ready to Build:** ✅ YES
+| Aspect | POC | MVP |
+|--------|-----|-----|
+| **Auth** | Not specified | Link-based (click → start) |
+| **Storage** | Unclear persistence | Drive as database (source-of-truth) |
+| **Data Flow** | Client-driven export | Server-driven real-time writes |
+| **Outline View** | Transcript display | Real-time insights extraction |
+| **Phase Transitions** | Manual button | AI-driven (system detects) |
+| **Write Pattern** | Batch at end | Real-time per response |
+| **Backend** | Railway / Vercel | Node.js + Express + WebSocket |
+| **Database** | Not specified | Google Drive only |
+
+### Why This Works
+
+1. **Simplicity:** Link-based MVP = zero auth complexity
+2. **User Control:** Drive folders in user's own Drive
+3. **Transparency:** User can watch session unfold in Drive
+4. **No Vendor Lock:** Pure Drive + GitHub, portable
+5. **Scalable:** Drive API scales to millions of sessions
+6. **Cost Effective:** ~$1.38 Gemini + ~$0 Drive/GitHub (free tier)
+
+### Technical Debt Eliminated
+
+- ❌ No Supabase (added complexity)
+- ❌ No Cloudflare Workers (overkill for MVP)
+- ❌ No SMS/PIN system (not needed for link access)
+- ❌ No dynamic plugin system (base knowledge sufficient)
 
 ---
 
-**Document Status:** APPROVED FOR BUILDING
+## Research Complete
 
-**Next Step:** Start frontend development (React scaffold + audio capture)
+✅ **Gemini Live API:** $0.005/min input, $0.018/min output = $1.38/session
+✅ **GitHub API:** 5,000 req/hour, sufficient for scale
+✅ **Drive API:** Scales to millions, no rate limit concerns
+✅ **Interruption (Barge-in):** Built-in, zero extra code
+✅ **Real-time Persistence:** Drive API supports concurrent writes
 
 ---
 
-*This FSD represents the complete design of The Thinking Foundry MVP. Every component, flow, and edge case is specified. Implementation should follow this spec precisely.*
+**Document Status:** READY FOR AUTONOMOUS BUILD
+
+**Scope:** 20-25 DUs (4-5 weeks)
+
+**Next Step:** Chi builds MVP in parallel worktree, tests end-to-end, validates against this FSD
+
+---
+
+*FSD v3.0 is the complete specification for The Thinking Foundry MVP. Autonomous build follows this spec precisely. No deviations without explicit approval.*
