@@ -270,6 +270,19 @@ function arrayBufferToBase64(buffer) {
 
 let playbackQueue = [];
 let isPlaying = false;
+let playbackCtx = null;
+
+/**
+ * Get or create shared playback AudioContext.
+ * Reuses the same context across all chunks to avoid browser limits (~6-10 contexts).
+ */
+function getPlaybackContext() {
+  if (!playbackCtx || playbackCtx.state === 'closed') {
+    playbackCtx = new (window.AudioContext || window.webkitAudioContext)();
+    console.log('[AUDIO] Created playback context at', playbackCtx.sampleRate, 'Hz');
+  }
+  return playbackCtx;
+}
 
 /**
  * Play received audio from Gemini (24kHz PCM, base64 encoded)
@@ -281,6 +294,12 @@ function playAudio(base64Data) {
   if (!isPlaying) {
     processPlaybackQueue();
   }
+}
+
+// Barge-in: clear playback queue when server signals interruption
+function clearPlayback() {
+  playbackQueue = [];
+  isPlaying = false;
 }
 
 async function processPlaybackQueue() {
@@ -307,8 +326,8 @@ async function processPlaybackQueue() {
       float32[i] = int16[i] / 32768;
     }
 
-    // Create audio buffer at 24kHz (Gemini output rate)
-    const playCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Create audio buffer at 24kHz (Gemini output rate) using SHARED context
+    const playCtx = getPlaybackContext();
     const audioBuffer = playCtx.createBuffer(1, float32.length, 24000);
     audioBuffer.getChannelData(0).set(float32);
 
@@ -316,7 +335,7 @@ async function processPlaybackQueue() {
     source.buffer = audioBuffer;
     source.connect(playCtx.destination);
     source.onended = () => {
-      playCtx.close();
+      // Do NOT close the shared context — only close when session ends
       processPlaybackQueue();
     };
     source.start(0);
@@ -329,21 +348,39 @@ async function processPlaybackQueue() {
 
 // ─── WebSocket ───
 
+let wsConnectTimeout = null;
+
 function connectWebSocket(setupConfig) {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const url = `${protocol}//${window.location.host}`;
 
   ws = new WebSocket(url);
 
+  // ─── Bug fix: Connection timeout (5s) for dead server ───
+  wsConnectTimeout = setTimeout(() => {
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.error('[WS] Connection timeout after 5s');
+      ws.close();
+      addSystemMessage('Connection timed out. Please check your network and retry.');
+      // Re-enable buttons
+      $btnBegin.disabled = false;
+      $btnBegin.textContent = 'Retry';
+      $btnSkip.disabled = false;
+    }
+  }, 5000);
+
   ws.onopen = () => {
+    clearTimeout(wsConnectTimeout);
     console.log('[WS] Connected to server');
     // Send session-setup with context sources + selected frameworks
-    ws.send(JSON.stringify({
+    // ─── Bug fix: Only include drive if provided ───
+    const setupMsg = {
       type: 'session-setup',
       github: setupConfig.github,
-      drive: setupConfig.drive,
+      documents: setupConfig.documents || [],
       frameworks: setupConfig.frameworks
-    }));
+    };
+    ws.send(JSON.stringify(setupMsg));
   };
 
   ws.onmessage = (event) => {
@@ -356,6 +393,11 @@ function connectWebSocket(setupConfig) {
 
       case 'audio':
         playAudio(msg.data);
+        break;
+
+      case 'interrupted':
+        // Barge-in: server detected user speech, stop playing AI audio
+        clearPlayback();
         break;
 
       case 'status':
@@ -379,12 +421,15 @@ function connectWebSocket(setupConfig) {
   };
 
   ws.onclose = () => {
+    clearTimeout(wsConnectTimeout);
     console.log('[WS] Disconnected');
     updateStatus('disconnected');
   };
 
   ws.onerror = (err) => {
+    clearTimeout(wsConnectTimeout);
     console.error('[WS] Error:', err);
+    addSystemMessage('WebSocket error. Please refresh and try again.');
   };
 }
 
@@ -480,6 +525,21 @@ async function startSession(config) {
 
   try {
     await startAudioCapture();
+
+    // ─── Bug fix: iOS audio suspension recovery ───
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[AUDIO] Page visibility resumed, checking audio contexts...');
+        if (audioContext?.state === 'suspended') {
+          await audioContext.resume();
+          console.log('[AUDIO] Resumed capture context');
+        }
+        if (playbackCtx?.state === 'suspended') {
+          await playbackCtx.resume();
+          console.log('[AUDIO] Resumed playback context');
+        }
+      }
+    });
 
     // Transition screens
     $setupScreen.classList.add('hidden');

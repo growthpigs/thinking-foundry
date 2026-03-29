@@ -32,6 +32,7 @@ class GeminiLiveManager {
     // Callbacks
     this.onTranscript = opts.onTranscript || (() => {});
     this.onAudio = opts.onAudio || (() => {});
+    this.onInterrupted = opts.onInterrupted || (() => {});
     this.onReconnecting = opts.onReconnecting || (() => {});
     this.onReconnected = opts.onReconnected || (() => {});
     this.onError = opts.onError || (() => {});
@@ -164,6 +165,14 @@ class GeminiLiveManager {
             }
           }
 
+          // Barge-in: server detected user speech during generation
+          if (msg.serverContent.interrupted) {
+            console.log(`[GEMINI][${label}] INTERRUPTED (barge-in)`);
+            if (!isStandby) {
+              this.onInterrupted();
+            }
+          }
+
           // Check for turn completion
           if (msg.serverContent.turnComplete) {
             console.log(`[GEMINI][${label}] Turn complete`);
@@ -293,6 +302,11 @@ class GeminiLiveManager {
 
   /**
    * Execute the connection swap
+   *
+   * CRITICAL FIX (2026-03-29): isSwapping flag is now cleared in the oldWs.once('close') handler,
+   * not synchronously. This prevents the race condition where oldWs.close() (async) was followed
+   * by isSwapping = false (sync), causing the close event handler to fire with isSwapping already false,
+   * which would trigger onClose() when it shouldn't.
    */
   performSwap() {
     if (!this.standbyWs || this.standbyWs.readyState !== WebSocket.OPEN) {
@@ -310,18 +324,23 @@ class GeminiLiveManager {
     this.reconnectionCount++;
     this.connectionStartTime = Date.now();
 
-    // Close old connection gracefully
-    if (oldWs && oldWs.readyState === WebSocket.OPEN) {
-      oldWs.close(1000, 'Reconnection swap');
-    }
-
-    this.isSwapping = false;
-    this.onReconnected();
-
-    // Schedule NEXT reconnection
+    // Schedule NEXT reconnection IMMEDIATELY (doesn't wait for close)
     this.scheduleReconnection();
 
-    console.log(`[RECONNECT] Swap complete. Now on connection #${this.reconnectionCount}. Next swap in ~14 minutes.`);
+    // Close old connection gracefully, and clear swapping flag only AFTER close completes
+    if (oldWs && oldWs.readyState === WebSocket.OPEN) {
+      oldWs.once('close', () => {
+        this.isSwapping = false;
+        this.onReconnected();
+        console.log(`[RECONNECT] Swap complete. Now on connection #${this.reconnectionCount}. Next swap in ~14 minutes.`);
+      });
+      oldWs.close(1000, 'Reconnection swap');
+    } else {
+      // If oldWs is already closed, just clear the flag immediately
+      this.isSwapping = false;
+      this.onReconnected();
+      console.log(`[RECONNECT] Swap complete (oldWs was already closed). Now on connection #${this.reconnectionCount}. Next swap in ~14 minutes.`);
+    }
   }
 
   /**
