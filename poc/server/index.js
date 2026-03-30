@@ -15,6 +15,7 @@ const { SupabaseBuffer } = require('./supabase-buffer');
 const { GitHubPersistence } = require('./github-persistence');
 const { PhaseTransitionHandler } = require('./phase-transition');
 const { FrameworkFetcher } = require('./framework-fetcher');
+const { SttPipeline } = require('./stt-pipeline');
 
 const app = express();
 const server = http.createServer(app);
@@ -77,6 +78,7 @@ wss.on('connection', (clientWs) => {
   let supabaseBuffer = null;
   let githubPersistence = null;
   let frameworkFetcher = null;
+  let sttPipeline = null;
   let flushInterval = null;
   let phaseHandler = null;
   const FLUSH_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
@@ -310,8 +312,9 @@ wss.on('connection', (clientWs) => {
     try {
       msg = JSON.parse(raw);
     } catch {
-      // Binary audio data — forward to Gemini
+      // Binary audio data — fork to Gemini AND STT
       if (gemini) gemini.sendAudio(raw);
+      if (sttPipeline) sttPipeline.feedAudio(raw);
       return;
     }
 
@@ -408,6 +411,32 @@ wss.on('connection', (clientWs) => {
           frameworkFetcher = null;
         }
 
+        // Initialize STT pipeline for user speech transcription
+        try {
+          if (process.env.DEEPGRAM_API_KEY) {
+            sttPipeline = new SttPipeline();
+            sttPipeline.onTranscript((text, isFinal) => {
+              if (!text) return;
+              // Send transcript to client for real-time display
+              sendToClient('user_transcript', { text, isFinal });
+              // Write final transcripts to Supabase
+              if (isFinal && text.trim() && supabaseBuffer) {
+                supabaseBuffer.writeUtterance(
+                  session.currentPhase, 'user', text.trim()
+                ).catch(err => console.error('[STT] Supabase write error:', err.message));
+              }
+            });
+            sttPipeline.onError((err) => {
+              console.error('[STT] Pipeline error:', err.message || err);
+            });
+            await sttPipeline.startStream();
+            console.log('[SETUP] STT pipeline initialized (Deepgram)');
+          }
+        } catch (err) {
+          console.warn('[SETUP] STT pipeline init failed (continuing without):', err.message);
+          sttPipeline = null;
+        }
+
         try {
           const external = await fetchExternalContext({
             github: msg.github,
@@ -445,8 +474,9 @@ wss.on('connection', (clientWs) => {
         break;
 
       case 'audio':
-        // Base64-encoded audio from client
+        // Base64-encoded audio from client — fork to Gemini AND STT
         if (gemini) gemini.sendAudioBase64(msg.data);
+        if (sttPipeline) sttPipeline.feedAudioBase64(msg.data);
         break;
 
       case 'phase':
@@ -522,6 +552,9 @@ wss.on('connection', (clientWs) => {
             .catch(err => console.error('[SUPABASE] End error:', err.message));
         }
 
+        if (sttPipeline) {
+          await sttPipeline.stopStream().catch(() => {});
+        }
         if (gemini) gemini.close();
         sendToClient('status', { state: 'stopped' });
         break;
@@ -534,6 +567,9 @@ wss.on('connection', (clientWs) => {
   clientWs.on('close', async () => {
     console.log('[WS] Client disconnected');
     if (flushInterval) clearInterval(flushInterval);
+    if (sttPipeline) {
+      sttPipeline.stopStream().catch(() => {});
+    }
 
     // Best-effort final flush on disconnect
     try { await flushToGitHub(); } catch (err) {
@@ -560,5 +596,6 @@ server.listen(PORT, () => {
   console.log(`  Service Account:${process.env.GOOGLE_SERVICE_ACCOUNT ? ' ✓ configured' : ' ✗ MISSING'}`);
   console.log(`  Supabase URL:   ${process.env.SUPABASE_URL ? '✓ configured' : '✗ MISSING (session persistence disabled)'}`);
   console.log(`  Supabase Key:   ${process.env.SUPABASE_KEY ? '✓ configured' : '✗ MISSING (session persistence disabled)'}`);
+  console.log(`  Deepgram Key:   ${process.env.DEEPGRAM_API_KEY ? '✓ configured' : '✗ MISSING (user STT disabled)'}`);
   console.log('');
 });

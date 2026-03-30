@@ -124,6 +124,8 @@ class GeminiLiveManager {
         systemInstruction: {
           parts: [{ text: systemPrompt }]
         },
+        // Get text transcription of AI's audio output (no separate STT needed)
+        outputAudioTranscription: {},
       }
     };
 
