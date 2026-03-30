@@ -8,6 +8,22 @@
 
 ---
 
+## TWO SYSTEMS, SEPARATE REPOS
+
+**This repo contains THE THINKING FOUNDRY** (structured thinking for decision-making)
+
+**A separate repo contains THE SOFTWARE FOUNDRY** (structured building from specifications)
+- **Repo:** growthpigs/the-foundry
+- **Purpose:** Build software from FSDs created by The Thinking Foundry
+- **Phases:** LAUNCH → MINE → SCOUT → ASSAY → CRUCIBLE → EXTERNAL-AUDITOR → PLAN → HAMMER → TEMPER → RALPH-LOOP → POST-FOUNDRY
+- **See:** [THE SOFTWARE FOUNDRY CLAUDE.md](https://github.com/growthpigs/the-foundry/blob/main/CLAUDE.md)
+
+**They use similar phase structures but apply to different domains:**
+- **Thinking Foundry** = "What should I build? What should I decide?"
+- **Software Foundry** = "How do I build what I decided?"
+
+---
+
 ## WHAT THIS IS
 
 The Thinking Foundry is a **voice-first structured thinking product**. NOT a chatbot. NOT a therapy session. NOT a motivational tool.

@@ -5,7 +5,7 @@
       "id": "stoicism",
       "name": "Stoic Decision-Making",
       "type": "framework",
-      "path": "frameworks/stoicism.md",
+      "path": "mentors/stoicism.md",
       "description": "Focus on what you can control, negative visualization, premeditatio malorum, amor fati. The emotional and psychological foundation for clear thinking.",
       "phases": [0, 1, 3, 4, 5, 6, 7],
       "tags": ["decision-making", "psychology", "emotional-clarity", "fear", "control", "resilience", "priorities"]
@@ -14,7 +14,7 @@
       "id": "ideo",
       "name": "IDEO Design Thinking",
       "type": "framework",
-      "path": "frameworks/ideo.md",
+      "path": "mentors/ideo.md",
       "description": "Human-centered problem solving: empathize, define, ideate, prototype, test. Keeps solutions grounded in real human needs.",
       "phases": [0, 1, 2, 3, 4, 5, 6, 7],
       "tags": ["design-thinking", "user-centered", "empathy", "ideation", "prototyping", "testing", "innovation"]
@@ -23,7 +23,7 @@
       "id": "mckinsey",
       "name": "McKinsey Problem Solving",
       "type": "framework",
-      "path": "frameworks/mckinsey.md",
+      "path": "mentors/mckinsey.md",
       "description": "MECE decomposition, issue trees, hypothesis-driven thinking, pyramid principle. The analytical backbone for structured problem solving.",
       "phases": [0, 1, 2, 3, 4, 5, 6, 7],
       "tags": ["analytical", "structured", "mece", "hypothesis", "issue-trees", "strategy", "consulting"]
@@ -32,7 +32,7 @@
       "id": "yc",
       "name": "Y Combinator Startup Thinking",
       "type": "framework",
-      "path": "frameworks/yc.md",
+      "path": "mentors/yc.md",
       "description": "Talk to users, launch fast, measure growth, find product-market fit. Urgency and intellectual honesty for startup decisions.",
       "phases": [0, 1, 2, 3, 4, 5, 6, 7],
       "tags": ["startup", "users", "growth", "pmf", "launch", "mvp", "validation"]
@@ -41,7 +41,7 @@
       "id": "lean",
       "name": "Lean Methodology",
       "type": "framework",
-      "path": "frameworks/lean.md",
+      "path": "mentors/lean.md",
       "description": "Build-measure-learn loops, MVP thinking, validated learning, pivot-or-persevere decisions. Converts plans into experiments.",
       "phases": [0, 1, 2, 3, 4, 5, 6, 7],
       "tags": ["lean", "mvp", "experimentation", "validation", "build-measure-learn", "pivot", "waste"]
