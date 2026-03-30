@@ -49,7 +49,7 @@ Usage:
  */
 async function generateEmbeddings(texts) {
   const client = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = client.getGenerativeModel({ model: 'embedding-001' });
+  const model = client.getGenerativeModel({ model: 'gemini-embedding-001' });
 
   console.log(`\n🔄 Generating ${texts.length} embeddings (batch size: ${BATCH_SIZE})`);
 
@@ -59,16 +59,14 @@ async function generateEmbeddings(texts) {
     console.log(`   [${i + 1}/${texts.length}] Processing batch...`);
 
     try {
-      const result = await model.batchEmbedContent({
-        requests: batch.map(text => ({
+      // Use individual embedContent calls with outputDimensionality for 768-dim vectors
+      for (const text of batch) {
+        const result = await model.embedContent({
           content: { parts: [{ text }] },
-        })),
-      });
-
-      // Extract vectors from response
-      result.embeddings.forEach(emb => {
-        embeddings.push(emb.values); // 768-dimensional vector
-      });
+          outputDimensionality: 768,
+        });
+        embeddings.push(result.embedding.values);
+      }
 
       // Delay between batches to avoid rate limits
       if (i + BATCH_SIZE < texts.length) {
