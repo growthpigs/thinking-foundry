@@ -456,11 +456,21 @@ wss.on('connection', (clientWs, req) => {
           },
         });
 
+        // Validate link token at WebSocket layer
+        const accessToken = msg.accessToken || `session_${Date.now()}`;
+        if (linkAuth && msg.accessToken) {
+          const validation = linkAuth.validateToken(msg.accessToken);
+          if (!validation.valid) {
+            sendToClient('error', { message: `Session link invalid: ${validation.reason}` });
+            clientWs.close(1008, validation.reason);
+            return;
+          }
+        }
+
         // Initialize persistence layers
         try {
           if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
             supabaseBuffer = new SupabaseBuffer();
-            const accessToken = msg.accessToken || `session_${Date.now()}`;
             await supabaseBuffer.startSession(accessToken);
             // Mark link token as used (single-use enforcement)
             if (linkAuth && msg.accessToken) {

@@ -149,7 +149,20 @@ thinking-foundry/
 ### Deployment
 - Push to main → Railway auto-deploys
 - URL: thinking-foundry-production.up.railway.app
-- Environment variables: GEMINI_API_KEY, GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GOOGLE_SERVICE_ACCOUNT
+- Environment variables (Railway — 10 total):
+  - GEMINI_API_KEY — Google AI Studio key for Gemini Live
+  - SUPABASE_URL — Supabase project URL
+  - SUPABASE_KEY — Supabase service role key
+  - GITHUB_TOKEN — Fine-grained PAT for thinking-foundry-vault
+  - GITHUB_OWNER — growthpigs
+  - GITHUB_REPO — thinking-foundry-vault
+  - DEEPGRAM_API_KEY — Deepgram key for user STT
+  - ADMIN_API_KEY — Link auth admin key
+  - GOOGLE_SERVICE_ACCOUNT — Google Drive service account path
+  - NOTEBOOKLM_AUTH_B64 — Base64-encoded NotebookLM auth
+- Environment variables (Vercel — 2):
+  - VITE_WS_URL=wss://thinking-foundry-production.up.railway.app
+  - VITE_API_URL=https://thinking-foundry-production.up.railway.app
 
 ### What Goes Where
 - Phase prompts → poc/prompts/
@@ -183,7 +196,7 @@ thinking-foundry/
 - ✅ Knowledge base system (8 frameworks, 78 chunks in Supabase pgvector)
 - ✅ Context connectors (GitHub + Drive)
 - ✅ Pause button (with Supabase persistence + atomic pause counter)
-- ✅ Deployed on Railway (7 env vars: Gemini, GitHub, Supabase, Google SA)
+- ✅ Deployed on Railway (10 env vars) + Vercel (React frontend)
 - ✅ SupabaseBuffer — real-time session persistence (<50ms writes)
 - ✅ GitHubPersistence — ONE issue per phase in thinking-foundry-vault
 - ✅ PhaseTransitionHandler — AI-driven phase transitions (Article 10)
