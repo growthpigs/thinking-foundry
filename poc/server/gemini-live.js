@@ -167,7 +167,7 @@ class GeminiLiveManager {
           for (const part of parts) {
             if (part.text) {
               if (!isStandby || this.isSwapping) {
-                this.onTranscript('assistant', part.text);
+                this.onTranscript('model', part.text);
               }
             }
             if (part.inlineData) {

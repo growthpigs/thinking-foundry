@@ -347,26 +347,50 @@ wss.on('connection', (clientWs) => {
 
         // Initialize AI-driven phase transition handler (Article 10)
         phaseHandler = new PhaseTransitionHandler({
+          onSqueezeNeeded: async (currentPhase) => {
+            // Inject The Squeeze prompt into Gemini (Article 9 — active, not passive)
+            if (gemini && gemini.activeWs && gemini.activeWs.readyState === 1) {
+              const squeezePrompt = {
+                clientContent: {
+                  turns: [{
+                    role: 'user',
+                    parts: [{ text: '[SYSTEM] Before we advance — what did we assume in this phase? What did we miss? Give me your confidence score from 1 to 10.' }]
+                  }],
+                  turnComplete: true,
+                }
+              };
+              gemini.activeWs.send(JSON.stringify(squeezePrompt));
+              console.log(`[SQUEEZE] Injected squeeze prompt for phase ${currentPhase}`);
+            }
+          },
           onTransition: async (fromPhase, toPhase, meta) => {
             console.log(`[PHASE] AI-driven transition: ${fromPhase} → ${toPhase} (confidence: ${meta.confidence || 'N/A'})`);
 
             // Orchestrate the full transition
             session.setPhase(toPhase);
 
+            // Build carry-forward text from squeeze notes or synthesize from recent context
+            const carryForwardText = meta.squeezeNotes
+              || context.getCondensedContext()
+              || 'No carry-forward generated for this phase.';
+
             if (supabaseBuffer) {
               await flushToGitHub();
-              if (meta.squeezeNotes) {
-                await supabaseBuffer.saveCarryForward(
-                  fromPhase, meta.squeezeNotes, meta.confidence, meta.squeezeNotes,
-                  githubPersistence?.phaseIssues.get(fromPhase)?.url || null
-                ).catch(err => console.error('[SUPABASE] Carry-forward error:', err.message));
-              }
+              // Save carry-forward to Supabase (Article 8)
+              await supabaseBuffer.saveCarryForward(
+                fromPhase, carryForwardText, meta.confidence, meta.squeezeNotes || null,
+                githubPersistence?.phaseIssues.get(fromPhase)?.url || null
+              ).catch(err => console.error('[SUPABASE] Carry-forward error:', err.message));
               await supabaseBuffer.updatePhase(toPhase);
             }
 
             if (githubPersistence) {
               const oldIssue = githubPersistence.phaseIssues.get(fromPhase);
               if (oldIssue) {
+                // Add carry-forward to the closing issue (Article 8)
+                await githubPersistence.addCarryForward(
+                  oldIssue.number, carryForwardText, meta.confidence, meta.squeezeNotes
+                ).catch(err => console.error('[GITHUB] Carry-forward error:', err.message));
                 await githubPersistence.closePhaseIssue(oldIssue.number)
                   .catch(err => console.error('[GITHUB] Close error:', err.message));
               }
@@ -375,7 +399,14 @@ wss.on('connection', (clientWs) => {
                 .catch(err => console.error('[GITHUB] Create error:', err.message));
             }
 
-            // Reconnect Gemini with new phase context
+            // Retrieve previous carry-forward to inject into next phase
+            let prevCarryForward = '';
+            if (supabaseBuffer) {
+              const cf = await supabaseBuffer.getCarryForward(fromPhase);
+              prevCarryForward = cf?.carry_forward || '';
+            }
+
+            // Reconnect Gemini with new phase context + carry-forward
             if (gemini) {
               const phaseKnowledge = await knowledgeLoader.load({
                 phase: toPhase,
@@ -384,6 +415,10 @@ wss.on('connection', (clientWs) => {
                 githubContext: sessionGithubContext || undefined,
                 driveContext: sessionDriveContext || undefined,
               });
+              // Inject carry-forward into knowledge context
+              if (prevCarryForward) {
+                phaseKnowledge = `--- CARRY-FORWARD FROM PREVIOUS PHASE ---\n${prevCarryForward}\n--- END CARRY-FORWARD ---\n\n${phaseKnowledge}`;
+              }
               gemini.knowledgeContext = phaseKnowledge;
               await gemini.forceReconnect(toPhase, context.getCondensedContext());
             }
@@ -398,6 +433,10 @@ wss.on('connection', (clientWs) => {
             supabaseBuffer = new SupabaseBuffer();
             const accessToken = msg.accessToken || `session_${Date.now()}`;
             await supabaseBuffer.startSession(accessToken);
+            // Mark link token as used (single-use enforcement)
+            if (linkAuth && msg.accessToken) {
+              linkAuth.markUsed(msg.accessToken, supabaseBuffer.sessionId);
+            }
             console.log('[SETUP] Supabase buffer initialized');
           }
         } catch (err) {

@@ -65,8 +65,9 @@ class PhaseTransitionHandler {
    * @param {function} options.onTransition - Called when a transition is detected: (fromPhase, toPhase, meta)
    * @param {number} [options.minConfidence=6] - Minimum confidence to allow transition (Article 9)
    */
-  constructor({ onTransition, minConfidence = 6 } = {}) {
+  constructor({ onTransition, onSqueezeNeeded, minConfidence = 6 } = {}) {
     this.onTransition = onTransition;
+    this.onSqueezeNeeded = onSqueezeNeeded; // Called to inject squeeze prompt into Gemini
     this.minConfidence = minConfidence;
 
     // Buffer recent AI utterances to detect multi-sentence transition signals
@@ -79,6 +80,12 @@ class PhaseTransitionHandler {
 
     // Track extracted Squeeze data
     this.pendingSqueeze = null;
+
+    // Active Squeeze state (Article 9 — mandatory, not passive)
+    this.awaitingSqueeze = false;
+    this.squeezeTargetPhase = null;
+    this.squeezeRetries = 0;
+    this.maxSqueezeRetries = 2;
   }
 
   /**
@@ -103,6 +110,41 @@ class PhaseTransitionHandler {
       this.pendingSqueeze = { confidence, text: combined };
     }
 
+    // If we're waiting for The Squeeze response, check for confidence
+    if (this.awaitingSqueeze) {
+      if (confidence !== null) {
+        // Got the confidence — now decide whether to advance
+        this.awaitingSqueeze = false;
+        this.squeezeRetries = 0;
+
+        if (confidence < this.minConfidence) {
+          console.log(`[PHASE] Squeeze: confidence ${confidence} < ${this.minConfidence} — looping back`);
+          this.squeezeTargetPhase = null;
+          return {
+            transition: false,
+            blocked: true,
+            reason: `Confidence ${confidence}/10 is below minimum ${this.minConfidence}/10. Phase must loop back.`,
+            confidence,
+          };
+        }
+
+        // Confidence sufficient — fire transition
+        return this._fireTransition(currentPhase, this.squeezeTargetPhase, confidence);
+      }
+
+      // No confidence in this utterance — retry if under limit
+      this.squeezeRetries++;
+      if (this.squeezeRetries >= this.maxSqueezeRetries) {
+        console.log(`[PHASE] Squeeze: no confidence after ${this.squeezeRetries} retries — advancing without score`);
+        this.awaitingSqueeze = false;
+        this.squeezeRetries = 0;
+        return this._fireTransition(currentPhase, this.squeezeTargetPhase, null);
+      }
+
+      // Still waiting for confidence response
+      return null;
+    }
+
     // Check for transition signal
     const targetPhase = this._detectTransition(combined, currentPhase);
     if (targetPhase === null) return null;
@@ -111,29 +153,40 @@ class PhaseTransitionHandler {
     const now = Date.now();
     if (now - this.lastTransitionAt < this.debounceMs) return null;
 
-    // Confidence gate (Article 9)
-    const squeezeConfidence = this.pendingSqueeze?.confidence || null;
-    if (squeezeConfidence !== null && squeezeConfidence < this.minConfidence) {
-      console.log(`[PHASE] Transition blocked: confidence ${squeezeConfidence} < ${this.minConfidence} (Article 9)`);
-      return {
-        transition: false,
-        blocked: true,
-        reason: `Confidence ${squeezeConfidence}/10 is below minimum ${this.minConfidence}/10. Phase must loop back.`,
-        confidence: squeezeConfidence,
-      };
+    // If we already have a confidence score, use it directly
+    if (this.pendingSqueeze?.confidence != null) {
+      return this._fireTransition(currentPhase, targetPhase, this.pendingSqueeze.confidence);
     }
 
-    // Fire transition
-    this.lastTransitionAt = now;
+    // No confidence yet — ACTIVELY request The Squeeze (Article 9)
+    console.log(`[PHASE] Transition detected → requesting Squeeze before advancing to phase ${targetPhase}`);
+    this.awaitingSqueeze = true;
+    this.squeezeTargetPhase = targetPhase;
+    this.squeezeRetries = 0;
+
+    if (this.onSqueezeNeeded) {
+      Promise.resolve(this.onSqueezeNeeded(currentPhase))
+        .catch(err => console.error('[PHASE] Squeeze injection error:', err.message));
+    }
+
+    return { transition: false, squeezePending: true, targetPhase };
+  }
+
+  /**
+   * Internal: fire the transition with confidence data.
+   */
+  _fireTransition(currentPhase, targetPhase, confidence) {
+    this.lastTransitionAt = Date.now();
     const meta = {
-      confidence: squeezeConfidence,
+      confidence,
       squeezeNotes: this.pendingSqueeze?.text || null,
-      detectedFrom: text,
+      detectedFrom: this.recentAiText.join(' '),
     };
 
     // Clear buffers
     this.recentAiText = [];
     this.pendingSqueeze = null;
+    this.squeezeTargetPhase = null;
 
     // Notify (catch async errors to prevent unhandled rejections)
     if (this.onTransition) {
@@ -145,7 +198,7 @@ class PhaseTransitionHandler {
       transition: true,
       fromPhase: currentPhase,
       toPhase: targetPhase,
-      confidence: squeezeConfidence,
+      confidence,
     };
   }
 
