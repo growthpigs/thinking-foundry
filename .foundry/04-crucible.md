@@ -1,364 +1,404 @@
-# Phase 4: CRUCIBLE — Stress-Test Critical Assumptions
+# Phase 4: CRUCIBLE — Adversarial Stress-Test
 
-**Date:** 2026-03-29
-**Duration:** 3-4 hours (live user testing + debate)
-**Mode:** ADVERSARIAL STRESS TEST
+**Metaphor:** The crucible melts metal to separate impurities. What survives is pure.
 
----
-
-## OBJECTIVE
-
-**Kill or validate Assumption A1: "AI can behave as co-founder (contributes ideas, contributes research, challenges assumptions proactively) instead of interrogator (endless questions, passive listening)."**
-
-This is THE blocker. If the AI still interrogates, the product positioning fails. Everything else is buildable.
+**Duration:** 1-3 days (per domain group)
+**Mode applicability:** GREENFIELD, FEATURE, SPEC, SECURE
 
 ---
 
-## TEST DESIGN
+## What Happens
 
-### Test 1: 5x Live Sessions (Adversarial Co-Founder Challenge)
+The specs from ASSAY are stress-tested through adversarial NotebookLM debates. The project is broken into logical domain groups, each tested independently, then combined for a final integration debate.
 
-**Setup:** Run 5 actual Thinking Foundry sessions using the MVP implementation (partial: prompts only, no full UI needed)
+This is the Foundry's most distinctive phase. Nobody else in the industry does dual-phase adversarial review (pre-code AND post-code). The Crucible is pre-code. The Compliance Check in TEMPER is post-code.
 
-**Scenario:** Each session has a different founder persona + problem statement
+### Inputs
+- All 18 Admin Documents from ASSAY
+- FSDs per component
+- Research sources from SCOUT
+- External documentation (API docs, framework guides, competitor analysis)
 
-**Scoring Rubric (Per Turn):**
+### Process
 
-| Aspect | Score | Evidence |
-|--------|-------|----------|
-| **AI Contributes (not just asks)** | 0-2 | 0=pure question, 1=question+light comment, 2=idea/research+question |
-| **Research-Backed** | 0-1 | 0=no evidence, 1=mentions finding/research |
-| **Framework Applied Naturally** | 0-1 | 0=forced/preachy, 1=natural reference |
-| **Challenges Assumptions** | 0-1 | 0=passive, 1=proactive "what if X is wrong?" |
-| **Co-Founder Vibe** | 0-1 | 0=interrogator, 1=trusted advisor |
+#### Step 1: Group the Project into Domains
 
-**Per-Turn Scoring:** 0-6 points. **Target: avg ≥4/6 per turn** (66% contribution + challenge ratio)
+Break the project into 3-7 logical groups. Each group gets its own Crucible session.
 
-**Acceptance Criteria:**
-- ✅ Test 1-5 all score avg ≥4/6
-- ❌ Any test scores <3/6 = fails (AI still interrogating)
+**Example (IT Concierge):**
+| Group | Topics | Sources |
+|-------|--------|---------|
+| Security | RLS, auth, role escalation | FSD-Auth + Supabase RLS docs + OWASP |
+| Offline | PWA, sync, conflict resolution | FSD-Offline + PWA docs + competitor analysis |
+| Business Logic | Ticket workflow, status transitions, billing | FSD-Tickets + FSD-Billing + domain expert interviews |
+| Integration | Calendar, notifications, WhatsApp | FSD-Integration + Google Calendar API docs + Clawdbot architecture |
 
-### Test 2: Adversarial NotebookLM Debate (System Thinks vs. Critic Thinks)
+**Do NOT test everything at once.** IT Concierge ran a single-pass Crucible and found 16 issues. Grouped Crucibles would have found more, with better depth per domain.
 
-**Setup:** Use NotebookLM to upload:
-1. Phase-0-user-stories prompt
-2. Phase-1-mine prompt
-3. BREEVA's publicly known approach (questions-only)
-4. IDEO Design Thinking (Empathize → Ideate → Prototype)
+#### Step 2: Per-Group Crucible Session
 
-**Debate:** Two NotebookLM voices debate:
-- **System Voice (TF):** "Our approach is frameworks + ideas + research"
-- **Critic Voice (Interrogation):** "Our approach is questions + listening + clarification"
+For each domain group:
 
-**Question:** "If these two AIs run the same session, which one leaves the user with higher confidence?"
+1. **Create a NotebookLM notebook** (one per group, never batch)
+2. **Load sources** (minimum 3, maximum 8):
+   - Architecture anchor document (the FSD or ADR for this domain)
+   - Subject-specific document (the detailed spec)
+   - **Buyer Persona document** (MANDATORY — how does this domain feel to the target user?)
+   - 2-7 external sources (official API docs, competitor analysis, academic papers, Stack Overflow deep dives)
+   - **Assumption Table entries** for this domain (any assumption below 70% that hasn't been spiked)
+3. **Run the debate** — Two-host adversarial format:
+   - "Argue FOR and AGAINST this architecture decision"
+   - "What are we missing? What will break?"
+   - "Where will this fail at scale?"
+   - "What's the security exploit path?"
+   - **"How does [Buyer Persona] EXPERIENCE this? Does it feel like [the promise] or like generic software?"**
+4. **Audio IS the Crucible** — The two-host debate is required. Chat alone doesn't count. The audio format forces the AI to argue with itself, producing insights that direct prompting misses.
+5. **Self-processing** — After audio, extract findings via 5 queries:
+   - What were the top 3 concerns raised?
+   - What was the strongest counterargument?
+   - What was NOT discussed that should have been?
+   - What would a skeptic say about this design?
+   - Rate confidence 1-10 in this architecture surviving production.
 
-**Interpretation:** If Critic voice is convincing, we have work to do on prompts. If System voice dominates, prompts are strong.
+### ⚠️ CRUCIBLE EXECUTION IS PROGRAMMATIC, NOT CLAIMED (March 2026 — Non-Negotiable)
 
-**Acceptance Criteria:**
-- ✅ System voice wins debate on "leaves user more confident" dimension
-- ⚠️ Tie = prompts need tuning
-- ❌ Critic voice wins = reassess entire positioning
+**The Problem:** An AI agent can read the steps above and CLAIM it ran a Crucible without actually invoking NotebookLM. NotebookLM is an isolated Google workspace — it has no read access to your local machine, GitHub, or Claude Code's terminal. Files must be explicitly uploaded.
 
-### Test 3: User Feedback Survey (Immediate Post-Session)
+**The Rule:** The Crucible is NOT complete until NotebookLM has been programmatically invoked and a notebook ID is recorded. An AI agent saying "I ran the Crucible" without a notebook ID is lying.
 
-**After each Test 1 session, ask user (3 questions):**
+**The Tool:** `teng-lin/notebooklm-py` — a Python API wrapper for NotebookLM. Installed globally. Auth via `~/.notebooklm/storage_state.json` (Playwright browser state).
 
-1. **"Did this feel like talking to a co-founder or an interrogator?"** (1-10 scale)
-   - Target: ≥7/10 (feels like co-founder)
-   - Fail: ≤4/10 (feels like interrogator)
+**The Canonical Pattern (proven March 17, 2026):**
 
-2. **"How many ideas or research findings did the AI contribute?"** (count estimate)
-   - Target: ≥3 per session
-   - Fail: 0-1 per session
+```python
+import asyncio
+from notebooklm import NotebookLMClient, AudioFormat
 
-3. **"Would you use this again?"** (Yes/No)
-   - Target: 100% yes
-   - Fail: >50% no
+async def run_crucible(domain_name, source_files, questions, audio_instructions):
+    async with await NotebookLMClient.from_storage() as client:
+        # Step 1: Create notebook (one per domain group)
+        notebook = await client.notebooks.create(f"Crucible: {domain_name}")
+        notebook_id = notebook.id
 
----
+        # Step 2: Upload sources AS SEPARATE FILES (NO concatenation — see ban below)
+        for filepath, title in source_files:
+            with open(filepath) as f:
+                await client.sources.add_text(
+                    notebook_id=notebook_id,
+                    title=title,
+                    content=f.read(),
+                    wait=True
+                )
 
-## LIVE SESSION TEST PLAN
+        # Step 3: Ask adversarial questions via chat
+        # Capture results — chat findings are MODALITY 1 of the report
+        chat_results = []
+        for question in questions:
+            result = await client.chat.ask(
+                notebook_id=notebook_id,
+                question=question
+            )
+            chat_results.append((question, result.answer))
+            print(f"Q: {question[:80]}...")
+            print(f"A: {result.answer}\n")
 
-### Session 1: Solo Founder, Product Idea (Sarah Persona)
+        # Step 4: Generate Audio Overview — DEBATE format (NON-NEGOTIABLE)
+        # Rule 3: "Audio IS the Crucible. Chat alone doesn't count."
+        # The two-host debate format produces insights that chat misses
+        # because it forces the AI to argue AGAINST its own positions.
+        print("Generating Audio Overview (DEBATE format)...")
+        audio_status = await client.artifacts.generate_audio(
+            notebook_id=notebook_id,
+            audio_format=AudioFormat.DEBATE,
+            instructions=audio_instructions
+        )
+        # Wait for audio generation to complete (can take 10-20 minutes)
+        final_status = await client.artifacts.wait_for_completion(
+            notebook_id=notebook_id,
+            task_id=audio_status.task_id,
+            timeout=1200.0  # 20 minutes max
+        )
 
-**Problem:** "I have a marketplace idea but can't decide if it's viable"
+        # CRITICAL: Check audio actually succeeded — a failed task ID
+        # still passes the gate if we don't verify status here
+        if final_status.status not in ("completed", "complete"):
+            raise RuntimeError(
+                f"Audio generation FAILED for {domain_name}: "
+                f"status={final_status.status}, error={final_status.error}"
+            )
+        print(f"Audio generation: {final_status.status} ✅")
 
-**Expected AI Behavior:**
-- Opening: "What's your #1 thing?" (neutral, not problem-focused) ✅
-- During: "I researched marketplaces + found X... here's my thinking: approach 1, 2, 3..." ✅
-- Challenges: "You've assumed network effects happen fast. What if they don't?" ✅
+        # Step 5: Download the audio
+        audio_path = f".foundry/crucible-audio-{domain_name.lower().replace(' ', '-')}.wav"
+        try:
+            downloaded = await client.artifacts.download_audio(
+                notebook_id=notebook_id,
+                output_path=audio_path
+            )
+            print(f"Audio saved to: {downloaded}")
+        except Exception as e:
+            print(f"Audio download failed (check NotebookLM UI): {e}")
+            audio_path = None
 
-**Pass Criteria:** ≥5/6 avg per turn, user scores ≥7/10 on co-founder scale
+        # Step 6: TRANSCRIBE the audio (NON-NEGOTIABLE)
+        # Chat and audio are DIFFERENT MODALITIES that produce DIFFERENT insights.
+        # Both transcripts must be captured separately and fed back into specs.
+        transcript_path = None
+        if audio_path:
+            transcript_path = audio_path.replace('.wav', '-transcript.md')
+            # Use whisper, yt-dlp, or any transcription tool
+            import subprocess
+            try:
+                # Option A: Use whisper if available
+                subprocess.run(
+                    ["whisper", audio_path, "--output_format", "txt",
+                     "--output_dir", ".foundry/"],
+                    capture_output=True, timeout=300
+                )
+                transcript_path = audio_path.replace('.wav', '.txt')
+                print(f"Audio transcribed to: {transcript_path}")
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                # Option B: Upload audio to NotebookLM as a source for self-transcription
+                # NotebookLM can process its own audio output
+                print("Whisper not available — transcribe manually or via NotebookLM UI")
+                transcript_path = None
 
----
+        # Step 7: Compile BOTH modalities into the Crucible Report
+        # These are TWO SEPARATE sections in the report — never merged
+        report_path = f".foundry/crucible-report-{domain_name.lower().replace(' ', '-')}.md"
+        with open(report_path, 'w') as report:
+            report.write(f"# Crucible Report: {domain_name}\n\n")
+            report.write(f"**Notebook ID:** {notebook_id}\n")
+            report.write(f"**Audio Task ID:** {audio_status.task_id}\n\n")
+            report.write("## MODALITY 1: Chat Findings (targeted Q&A)\n\n")
+            report.write("_Chat produces specific, cited answers to direct questions._\n\n")
+            for q, a in chat_results:
+                report.write(f"### Q: {q}\n\n{a}\n\n---\n\n")
+            report.write("## MODALITY 2: Audio Debate Findings (sustained adversarial)\n\n")
+            report.write("_Audio produces emergent insights from sustained argument._\n")
+            report.write("_The AI takes opposing positions it would never take in chat._\n\n")
+            if transcript_path and os.path.exists(transcript_path):
+                with open(transcript_path) as t:
+                    report.write(t.read())
+            else:
+                report.write("**[TRANSCRIPT PENDING — transcribe from audio file]**\n")
+            report.write("\n\n## Key: Why Both Modalities Matter\n\n")
+            report.write("Chat answers what you ASK. Audio surfaces what you DIDN'T ask.\n")
+            report.write("A Crucible with only chat is an interview. A Crucible with only audio is unfocused.\n")
+            report.write("Together they form a complete adversarial review.\n")
+        print(f"Crucible report saved to: {report_path}")
 
-### Session 2: Team Alignment, Strategic Decision (Marcus Persona)
+        # Step 8: Return ALL artifacts
+        return notebook_id, audio_status.task_id, report_path
 
-**Problem:** "Should we pivot or double down? Team is split."
-
-**Expected AI Behavior:**
-- Opening: "What's the #1 thing? The decision, or something else?" ✅
-- During: "Here's what I've seen in companies that made this choice... approach 1 wins when X, loses when Y" ✅
-- Challenges: "You haven't addressed co-founder alignment. That's critical. Should we loop them in?" ✅
-
-**Pass Criteria:** ≥5/6 avg per turn, user scores ≥7/10 on co-founder scale
-
----
-
-### Session 3: Pre-Dev Team, Specification (Jen Persona)
-
-**Problem:** "We have a rough feature spec. Is it buildable in 4 weeks?"
-
-**Expected AI Behavior:**
-- Opening: "What's your #1 thing? The spec validation?" ✅
-- During: "Here's how I'd build this... approach 1 is risky because mobile, approach 2 is safer" ✅
-- Challenges: "You haven't spec'd error states. That's 20% of the work. Should we add?" ✅
-
-**Pass Criteria:** ≥5/6 avg per turn, user scores ≥7/10 on co-founder scale
-
----
-
-### Session 4: Extreme Case — Vague Founder, No Context
-
-**Problem:** "I have an idea. That's all I know."
-
-**Expected AI Behavior:**
-- Opening: "What's your #1 thing?" (works for vague inputs) ✅
-- During: AI draws out thinking through targeted questions, THEN contributes research + ideas ✅
-- Challenges: "You keep coming back to the same concern. That's your real blocker. Let me help you think through it differently." ✅
-
-**Pass Criteria:** ≥4/6 avg per turn (lower bar — vague inputs harder to contribute to)
-
----
-
-### Session 5: Edge Case — Hostile/Skeptical User
-
-**Problem:** "I'm skeptical this works. Prove to me AI can be useful for strategic thinking."
-
-**Expected AI Behavior:**
-- Opening: "That's fair. Let's test the approach." (confident, not defensive) ✅
-- During: AI contributes concrete insights to prove value (not just asks defensive questions) ✅
-- Challenges: "I think you're wrong about X. Here's why..." (disagrees, not complies) ✅
-
-**Pass Criteria:** ≥4/6 avg per turn, user changes mind (yes to "would you use again")
-
----
-
-## NOTEBOOKLM ADVERSARIAL DEBATE
-
-### Setup
-
-**Upload to NotebookLM:**
+# Example: run and capture ALL THREE artifacts
+notebook_id, audio_task_id, report_path = asyncio.run(run_crucible(
+    domain_name="Security & Auth",
+    source_files=[
+        ("docs/02-specs/FSD-247-concurrency.md", "FSD-247 Concurrency"),
+        ("docs/04-technical/TECH-STACK.md", "Tech Stack"),
+        # EXTERNAL GROUND TRUTH (mandatory — see requirement below)
+        ("EXTERNAL-supabase-rls-docs.md", "EXTERNAL: Supabase RLS Official Docs"),
+    ],
+    questions=[
+        "Cross-reference FSD-247 against the official Supabase RLS docs. Where does our implementation violate best practices?",
+        "Does the queued_behind debounce solve the race condition or create a new deadlock?",
+    ],
+    audio_instructions="Debate the pros and cons of server-wins conflict resolution. "
+                       "Focus on what happens when a field technician's offline work is silently discarded."
+))
+print(f"CRUCIBLE ARTIFACTS: notebook={notebook_id}, audio_task={audio_task_id}, report={report_path}")
 ```
-Document 1: Phase-1-MINE Prompt (Current)
-Document 2: BREEVA's Approach (Questions Only) [synthesized from blog]
-Document 3: IDEO Method Reference
-Document 4: McKinsey Problem Structuring
-Document 5: User Feedback ("This feels like interrogation, not collaboration")
+
+**The Verification Artifacts (THREE required per domain):**
+Every Crucible session MUST produce:
+1. **Notebook ID** — proves NotebookLM was invoked with separate sources
+2. **Audio task ID (status=COMPLETED)** — proves the DEBATE audio was generated and succeeded
+3. **Crucible Report** (`.foundry/crucible-report-{domain}.md`) — contains BOTH modalities as separate sections
+
+All three are:
+- Appended to `progress.txt` as: `[CRUCIBLE] notebook_id={id} audio_task={id} report={path} domain={name}`
+- Posted as a GitHub issue comment on the parent issue
+- Checked by the R4 gate (missing any = gate FAILS)
+
+### Why Two Modalities (Non-Negotiable)
+
+Chat and audio are DIFFERENT modalities that produce DIFFERENT information:
+
+| Modality | What It Produces | Why It's Unique |
+|----------|-----------------|-----------------|
+| **Chat (Modality 1)** | Specific, cited answers to direct questions | You control the questions — targeted, precise, referenceable |
+| **Audio DEBATE (Modality 2)** | Emergent insights from sustained argument | The AI takes opposing positions it would NEVER take in chat. Surfaces what you didn't ask. |
+
+**A Crucible with only chat is an interview.** You get answers to your questions but miss what you didn't think to ask.
+**A Crucible with only audio is unfocused.** You get debate but can't drill into specifics.
+**Together they form a complete adversarial review.** Chat answers what you ASK. Audio surfaces what you DIDN'T ask.
+
+The Crucible Report captures both as separate sections. They are never merged, never summarized into one — they're different lenses on the same architecture and both feed back into the FSDs.
+
+**What Does NOT Count as a Crucible:**
+- An AI agent reviewing specs in-context and calling it a "Crucible" — that's a red-team, not a Crucible
+- Chat-only interaction with NotebookLM (Rule 3: Audio IS the Crucible for full debates)
+- Claiming "I created a notebook" without the notebook ID artifact
+- Any review that doesn't use NotebookLM as a SEPARATE system with uploaded sources
+- **CONCATENATING ALL SOURCES INTO ONE FILE** — see rule below
+
+### ⛔ THE CONCATENATION BAN (March 2026 — Incident-Driven)
+
+**Incident:** Two separate CC sessions (IT Concierge, LifeModo) concatenated all source files into a single `CRUCIBLE_SOURCES_COMBINED.md` and uploaded it as one source to NotebookLM. This completely destroys the Crucible.
+
+**Why concatenation kills the Crucible:** NotebookLM's entire architecture relies on mapping relationships BETWEEN distinct source documents. When everything is in one file, there are no semantic boundaries. The debate becomes a biased echo chamber because there is no external "ground truth" to challenge internal assumptions. A single-source Crucible is like a prosecutor, defense attorney, and witness all being the same person.
+
+**The Rule:** You are STRICTLY FORBIDDEN from:
+1. Combining multiple files into one before upload
+2. Creating a "combined" or "compiled" or "merged" source document
+3. Using `cat file1.md file2.md > combined.md` or any equivalent
+4. Passing concatenated content as a single `add_text()` call
+
+**Each source file = one `add_text()` call.** The loop in the canonical pattern exists for this reason:
+```python
+# CORRECT: Each file is a separate source
+for filepath, title in source_files:
+    await client.sources.add_text(notebook_id=notebook_id, title=title, content=f.read())
+
+# WRONG: Concatenating everything into one source
+combined = "\n".join(open(f).read() for f, _ in source_files)
+await client.sources.add_text(notebook_id=notebook_id, title="All Sources", content=combined)  # ⛔ BANNED
 ```
 
-**Prompt NotebookLM to debate:**
-> "You have two approaches to helping founders think through decisions:
->
-> **Approach A (Thinking Foundry):** AI contributes research, ideas, frameworks. Uses 5 Whys + IDEO + McKinsey. Suggests solutions.
->
-> **Approach B (Breeva-style):** AI asks clarifying questions. Listens deeply. Helps user discover their own answers.
->
-> Both are used in a 60-minute session. User starts with vague idea.
->
-> **Question:** Which approach leaves the user with higher confidence + clarity? Which is more useful? Which is more differentiated?"
+### 🌍 EXTERNAL GROUND TRUTH REQUIREMENT (March 2026 — Non-Negotiable)
 
-### Expected Outcomes
+**The Problem:** A Crucible that only debates YOUR specs against YOUR specs is an echo chamber. Your FSD says "we use RLS for security." Your data model implements RLS. NotebookLM cross-references them and says "looks consistent." But neither document asked whether your RLS IMPLEMENTATION actually follows Supabase best practices. The specs agree with each other — that doesn't mean they're correct.
 
-**If System Voice Wins:**
-- Debate resolves: "Approach A is better because X, Y, Z"
-- Confidence: ✅ Our prompts are on the right track
-- Action: Proceed to build
+**The Rule:** Every domain group MUST include at least ONE external ground truth source — official documentation for the technology being debated. This source acts as an unbiased referee.
 
-**If Voices Tie:**
-- Debate shows: "Both have merit, but for different personas"
-- Confidence: ⚠️ Our prompts need tuning
-- Action: Iterate prompts, re-test
+| Domain | External Ground Truth (examples) |
+|--------|----------------------------------|
+| Database/RLS/Security | Official Supabase RLS docs, OWASP guidelines |
+| Offline/Sync | Official PowerSync conflict resolution docs |
+| State machines | Academic state machine completeness theory, framework docs |
+| Auth/JWT | Official auth provider docs (Supabase Auth, Auth0, etc.) |
+| Storage | Official Supabase Storage policy docs |
+| API design | REST/GraphQL best practices, framework docs |
+| Concurrency | Postgres isolation level docs, OCC pattern references |
 
-**If Critic Voice Wins:**
-- Debate resolves: "Questions + listening beats contributions"
-- Confidence: ❌ Our positioning is wrong
-- Action: Stop, reassess, consider pivoting to Breeva approach
+**How to fetch external docs programmatically:**
+```python
+# Option 1: Use WebFetch MCP tool (returns clean text, not raw HTML)
+# Option 2: Use agent-browser to snapshot docs pages
+# Option 3: Fetch MDX/markdown source from vendor GitHub repos (cleanest)
+# Option 4: Use Exa search to find and extract relevant doc sections
+#
+# ⛔ Do NOT use raw `curl` on doc pages — it returns HTML with nav bars,
+# JS bundles, and cookie consent dialogs. NotebookLM will be polluted
+# with thousands of tokens of site chrome instead of actual documentation.
+#
+# Example using vendor GitHub (cleanest):
+import subprocess
+result = subprocess.run(
+    ["curl", "-s", "https://raw.githubusercontent.com/supabase/supabase/master/apps/docs/content/guides/auth/row-level-security.mdx"],
+    capture_output=True, text=True
+)
+await client.sources.add_text(
+    notebook_id=notebook_id,
+    title="EXTERNAL: Supabase RLS Official Docs (from GitHub MDX source)",
+    content=result.stdout,
+    wait=True
+)
+```
 
----
+**Minimum source composition per domain notebook:**
+- 1-2 internal specs (FSD, data model, ADR)
+- 1 external ground truth (official docs for the technology)
+- 1 buyer persona document (how does this feel to the user?)
+- Optional: competitor analysis, academic papers, Stack Overflow deep dives
+- **Minimum 3 sources, maximum 8, ALL SEPARATE**
 
-## KILL CRITERIA
+#### Step 3: Synthesis Crucible
 
-**A1 FAILS if any of these happen:**
+After all domain groups are tested individually:
 
-1. **Test 1-5 average score < 4/6** → AI is still interrogating, not contributing
-2. **User survey: <5/10 users say "felt like co-founder"** → Vibe is wrong
-3. **NotebookLM debate: Critic voice wins** → Questions-only approach is better
-4. **>50% of users say "Would not use again"** → Concept doesn't work
-5. **Prompts need major rewrite to pass** → Insufficient time to fix before build
+1. Create a **final synthesis notebook**
+2. Load: All domain group findings + the full system architecture
+3. Run an integration debate: "Now that we've tested each domain, what breaks when they interact?"
+4. This catches cross-domain issues (e.g., the security model interacts with the offline sync in ways neither domain-specific Crucible predicted)
 
-**If any of these happen:**
-- [ ] STOP all work
-- [ ] Reassess positioning
-- [ ] Consider merging with Breeva approach (pure questions)
-- [ ] Or pivot to different market segment (not thinking-first, but thinking-support)
+#### Step 4: Disposition Findings
 
----
+Every Crucible finding gets dispositioned:
 
-## SUCCESS CRITERIA
+| Disposition | Meaning | Action |
+|-------------|---------|--------|
+| **Fix now** | Real issue, blocks coding | Create GitHub issue, fix in ASSAY docs |
+| **Fix later** | Real issue, doesn't block | Create GitHub issue in Demo Readiness milestone |
+| **Won't fix** | Acceptable risk | Document WHY in ADR Log |
+| **False positive** | Not actually an issue | Note in Crucible findings for learning |
 
-**A1 PASSES if:**
+### Outputs
+- **Crucible Reports per domain** (`.foundry/crucible-report-{domain}.md`) — TWO modalities per report:
+  - Section 1: Chat findings (cited Q&A from targeted questions)
+  - Section 2: Audio debate transcript (emergent insights from sustained argument)
+- **Audio files per domain** (`.foundry/crucible-audio-{domain}.wav`) — for archival and re-listening
+- **Audio transcripts per domain** (`.foundry/crucible-audio-{domain}-transcript.md`) — searchable text
+- Crucible findings per domain group (GitHub issues labeled `crucible`)
+- Synthesis findings (cross-domain issues)
+- Updated FSDs (incorporating Crucible fixes from BOTH modalities)
+- Updated ADR Log (new decisions from Crucible debates)
+- Confidence score per domain
 
-1. ✅ Tests 1-5 all score avg ≥4/6 per turn
-2. ✅ User survey: ≥4/5 users rate ≥7/10 on "co-founder vibe"
-3. ✅ ≥4/5 users answer "yes" to "would use again"
-4. ✅ NotebookLM debate: System voice dominates on usefulness
-5. ✅ Prompts work without major rewrites (minor tweaks OK)
+#### Step 5: Persona Validation (Consumer/Experience Products)
 
-**If ALL pass:**
-- [ ] Move to EXTERNAL AUDITOR (independent review)
-- [ ] Then PLAN (GitHub issues, sprints)
-- [ ] Then BUILD (20-25 DUs)
+**Optional but recommended** for products where "how it feels" is the product (LifeModo, consumer apps). Skip for infrastructure, internal tools, APIs.
 
----
+After Crucible debates are complete and findings dispositioned:
 
-## VALIDATION OUTPUTS
+1. **Mock the key user touchpoints** — not code, not UI. Print the formats:
+   - The Morning Brief as it would appear in Slack
+   - The dashboard view with sample data
+   - The notification that arrives at 8am
+   - The onboarding message on Day 0
+2. **Show to 1-3 people who match the Buyer Persona** — not developers, not friends. People who ARE the target user.
+3. **Ask one question:** "Would you pay [price] for this arriving every [cadence]?"
+4. **Record reactions** — what surprises them, what confuses them, what they wish it did instead.
+5. **Feed reactions back into FSDs** — update before PLAN.
 
-### Per-Session Evidence
+**Why here, not in ASSAY?** Because the Crucible has already stress-tested the architecture. You know the spec is CORRECT. Now you're testing whether the spec is DESIRABLE. These are different questions with different judges — architects judge correctness, users judge desirability.
 
-**Session 1 (Sarah):**
-- [ ] Transcript saved
-- [ ] Scoring spreadsheet (6 dimensions × 12 turns = 72 data points)
-- [ ] User feedback survey (3 questions)
-- [ ] Session result: **PASS / FAIL**
-
-**Session 2 (Marcus):**
-- [ ] Transcript saved
-- [ ] Scoring spreadsheet
-- [ ] User feedback survey
-- [ ] Session result: **PASS / FAIL**
-
-**[... Sessions 3, 4, 5 ...]**
-
-### Aggregate Results
-
-**Summary Table:**
-
-| Session | Persona | Avg Score (6) | User Confidence (10) | Would Use Again | Result |
-|---------|---------|---------------|----------------------|-----------------|--------|
-| 1 | Sarah | ? | ? | ? | ? |
-| 2 | Marcus | ? | ? | ? | ? |
-| 3 | Jen | ? | ? | ? | ? |
-| 4 | Vague | ? | ? | ? | ? |
-| 5 | Hostile | ? | ? | ? | ? |
-| **OVERALL** | — | **≥4/6?** | **≥7/10?** | **≥4/5?** | **PASS/FAIL** |
-
-### NotebookLM Debate Output
-
-- [ ] Debate transcript saved
-- [ ] Winner identified (System / Critic / Tie)
-- [ ] Key quotes captured (why one approach is better)
-- [ ] Debate result: **SYSTEM STRONG / TIED / CRITIC STRONG**
+**Why before PLAN?** Because if the user says "I wouldn't pay for this," you need to redesign before creating 50 GitHub issues against the wrong spec.
 
 ---
 
-## CONTINGENCY PLANS
+### The 8 Crucible Rules (Updated March 2026 — Incident-Hardened)
 
-### If A1 Partially Fails (Score 3.5/6 = Borderline)
-
-**Action: Prompt Iteration Sprint**
-- Identify which dimensions failed (contributing? frameworks natural? challenges proactive?)
-- Rewrite phase prompts (focus on weak dimensions)
-- Re-test 2 sessions (Sarah + Marcus)
-- If scores improve to ≥4/6: proceed to build
-- If still <4/6: consider kill decision
-
-**Time Cost:** +2 hours
-
-### If A1 Fails on "Would Use Again" (>50% say no)
-
-**Action: User Interview**
-- Ask 5 users: "Why wouldn't you use this again?"
-- Categorize answers (boring? didn't feel collaborative? too long? something else?)
-- If problem is prompt-fixable (AI still interrogating): iterate prompts
-- If problem is deeper (people just want answers, not thinking partner): kill product
-
-**Time Cost:** +1 hour
-
-### If A1 Fails on NotebookLM (Critic voice wins)
-
-**Action: Immediate Reassessment**
-- Don't iterate prompts, don't build
-- Instead: Have conversation with Roderic ("Questions approach is better than ideas approach")
-- Decide: Kill? Pivot? Accept differentiation is smaller than planned?
-
-**Time Cost:** +30 min (conversation)
+1. **Programmatic execution only** — `teng-lin/notebooklm-py` API. No manual claims. Notebook ID is proof.
+2. **NO source concatenation** — Each file = one `add_text()` call. Combining files destroys cross-referencing.
+3. **Minimum 3 SEPARATE sources per notebook** — Architecture anchor + subject doc + EXTERNAL ground truth
+4. **External ground truth mandatory** — At least 1 official vendor doc per domain. Your specs debating your specs is an echo chamber.
+5. **One notebook per topic** — Never batch topics into one notebook
+6. **BOTH modalities required** — Chat (Modality 1: targeted Q&A) AND Audio DEBATE (Modality 2: sustained adversarial). They produce different information. Both are captured as separate sections in the Crucible Report.
+7. **Audio must be generated AND transcribed** — `generate_audio(AudioFormat.DEBATE)` + transcription. Audio task must have `status=COMPLETED`.
+8. **Cross-reference specs against external docs** — The best findings come from comparing YOUR implementation against OFFICIAL documentation, not from internal-only review
 
 ---
 
-## SUCCESS EXAMPLE
+## ⚖️ R4: Adversarial Gate
 
-**Ideal Outcome:**
+See [ratify.md](ratify.md#r4-adversarial-gate-after-crucible)
 
-- Session 1 (Sarah): 4.8/6, user says 8/10 co-founder, YES would use again
-- Session 2 (Marcus): 5.2/6, user says 9/10 co-founder, YES would use again
-- Session 3 (Jen): 4.5/6, user says 7/10 co-founder, YES would use again
-- Session 4 (Vague): 4.0/6 (lower bar), user says 6/10 co-founder, YES would use again
-- Session 5 (Hostile): 4.3/6, user says 8/10 co-founder (changed mind), YES would use again
+**Key question:** "Did the stress-test find what matters?"
 
-**Overall:** 4.6/6 avg, 7.6/10 confidence avg, 100% would use again
-
-**NotebookLM:** System voice clearly wins ("Ideas + research beats pure questions for founder confidence")
-
-**Next Step:** ✅ PASS A1, move to EXTERNAL AUDITOR
-
----
-
-## IF A1 PASSES: WHAT'S NEXT
-
-### EXTERNAL AUDITOR Phase (Next)
-
-Independent model reviews:
-- Spec completeness (ASSAY + CRUCIBLE combined)
-- Competitive differentiation
-- Technical feasibility
-- Business model viability
-
-**Gate:** R4 (Auditor sign-off required before PLAN)
-
-### PLAN Phase (After Auditor)
-
-- Create GitHub issues from FSDs
-- Estimate DUs per feature
-- Organize into sprints (Weeks 1-4)
-- Drop the Hammer decision (Go/No-Go to BUILD)
-
-### BUILD Phase (If Go Decision)
-
-- 20-25 DUs of autonomous work
-- Implement MVP (link auth, Drive persistence, outline, 8 phases, GitHub export)
-- Runtime testing + stress testing
-
----
-
-## CRUCIBLE TIMELINE
-
-| Task | Duration | Owner |
-|------|----------|-------|
-| Run 5 sessions | 3 hours | Chi (AI) |
-| Score transcripts | 1 hour | Chi (AI) |
-| NotebookLM debate | 30 min | Chi (AI) |
-| Analyze results | 30 min | Chi (AI) |
-| Write validation report | 30 min | Chi (AI) |
-| **TOTAL** | **~5 hours** | Chi |
-
-**Parallel with CRUCIBLE:** Roderic can provide tester contacts (5 founder personas for sessions)
-
----
-
-**CRUCIBLE READY**
-**Objective:** Kill or validate A1 (Co-founder behavior)
-**Success:** ≥4/6 avg score + ≥7/10 user confidence + System voice wins debate
-**Failure:** <4/6 score OR >50% "would not use again" OR Critic wins → KILL A1
-**Next:** If PASS → EXTERNAL AUDITOR (independent review)
-
+**Must pass:**
+- [ ] Every domain group tested independently
+- [ ] **NotebookLM notebook ID recorded for EACH domain group** (no ID = no Crucible)
+- [ ] **Audio Overview (DEBATE format) generated AND transcribed for EACH domain group** (no audio task ID = half a Crucible)
+- [ ] **Crucible Report exists per domain** with BOTH modalities as separate sections (chat findings + audio transcript)
+- [ ] **NO concatenated sources** — each file uploaded as a SEPARATE source (verify source count ≥ 3 per notebook)
+- [ ] **External ground truth loaded** — at least 1 official external doc per domain (not just your own specs debating themselves)
+- [ ] **Buyer Persona loaded as mandatory source** in every domain group notebook
+- [ ] Synthesis Crucible run (cross-domain integration)
+- [ ] All findings dispositioned (fix now / fix later / won't fix)
+- [ ] "Fix now" items resolved in ASSAY docs
+- [ ] Updated FSDs reflect Crucible learnings
+- [ ] Fresh eyes CTO review on Crucible output
+- [ ] Confidence ≥ 8/10
+- [ ] All notebook IDs posted as GitHub issue comments (audit trail)
