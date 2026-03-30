@@ -348,6 +348,19 @@ wss.on('connection', (clientWs) => {
 
         // Initialize AI-driven phase transition handler (Article 10)
         phaseHandler = new PhaseTransitionHandler({
+          onModeDetected: async (mode, minConfidence) => {
+            console.log(`[SESSION] Intent mode: ${mode} (confidence threshold: ${minConfidence})`);
+            sendToClient('intent_mode', { mode, minConfidence });
+            if (supabaseBuffer) {
+              const sess = await supabaseBuffer.getSession();
+              const metadata = { ...(sess?.metadata || {}), intent_mode: mode };
+              await supabaseBuffer.supabase
+                .from('sessions')
+                .update({ metadata })
+                .eq('id', supabaseBuffer.sessionId)
+                .catch(err => console.error('[SUPABASE] Mode update error:', err.message));
+            }
+          },
           onSqueezeNeeded: async (currentPhase) => {
             // Inject The Squeeze prompt into Gemini (Article 9 — active, not passive)
             if (gemini && gemini.activeWs && gemini.activeWs.readyState === 1) {

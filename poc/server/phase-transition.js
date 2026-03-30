@@ -65,10 +65,12 @@ class PhaseTransitionHandler {
    * @param {function} options.onTransition - Called when a transition is detected: (fromPhase, toPhase, meta)
    * @param {number} [options.minConfidence=6] - Minimum confidence to allow transition (Article 9)
    */
-  constructor({ onTransition, onSqueezeNeeded, minConfidence = 6 } = {}) {
+  constructor({ onTransition, onSqueezeNeeded, onModeDetected, minConfidence = 6 } = {}) {
     this.onTransition = onTransition;
     this.onSqueezeNeeded = onSqueezeNeeded; // Called to inject squeeze prompt into Gemini
+    this.onModeDetected = onModeDetected; // Called when intent mode detected from AI
     this.minConfidence = minConfidence;
+    this.intentMode = null; // 'explore' | 'research' | 'commit'
 
     // Buffer recent AI utterances to detect multi-sentence transition signals
     this.recentAiText = [];
@@ -103,6 +105,21 @@ class PhaseTransitionHandler {
     }
 
     const combined = this.recentAiText.join(' ');
+
+    // Detect intent mode from [MODE:xxx] signal (Phase 0 only)
+    if (!this.intentMode) {
+      const modeMatch = combined.match(/\[MODE:(explore|research|commit)\]/i);
+      if (modeMatch) {
+        this.intentMode = modeMatch[1].toLowerCase();
+        const thresholds = { explore: 5, research: 6, commit: 8 };
+        this.minConfidence = thresholds[this.intentMode] || 6;
+        console.log(`[PHASE] Intent mode detected: ${this.intentMode} → minConfidence=${this.minConfidence}`);
+        if (this.onModeDetected) {
+          Promise.resolve(this.onModeDetected(this.intentMode, this.minConfidence))
+            .catch(err => console.error('[PHASE] Mode callback error:', err.message));
+        }
+      }
+    }
 
     // Extract confidence score if present (The Squeeze)
     const confidence = this._extractConfidence(combined);
