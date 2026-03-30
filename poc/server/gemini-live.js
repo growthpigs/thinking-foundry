@@ -177,6 +177,13 @@ class GeminiLiveManager {
             }
           }
 
+          // Output audio transcription (AI speech → text, from outputAudioTranscription config)
+          if (msg.serverContent.outputTranscription?.text) {
+            if (!isStandby || this.isSwapping) {
+              this.onTranscript('model', msg.serverContent.outputTranscription.text);
+            }
+          }
+
           // Barge-in: server detected user speech during generation
           if (msg.serverContent.interrupted) {
             console.log(`[GEMINI][${label}] INTERRUPTED (barge-in)`);
