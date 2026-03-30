@@ -54,6 +54,15 @@ CREATE INDEX idx_phase_summaries_session ON phase_summaries(session_id);
 CREATE INDEX idx_sessions_access_token ON sessions(access_token);
 CREATE INDEX idx_sessions_status ON sessions(status);
 
+-- Atomic pause increment (used by SupabaseBuffer.pauseSession)
+CREATE OR REPLACE FUNCTION increment_pauses(session_uuid UUID)
+RETURNS void AS $$
+  UPDATE sessions
+  SET status = 'paused',
+      total_pauses = total_pauses + 1
+  WHERE id = session_uuid;
+$$ LANGUAGE SQL;
+
 -- RLS policies (enable when auth is added post-MVP)
 -- For MVP: service role key is used, no RLS needed
 -- ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;

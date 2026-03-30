@@ -21,7 +21,7 @@ CREATE TABLE frameworks_knowledge (
   words INTEGER NOT NULL,
   phases INTEGER[] NOT NULL,  -- Array of applicable phases (0-7)
 
-  -- Embeddings (using Gemini Embedding 2 which produces 768-dim vectors)
+  -- Embeddings (gemini-embedding-001 with outputDimensionality=768)
   embedding vector(768),
 
   -- Timestamps
@@ -34,10 +34,11 @@ CREATE TABLE frameworks_knowledge (
 );
 
 -- Create indexes for efficient semantic search
+-- lists = 5 for ~78 chunks. Increase to sqrt(n) when KB grows past 500.
 CREATE INDEX idx_frameworks_knowledge_embedding
   ON frameworks_knowledge
   USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+  WITH (lists = 5);
 
 -- Index on framework_id for filtering
 CREATE INDEX idx_frameworks_knowledge_framework_id
