@@ -2,10 +2,11 @@
 
 **The Thinking Foundry — Product Design**
 
-**Status:** MVP Rearchitecture — Drive-First Data Model
-**Version:** 3.0
-**Date:** 2026-03-29
+**Status:** MVP Rearchitecture — GitHub-First, Supabase-Buffered
+**Version:** 4.0
+**Date:** 2026-03-30
 **DU Estimate:** 20-25 (4-5 weeks, autonomous build)
+**Supersedes:** v3.0 (Drive-first model). See growthpigs/thinking-foundry#16 for decision rationale.
 
 ---
 
@@ -15,46 +16,52 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 
 **Product in 30 Seconds:**
 1. You send someone a link. They open it. Session starts.
-2. The AI **leads** the conversation — it drives, asks questions, challenges assumptions, manages phases
-3. User can interrupt anytime (natural barge-in)
+2. The AI **leads** the conversation — it drives, asks questions WITH information, challenges assumptions, manages phases
+3. User hits PAUSE frequently — AI provides info, humans discuss, then resume
 4. Session is transcribed and organized by phase automatically
-5. Google Drive folder created with phase-by-phase thinking artifacts
-6. User leaves with clarity + a repeatable process they understand
+5. Each phase produces ONE carry-forward document as a GitHub issue
+6. User leaves with clarity + optional NotebookLM audio debate of their decision
 
-**Critical Design Principle:** The AI is the co-founder in the room. It doesn't wait for the user to know what to ask. It drives. It challenges. It knows when to push, when to listen, when to move phases. This is NOT a chatbot.
+**Critical Design Principle:** The AI is the co-founder in the room. It doesn't wait for the user to know what to ask. It drives. It challenges. It knows when to push, when to listen, when to move phases. This is NOT a chatbot. Questions come WITH information — "What about X? Because Y suggests Z" — not empty prompts.
 
 **Tech Stack:**
-- Frontend: React + Web Audio API (Vercel)
+- Frontend: React + Web Audio API (Vercel) — native iOS app for Safari WebSocket issues
 - Voice: Gemini 3.1 Flash Live API (Google Cloud billing)
 - Backend: Node.js + Express + WebSocket (Railway or Vercel Functions)
-- Storage: **Google Drive (source-of-truth database)** + GitHub Issues (public record)
+- Storage: **GitHub Issues (source-of-truth)** + Supabase (real-time buffer) + Drive (optional export)
 - Auth: **MVP = Link-based only** (unique session URL, no login required)
-- Database: Drive folders organized by phase, no Supabase
+- Database: Supabase for real-time writes, GitHub Issues for durable per-phase documents
+- Frameworks: **Tool-use JIT fetching** (Stoicism embedded, everything else on-demand)
 
-**MVP Philosophy:** Drive IS the database. GitHub Issues point to Drive. No separate persistence layer.
+**MVP Philosophy:** GitHub Issues ARE the thinking documents. Supabase buffers real-time writes. Drive is an optional human-readable export. One carry-forward document per phase — the rest is history.
 
 **Deferred to Post-MVP:**
-- PIN + SMS authentication (not needed for first launch)
-- Database migration (if needed for scale)
+- PIN + SMS authentication (Revolut-style, not OAuth)
 - Team collaboration features
 - Stripe payment processing (free initially)
+- Dual-AI adversarial mode (second AI as devil's advocate)
 
 ---
 
 ## Phase Overview (8 Phases)
 
-| Phase | Duration | Goal | AI Role |
-|-------|----------|------|---------|
-| **0** | 5 min | Capture user stories | Get clarity on what success means |
-| **1** | 10 min | MINE — Listen deeply | Understand the real problem |
-| **2** | 25 min | SCOUT — Explore widely | Generate possibilities without judgment |
-| **3** | 20 min | ASSAY — Find signal | What matters for THIS person? |
-| **4** | 20 min | CRUCIBLE — Test ideas | What breaks? War-game scenarios |
-| **5** | 15 min | AUDITOR — Quality check | Gaps? Confidence ≥8? |
-| **6** | 15 min | PLAN — Give clarity | Here's what you should do. Why. |
-| **7** | 5 min | VERIFY — Export | Create GitHub issue + share URL |
+| Phase | Typical | Max | Goal | AI Role |
+|-------|---------|-----|------|---------|
+| **0** | 1-2 min | 5 min | Capture user stories | Get clarity on what success means |
+| **1** | 2-3 min | 10 min | MINE — Listen deeply | Understand the real problem |
+| **2** | 3-5 min | 15 min | SCOUT — Explore widely | Generate possibilities (frameworks fetched JIT) |
+| **3** | 2-4 min | 10 min | ASSAY — Find signal | What matters for THIS person? |
+| **4** | 2-3 min | 10 min | CRUCIBLE — Test ideas | What breaks? War-game scenarios |
+| **5** | 1-2 min | 5 min | AUDITOR — Quality check | Gaps? Confidence ≥8? |
+| **6** | 2-3 min | 10 min | PLAN — Give clarity | Here's what you should do. Why. |
+| **7** | 1-2 min | 5 min | VERIFY — Export | Create GitHub issue + offer Crucible audio |
+| **7b** | — | 1-3 hrs | AUTORESEARCH (optional) | Validate reasoning with real data (async, background) |
 
-**Total:** 60-120 minutes per session
+**Typical session:** <15 minutes. Most decisions don't need 60+ minutes.
+**Maximum session:** 30-60 minutes for complex strategic decisions (rare).
+**The value is DEPTH per minute, not duration.** A 7-minute session that pushes past confirmation bias beats a 90-minute meander.
+
+**Pause-heavy model:** Users will PAUSE every ~3 minutes. The AI provides information, humans discuss between themselves, then resume. Pause is a FIRST-CLASS feature.
 
 ---
 
@@ -65,48 +72,45 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 ```
 1. User receives unique link: https://thinkingfoundry.app/s/abc123def456
    ↓
-2. Click link → Browser opens, auto-requests audio permission
+2. Click link → Browser/app opens, auto-requests audio permission
    ↓
-3. Grant audio permission (Safari/Chrome popup)
+3. Grant audio permission
    ↓
-4. Server creates Google Drive folder structure:
-   /Thinking Foundry Sessions/
-   └── session-abc123def456/
-       ├── metadata.json (sessionId, timestamp, status)
-       ├── Phase-0-User-Stories/
-       ├── Phase-1-MINE/
-       ├── Phase-2-SCOUT/
-       ├── Phase-3-ASSAY/
-       ├── Phase-4-CRUCIBLE/
-       ├── Phase-5-AUDITOR/
-       ├── Phase-6-PLAN/
-       └── Phase-7-VERIFY/
+4. Server creates:
+   - Supabase session record (sessionId, timestamp, status)
+   - GitHub issue: "[SESSION] Problem Name — Phase 0" (working document)
    ↓
 5. [PHASE 0-7] Real-time session with AI
    - User speaks → captured + transcribed
-   - Insights appear on screen in real-time (not verbatim, key points)
-   - Server writes phase summaries to Drive Docs as session progresses
+   - Insights appear on screen in real-time (key points, not verbatim)
+   - Supabase buffers real-time writes (every utterance, <50ms)
+   - GitHub issue updated every 2-3 min with coalesced notes
+   - User hits PAUSE → humans discuss → resume
    - User can interrupt anytime (natural barge-in)
    ↓
-6. AI signals phase transition:
-   "OK, I think I understand Phase 0. We have these user stories.
-    Let's move to Phase 1 and dig deeper. Ready?"
+6. AI signals phase transition + THE SQUEEZE runs:
+   "Before we move on — what did we assume? What did we miss?
+    Confidence: 7/10. Ready for Phase 1?"
    ↓
-7. Phase 1 folder gets populated in Drive with Phase 1 notes (in real-time)
+7. Phase carry-forward: ONE synthesized document moves to next phase
+   - Previous phase's GitHub issue finalized
+   - New GitHub issue created for next phase
+   - Carry-forward doc injected as context
    ↓
 8. Session completes (all 8 phases or user stops)
    ↓
-9. Server creates GitHub issue:
-   Title: "Session: [Problem Name] — 2026-03-29"
-   Body: Full transcript + link to Drive folder
-   Labels: session, phase-0, phase-1, ... (phases covered)
+9. AI offers NotebookLM Crucible audio:
+   "Want me to create a 10-minute audio debate of your decision?
+    You can listen while walking the dog."
+   → If yes: Teng API wrapper generates debate audio
+   → Audio file linked to session's GitHub issue
    ↓
-10. Client shows: "Session complete! ✅ [GitHub Issue URL] • [Drive Folder URL]"
+10. Client shows: "Session complete! ✅ [GitHub Issues] • [Audio link]"
    ↓
 11. User can:
-    - Share GitHub issue
-    - Share Drive folder
-    - Download transcript
+    - Share GitHub issues (one per phase)
+    - Listen to Crucible audio
+    - Export to Drive (optional forward-sync)
     - Continue thinking (new session)
 ```
 
@@ -172,24 +176,36 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 │    ├─ Send real-time outline to client              │
 │    └─ Store raw transcript in memory                │
 │                                                     │
-│  DriveDatabase (Core Persistence)                   │
-│    ├─ Create Drive folder per session               │
-│    ├─ Create phase subfolders (Phase-0, Phase-1...) │
-│    ├─ Write phase summaries as docs (real-time)     │
-│    ├─ Update metadata.json per update               │
-│    └─ Share folder with user email (if provided)    │
+│  SupabaseBuffer (Real-Time Scratchpad)              │
+│    ├─ Write every utterance (<50ms, no rate limit)  │
+│    ├─ Buffer coalesces notes for GitHub flush       │
+│    ├─ Session metadata (status, phase, timestamps)  │
+│    └─ Survives server restart (durable)             │
+│                                                     │
+│  GitHubPersistence (Source of Truth)                │
+│    ├─ Create issue per phase (working document)     │
+│    ├─ Batch-flush from Supabase every 2-3 min      │
+│    ├─ Phase carry-forward doc as issue comment      │
+│    └─ Tag by phase + session labels                 │
 │                                                     │
 │  PhaseTransitionHandler                             │
 │    ├─ Detect AI's phase end signal                  │
-│    ├─ Send phase_change message to client           │
-│    ├─ Create new phase folder in Drive              │
-│    └─ Inject new phase prompt to Gemini             │
+│    ├─ Run The Squeeze (self-check before advancing) │
+│    ├─ Finalize current phase's GitHub issue         │
+│    ├─ Create new phase issue + inject carry-forward │
+│    └─ Send phase_change message to client           │
 │                                                     │
-│  GitHubExporter (End-of-Session)                    │
-│    ├─ Collect full transcript from memory           │
-│    ├─ Create GitHub issue with transcript           │
-│    ├─ Link to Drive folder URL                      │
-│    └─ Tag by phases covered                         │
+│  FrameworkFetcher (JIT Tool Use)                    │
+│    ├─ fetch_framework(name) → returns content       │
+│    ├─ 8 frameworks as discrete tools (not stuffed)  │
+│    ├─ Called by Gemini when conversation needs it    │
+│    └─ Stoicism embedded in system prompt always     │
+│                                                     │
+│  CrucibleAudioGenerator (End-of-Session, Optional)  │
+│    ├─ Collect session findings from GitHub issues    │
+│    ├─ Generate via teng-lin/notebooklm-py           │
+│    ├─ ~10-22 min podcast-style debate               │
+│    └─ Link audio file to session's GitHub issue     │
 │                                                     │
 └─────────────────────────────────────────────────────┘
          ↓ APIs ↓
@@ -198,90 +214,84 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 ├─────────────────────────────────────────────────────┤
 │                                                     │
 │  Gemini 3.1 Flash Live API (bidirectional audio)    │
-│  GitHub REST API (issue creation + labels)          │
-│  Google Drive API (real-time persistence)           │
-│  (No SMS, no Supabase, no Cloudflare KV for MVP)    │
+│  GitHub REST API (issue CRUD — source of truth)     │
+│  Supabase (real-time buffer, session metadata)      │
+│  NotebookLM API via teng-lin/notebooklm-py          │
+│  Google Drive API (optional export, not primary)    │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Data Storage Model — Drive as Database
+## Data Storage Model — GitHub-First, Supabase-Buffered
 
-**The critical architectural decision:** Google Drive IS the database. Not supplemental storage. The source of truth.
+**The critical architectural decision (v4.0):** GitHub Issues are the source of truth. Supabase buffers real-time writes. Drive is an optional export layer.
 
-### Drive Folder Structure
+### Why GitHub Issues, Not Drive
+
+1. **GitHub Issues are structured** — labels, milestones, comments, cross-references
+2. **AI can read them** — `gh issue view` works from any session, any tool
+3. **They're the scratchpad AND the archive** — working document during session, permanent record after
+4. **Cross-referencing is free** — `#12 relates to #47` just works
+5. **One carry-forward document per phase** — clean, not folder sprawl
+
+### The Three Layers
 
 ```
-Google Drive (User's Personal Drive)
-└── Thinking Foundry Sessions/
-    └── session-abc123def456/
-        ├── metadata.json
-        │   {
-        │     "sessionId": "abc123def456",
-        │     "createdAt": "2026-03-29T14:32:00Z",
-        │     "phases": [0, 1, 2, 3, 4, 5, 6, 7],
-        │     "githubIssueUrl": "https://github.com/...",
-        │     "status": "completed" | "in-progress" | "paused",
-        │     "totalDuration": 3600
-        │   }
-        │
-        ├── Phase-0-User-Stories/
-        │   └── notes.md (updated in real-time)
-        │
-        ├── Phase-1-MINE/
-        │   └── notes.md
-        │
-        ├── Phase-2-SCOUT/
-        │   └── notes.md
-        │
-        ├── Phase-3-ASSAY/
-        │   └── notes.md
-        │
-        ├── Phase-4-CRUCIBLE/
-        │   └── notes.md
-        │
-        ├── Phase-5-AUDITOR/
-        │   └── notes.md
-        │
-        ├── Phase-6-PLAN/
-        │   └── notes.md
-        │
-        └── Phase-7-VERIFY/
-            └── full-transcript.md
+Layer 1: Supabase (speed — real-time scratchpad)
+  - Every utterance written in <50ms
+  - No rate limits for single-user writes
+  - Session metadata, timestamps, phase state
+  - Survives server restart
+  - THE place for real-time data during voice session
+
+Layer 2: GitHub Issues (durability — source of truth)
+  - ONE issue per phase (the working document)
+  - Batch-flushed from Supabase every 2-3 min
+  - At phase end: finalized with carry-forward summary
+  - Carry-forward = the ONE document that moves to next phase
+  - Permanent record — searchable, cross-referenceable
+
+Layer 3: Google Drive (optional — human-readable export)
+  - Forward-sync from GitHub issues at session end
+  - Organized by phase for easy reading
+  - NOT written to during session
+  - User can opt out entirely
 ```
 
-### Write Pattern (Server → Drive)
-
-**Real-time updates, NOT batch at end:**
+### Write Pattern (Buffer + Periodic Flush)
 
 ```
 Session starts (t=0)
   ↓
-1. Server creates /session-abc123/
-2. Server creates /session-abc123/metadata.json (status: "in_progress")
+1. Supabase: Create session record (sessionId, status: "in_progress")
+2. GitHub: Create issue "[SESSION] Problem Name — Phase 0"
 3. Gemini connects, server enters Phase 0
 
 Every AI response:
-  ├─ Parse response for key points
-  ├─ Append to /session-abc123/Phase-0/notes.md
-  ├─ Send outline_item to client (for real-time display)
-  └─ Store full transcript in memory
+  ├─ Supabase: Append utterance (speaker, text, timestamp) — <50ms
+  ├─ Client: Send outline_item for real-time display
+  └─ Buffer: Accumulate notes for next GitHub flush
 
-AI signals phase end ("Ready to move to Phase 1?"):
-  ├─ Create /session-abc123/Phase-1/
-  ├─ Initialize Phase-1/notes.md
-  ├─ Send phase_change message to client
-  └─ Inject Phase 1 prompt to Gemini
+Every 2-3 minutes (or natural pause):
+  ├─ GitHub: Update current phase issue body with coalesced notes
+  └─ Buffer: Reset
 
-...repeat for all 8 phases...
+AI signals phase end → THE SQUEEZE runs:
+  ├─ AI asks: "What did we assume? Confidence? Ready to move?"
+  ├─ GitHub: Finalize current phase issue (add carry-forward summary)
+  ├─ GitHub: Create new issue for next phase
+  ├─ Supabase: Update phase state
+  ├─ Client: Send phase_change message
+  └─ Gemini: Inject next phase prompt + carry-forward context
 
 Session complete:
-  ├─ Finalize metadata.json (status: "completed")
-  ├─ Create /session-abc123/Phase-7/full-transcript.md
-  ├─ Create GitHub issue (body = full transcript, link = Drive folder)
-  ├─ Send export_complete to client
+  ├─ GitHub: Finalize last phase issue
+  ├─ Supabase: Update session (status: "completed")
+  ├─ Optional: Generate Crucible audio via teng-lin/notebooklm-py
+  ├─ Optional: Forward-sync to Drive
+  ├─ Client: Send export_complete with issue URLs
   └─ Close WebSocket
 ```
 
@@ -289,18 +299,51 @@ Session complete:
 
 | Data | Destination | Frequency | Format |
 |------|-------------|-----------|--------|
-| Phase summaries | Drive (Phase-X/notes.md) | Real-time, after each AI response | Markdown |
-| Full transcript | Drive (Phase-7/full-transcript.md) | Once at session end | Markdown |
-| Session metadata | Drive (metadata.json) | On phase transitions + end | JSON |
-| Public record | GitHub Issue | Once at session end | Markdown + labels |
+| Every utterance | Supabase (buffer) | Real-time (<50ms) | JSON row |
+| Phase working doc | GitHub Issue (body) | Every 2-3 min | Markdown |
+| Carry-forward summary | GitHub Issue (comment) | At phase end | Markdown |
+| Session metadata | Supabase | On phase transitions | JSON |
+| Crucible audio | Linked to GitHub issue | End of session (optional) | Audio file |
+| Human-readable export | Google Drive | End of session (optional) | Markdown |
 
-### Why Drive as Database
+### Supabase Schema (MVP)
 
-1. **User ownership:** Folder lives in user's Drive, they control it
-2. **No migration risk:** If we change backends, data is already in user's hands
-3. **Simple persistence:** Write markdown + JSON, no schemas
-4. **Real-time accessible:** User can open notes mid-session if they refresh browser
-5. **No vendor lock-in:** Pure Google APIs, portable to competitors if needed
+```sql
+-- Sessions
+CREATE TABLE sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  access_token TEXT UNIQUE NOT NULL,
+  status TEXT DEFAULT 'idle', -- idle, in_progress, paused, completed
+  current_phase INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  completed_at TIMESTAMPTZ,
+  github_issues JSONB DEFAULT '[]', -- array of {phase, issue_number, issue_url}
+  crucible_audio_url TEXT
+);
+
+-- Utterances (real-time buffer)
+CREATE TABLE utterances (
+  id BIGSERIAL PRIMARY KEY,
+  session_id UUID REFERENCES sessions(id),
+  phase INTEGER NOT NULL,
+  speaker TEXT NOT NULL, -- 'user' or 'ai'
+  text TEXT NOT NULL,
+  is_key_point BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Phase carry-forwards
+CREATE TABLE phase_summaries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id),
+  phase INTEGER NOT NULL,
+  carry_forward TEXT NOT NULL, -- the ONE document that moves forward
+  confidence INTEGER, -- from The Squeeze
+  github_issue_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(session_id, phase)
+);
+```
 
 ---
 
@@ -537,87 +580,111 @@ Server responds:
 }
 ```
 
-### Backend → Drive: Real-Time Writes
+### Backend → Supabase: Real-Time Buffer
 
 ```
-Per AI response:
-  PUT /drive/files/{phaseFolder}/notes.md
-  {
-    "summary": "Appended markdown summary",
-    "timestamp": "2026-03-29T14:32:00Z"
-  }
-
-Per phase transition:
-  POST /drive/folders
-  {
-    "parent": "session-abc123def456",
-    "name": "Phase-1-MINE"
-  }
-
-Session end:
-  PUT /drive/files/{sessionFolder}/metadata.json
-  {
-    "status": "completed",
-    "githubIssueUrl": "https://github.com/...",
-    "completedAt": "2026-03-29T15:30:00Z"
-  }
+Per AI response (every utterance):
+  INSERT INTO utterances (session_id, phase, speaker, text, is_key_point)
+  VALUES ($sessionId, $phase, 'ai', $text, $isKeyPoint)
+  -- <50ms, no rate limit concerns
 ```
 
-### Backend → GitHub: Issue Creation (Session End)
+### Backend → GitHub: Batch Flush (Every 2-3 min)
 
 ```
-POST /repos/growthpigs/thinking-foundry/issues
+# Update current phase issue body with coalesced notes
+PATCH /repos/{owner}/{repo}/issues/{issueNumber}
 {
-  "title": "Session: [Problem Name] — 2026-03-29",
-  "body": "# Thinking Foundry Session\n\n[Full Transcript]\n\n## Next Steps\n[Drive Folder](https://drive.google.com/...)",
-  "labels": ["session", "phase-0", "phase-1", "phase-2", ... (phases covered)]
+  "body": "# Phase 1: MINE\n\n## Key Points\n- ...\n\n## Raw Notes\n- ..."
 }
 
-Response:
+# At phase end: add carry-forward summary as comment
+POST /repos/{owner}/{repo}/issues/{issueNumber}/comments
 {
-  "html_url": "https://github.com/growthpigs/thinking-foundry/issues/123"
+  "body": "## Carry-Forward to Phase 2\n\n[ONE synthesized document]"
+}
+
+# New phase: create new issue
+POST /repos/{owner}/{repo}/issues
+{
+  "title": "[SESSION abc123] Phase 2: SCOUT",
+  "body": "## Context (from Phase 1)\n[carry-forward]\n\n## Phase 2 Notes\n...",
+  "labels": ["session", "phase:scout"]
 }
 ```
 
-**Post-MVP (DEFERRED):** PIN + SMS authentication, team sharing, follow-up sessions.
+### Backend → NotebookLM: Crucible Audio (Session End, Optional)
+
+```python
+# Via teng-lin/notebooklm-py (NOT CIC — this is non-negotiable)
+from notebooklm import NotebookLM
+
+client = NotebookLM()
+notebook = await client.create_notebook("Session: Problem Name")
+# Upload all phase carry-forward summaries as sources
+for phase_summary in phase_summaries:
+    await notebook.add_source(phase_summary)
+# Generate debate audio
+audio = await notebook.generate_audio(format="debate")
+# Link to GitHub issue
+```
+
+**Post-MVP (DEFERRED):** PIN + SMS authentication (Revolut-style), team sharing, dual-AI adversarial mode.
 
 ---
 
-## Base Knowledge System (MVP)
+## Knowledge System (MVP — Tool-Use Architecture)
 
-**The AI guide has built-in knowledge of these frameworks. No dynamic fetching needed for MVP.**
+**Stoicism is embedded in the system prompt as the through-line. Everything else is fetched JIT via tool use.**
 
-### Always Available (Baked into System Prompt)
+### System Prompt (~2000 tokens)
 
-| Domain | Framework | How It's Used |
-|--------|-----------|--------------|
-| **Foundation** | Stoic philosophy | Anchor for all phases — what's in control? Accept constraints. Virtue in thinking. |
-| **Business Thinking** | McKinsey problem structuring | Phase 1 (MINE): Break problem into components. Phase 3 (ASSAY): Prioritize. |
-| **Design Thinking** | IDEO methodology | Phase 2 (SCOUT): Empathize, ideate without judgment, prototype to learn. |
-| **First Principles** | Elon Musk / physics thinking | Phase 4 (CRUCIBLE): Strip to fundamentals, rebuild from base truths. |
-| **Specification** | The Foundry methodology | Phase 0: User stories first. Spec before build. Verify at each gate. |
-| **Generalist Advantage** | Nate B. Jones | Phase 2 (SCOUT): Connect across domains. Pattern recognition. |
+The system prompt contains:
+- The Thinking Foundry identity and phase structure
+- Stoicism as the decision-making backbone ("What's in your control?")
+- Brief 1-sentence descriptions of all 8 frameworks
+- Instructions to fetch framework details via tools when needed
+- "Questions with information, not empty questions" principle
 
-### How Base Knowledge Enters the Conversation
+### Framework Tools (JIT Fetching)
 
-The AI doesn't lecture about frameworks. It uses them naturally:
+Each framework is a discrete tool that Gemini calls when the conversation needs it:
 
-- "Let's strip this to first principles — what's actually true here, not assumed?"
-- "An IDEO approach would say: before we solve, let's make sure we deeply understand the user."
-- "McKinsey would structure this as three sub-problems. Let's try that."
-- "What would a stoic say? What's actually in your control here?"
+```
+fetch_framework("hormozi")     → Returns Hormozi pricing/scaling/offers content
+fetch_framework("yc")          → Returns YC PMF/growth/fundraising content
+fetch_framework("ideo")        → Returns IDEO design thinking content
+fetch_framework("mckinsey")    → Returns McKinsey strategy/data-driven content
+fetch_framework("lean")        → Returns Lean MVP/validated learning content
+fetch_framework("stoicism")    → Returns deeper Stoic principles (beyond system prompt)
+fetch_framework("nate-b-jones") → Returns Thinking Stack, mental models, decision quality
+fetch_framework("indydev-dan") → Returns development methodology, AI patterns
+```
 
-The AI references frameworks when relevant, doesn't force them. Adapts to the person.
+**Why tool use, not context stuffing:**
+- System prompt stays small (~2000 tokens vs ~30K if all frameworks embedded)
+- Context window stays clean for the actual conversation
+- Only relevant frameworks are loaded — a pricing discussion pulls Hormozi, not IDEO
+- Follows Anthropic's tool_use architecture (proven pattern)
+- Frameworks are maintained as discrete files, easy to update independently
 
-### Dynamic Plugin System (DEFERRED — Post-MVP)
+### How Frameworks Enter the Conversation
 
-After launch, we'll add:
-- Keyword extraction from problem statement
-- Web search for domain-specific sources
-- Real-time framework injection
-- Cached popular frameworks
+The AI doesn't lecture. It uses frameworks naturally WITH information:
 
-See issue #12 for full plugin system design.
+- "Hormozi would say your offer needs to be so good people feel stupid saying no. Right now your pricing is cost-plus — what if we flipped to value-based? His Grand Slam Offer framework suggests..."
+- "A stoic would ask: what here is actually in your control? The market response isn't. But the product quality is. Let's focus there."
+- "Nate B. Jones has this Decision Quality Framework — Type 1 decisions are reversible, Type 2 aren't. This feels like a Type 1. Should we just try it?"
+
+**Key principle:** Questions come WITH information. Not "What do you think about pricing?" but "Hormozi says X about pricing. Does that apply to your situation, given your constraint of Y?"
+
+### Knowledge Base (Supabase Semantic Search)
+
+Frameworks are chunked and stored in Supabase with semantic search:
+- 8 frameworks, ~80 chunks total
+- Constraint-matched queries (budget + timeline + domain → relevant chunks)
+- Used during AutoResearch phase for deeper validation
+- See `chunk-frameworks.js` and `supabase-schema.sql` for implementation
 
 ---
 
@@ -844,20 +911,27 @@ Ready to share? I'll give you the link."
 - [ ] **Gemini connection:** Connects successfully, receives audio, sends back speech
 - [ ] **Barge-in (interruption):** AI stops mid-sentence when user speaks
 - [ ] **Real-time outline:** Outline items appear on screen as AI speaks
-- [ ] **All 8 phases execute:** Full 60-120 min session with all phases
+- [ ] **All 8 phases execute:** Full session with all phases (typical <15 min)
 - [ ] **Phase transitions:** AI signals phase end, UI updates, new folder created
 - [ ] **Drive writes:** Check Drive folder after each phase — notes.md updated
 - [ ] **Session end:** GitHub issue created with full transcript + correct labels
 - [ ] **Export URLs:** Client receives both GitHub + Drive URLs at end
 
-### Drive Persistence Tests
-- [ ] Drive folder exists with correct structure
-- [ ] Phase-X/notes.md files are created and populated
-- [ ] metadata.json exists and updates correctly
-- [ ] Folder is shared with user email (if provided)
-- [ ] User can open Drive folder and read phase notes
-- [ ] Real-time updates work (notes appear while session running)
-- [ ] Session metadata accurately reflects phases covered
+### Persistence Tests (Supabase + GitHub)
+- [ ] Supabase utterance rows created in real-time (<50ms)
+- [ ] GitHub issue created per phase with coalesced notes
+- [ ] Batch flush to GitHub every 2-3 min (not per-utterance)
+- [ ] Phase carry-forward summary in GitHub issue comment
+- [ ] The Squeeze runs at every phase transition
+- [ ] Session metadata in Supabase reflects phases covered
+- [ ] Optional Drive export works at session end
+
+### Pause & Interaction Tests
+- [ ] Pause button stops audio capture immediately
+- [ ] AI acknowledges resume gracefully ("Where were we?")
+- [ ] Multiple rapid pause/resume cycles don't break state
+- [ ] Pause duration doesn't count toward session time
+- [ ] Context is preserved across long pauses (5+ minutes)
 
 ### Outline View Tests
 - [ ] Outline items appear in real-time (not verbatim transcript)
@@ -903,13 +977,13 @@ Ready to share? I'll give you the link."
 |--------|--------|----------------|
 | **Link Access** | 100% | Unique link → session starts (no login) |
 | **Completion Rate** | 90%+ | Sessions complete all 8 phases |
-| **Drive Persistence** | 100% | Every phase creates folder with notes.md |
-| **GitHub Export** | 100% | Every session → one GitHub issue |
+| **GitHub Persistence** | 100% | Every phase creates a GitHub issue |
+| **Supabase Buffer** | 100% | Every utterance buffered in real-time |
 | **Outline Display** | 100% | Real-time insights appear on screen |
 | **AI Response Latency** | <500ms | First response <500ms consistently |
 | **Barge-In Success** | 100% | Interruption works every time |
 | **User Clarity** | 8+/10 | Post-session assessment |
-| **Session Duration** | 60-120 min | Full 8 phases with no timeouts |
+| **Session Duration** | <15 min typical | Full 8 phases, depth over duration |
 | **Mobile Experience** | Fully Functional | No degradation on Safari/Chrome mobile |
 
 ---
@@ -918,14 +992,14 @@ Ready to share? I'll give you the link."
 
 **Assumption:** PoC validated voice + Gemini Live works. Now building real MVP architecture.
 
-### Phase 1: Data Layer (DriveDatabase)
+### Phase 1: Data Layer (Supabase + GitHub)
 **DUs: 5-6**
 
-- [ ] DriveDatabase class (wrapper around googleapis)
-- [ ] Session folder initialization
-- [ ] Real-time writes to Drive (Phase-X/notes.md)
-- [ ] Metadata.json creation + updates
-- [ ] Share folder with user email (optional MVP)
+- [ ] Supabase schema (sessions, utterances, phase_summaries tables)
+- [ ] SupabaseBuffer class (real-time writes, batch flush)
+- [ ] GitHubPersistence class (issue CRUD per phase, carry-forward)
+- [ ] The Squeeze logic (confidence check at phase transitions)
+- [ ] Optional Drive export at session end
 
 ### Phase 2: Link-Based Auth + Session Init
 **DUs: 3-4**
@@ -943,21 +1017,24 @@ Ready to share? I'll give you the link."
 - [ ] Real-time outline_item WebSocket messages
 - [ ] Client-side outline display (OutlineView component)
 
-### Phase 4: Phase Transitions + Drive Integration
+### Phase 4: Phase Transitions + Framework Tool Use
 **DUs: 3-4**
 
 - [ ] Phase transition detection (AI signals readiness)
-- [ ] New phase folder creation in Drive
+- [ ] The Squeeze at every transition (confidence check)
+- [ ] Carry-forward document creation (GitHub issue comment)
 - [ ] phase_transition WebSocket message
 - [ ] Phase prompt injection to Gemini
+- [ ] FrameworkFetcher (8 tool definitions for JIT framework loading)
 
-### Phase 5: GitHub Export
+### Phase 5: Session End + Crucible Audio
 **DUs: 2-3**
 
-- [ ] Collect full transcript from memory
-- [ ] Create GitHub issue (title + body + labels)
-- [ ] Link to Drive folder in issue
-- [ ] Tag by phases covered
+- [ ] Finalize all phase GitHub issues
+- [ ] Offer NotebookLM Crucible audio generation (teng-lin/notebooklm-py)
+- [ ] Generate ~10-22 min debate audio from session findings
+- [ ] Link audio to session's GitHub issues
+- [ ] Optional Drive export (forward-sync from GitHub)
 
 ### Phase 6: Testing + Refinement
 **DUs: 3-4**
@@ -1007,57 +1084,67 @@ Ready to share? I'll give you the link."
 
 ---
 
-## Appendix: MVP Architecture Changes (v3.0)
+## Appendix: Architecture Evolution
 
-**From POC → MVP: The Rearchitecture**
+### v3.0 → v4.0 Changes (2026-03-30)
 
-### What Changed
-
-| Aspect | POC | MVP |
+| Aspect | v3.0 (Drive-First) | v4.0 (GitHub-First) |
 |--------|-----|-----|
-| **Auth** | Not specified | Link-based (click → start) |
-| **Storage** | Unclear persistence | Drive as database (source-of-truth) |
-| **Data Flow** | Client-driven export | Server-driven real-time writes |
-| **Outline View** | Transcript display | Real-time insights extraction |
-| **Phase Transitions** | Manual button | AI-driven (system detects) |
-| **Write Pattern** | Batch at end | Real-time per response |
+| **Storage SOT** | Google Drive | GitHub Issues |
+| **Real-time buffer** | Drive API writes | Supabase (<50ms) |
+| **Phase documents** | Drive folders/notes.md | GitHub issue per phase |
+| **Carry-forward** | Implicit (folder hierarchy) | Explicit (one summary per phase) |
+| **Framework loading** | Baked into system prompt | JIT via tool_use (Stoicism embedded, rest on-demand) |
+| **Session duration** | 60-120 min | <15 min typical |
+| **Interaction model** | Continuous conversation | Pause-heavy (AI speaks → humans discuss → resume) |
+| **Audio output** | Not specified | NotebookLM Crucible via teng-lin/notebooklm-py |
+| **Drive role** | Primary database | Optional export |
+| **Supabase role** | Eliminated | Real-time buffer + session metadata |
+| **Phase gates** | None specified | The Squeeze at every transition |
+
+### v1.0 → v2.0 (POC → Architecture)
+
+| Aspect | POC | v2.0 |
+|--------|-----|-----|
+| **Auth** | Not specified | Link-based |
+| **Phase Transitions** | Manual button | AI-driven |
 | **Backend** | Railway / Vercel | Node.js + Express + WebSocket |
-| **Database** | Not specified | Google Drive only |
 
-### Why This Works
+### Why v4.0 Works
 
-1. **Simplicity:** Link-based MVP = zero auth complexity
-2. **User Control:** Drive folders in user's own Drive
-3. **Transparency:** User can watch session unfold in Drive
-4. **No Vendor Lock:** Pure Drive + GitHub, portable
-5. **Scalable:** Drive API scales to millions of sessions
-6. **Cost Effective:** ~$1.38 Gemini + ~$0 Drive/GitHub (free tier)
+1. **GitHub Issues are the thinking documents** — durable, structured, cross-referenceable
+2. **Supabase is fast** — <50ms writes, no rate limits, survives server restart
+3. **Batch flush to GitHub** — respects GitHub API limits (5000 req/hr) while staying current
+4. **One carry-forward per phase** — clean mental model, no folder sprawl
+5. **Tool-use frameworks** — small system prompt, rich knowledge on demand
+6. **Pause-heavy model** — the AI is a conversation partner, not a lecture
+7. **Cost effective:** ~$0.35 Gemini (15 min session) + ~$0 GitHub/Supabase (free tier)
 
-### Technical Debt Eliminated
+### Decision Rationale
 
-- ❌ No Supabase (added complexity)
-- ❌ No Cloudflare Workers (overkill for MVP)
-- ❌ No SMS/PIN system (not needed for link access)
-- ❌ No dynamic plugin system (base knowledge sufficient)
+Full rationale documented in: growthpigs/thinking-foundry#16
 
 ---
 
 ## Research Complete
 
-✅ **Gemini Live API:** $0.005/min input, $0.018/min output = $1.38/session
-✅ **GitHub API:** 5,000 req/hour, sufficient for scale
-✅ **Drive API:** Scales to millions, no rate limit concerns
-✅ **Interruption (Barge-in):** Built-in, zero extra code
-✅ **Real-time Persistence:** Drive API supports concurrent writes
+✅ **Gemini Live API:** $0.005/min input, $0.018/min output = ~$0.35/session (15 min)
+✅ **GitHub API:** 5,000 req/hour — batch flush pattern stays well within limits
+✅ **Supabase:** Free tier handles single-user real-time writes easily
+✅ **NotebookLM API:** teng-lin/notebooklm-py documented in NOTEBOOKLM-GUIDE.md
+✅ **Interruption (Barge-in):** Built-in to Gemini Live, zero extra code
+✅ **Tool Use:** Gemini supports function calling for framework JIT fetching
 
 ---
 
-**Document Status:** READY FOR AUTONOMOUS BUILD
+**Document Status:** READY FOR AUTONOMOUS BUILD (v4.0)
 
 **Scope:** 20-25 DUs (4-5 weeks)
 
-**Next Step:** Chi builds MVP in parallel worktree, tests end-to-end, validates against this FSD
+**Next Step:** Build MVP against this FSD. Validate with 3+ test sessions.
+
+**Decision trail:** growthpigs/thinking-foundry#16, growthpigs/thinking-foundry-vault#1
 
 ---
 
-*FSD v3.0 is the complete specification for The Thinking Foundry MVP. Autonomous build follows this spec precisely. No deviations without explicit approval.*
+*FSD v4.0 is the complete specification for The Thinking Foundry MVP. Supersedes v3.0 (Drive-first). Autonomous build follows this spec precisely. No deviations without explicit approval.*
