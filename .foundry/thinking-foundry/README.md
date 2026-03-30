@@ -23,7 +23,7 @@ PHASE 6: PLAN — Create clear action plan
     ↓ Ratify Gate
 PHASE 7: VERIFY — Summarize & confirm
     ↓
-[AUTORESPONSE LOOP — PLANNED] ← Validate thinking improvements (Karpathy pattern)
+AUTORESEARCH — Validate reasoning with real-world data (Karpathy pattern)
     ↓
 FSD APPROVAL GATE ← User explicitly approves decision
     ↓
@@ -66,16 +66,83 @@ Quality check. "Did we actually think this through, or did we just feel producti
 - What's still unknown?
 - What should we validate before committing?
 
-### AutoResearch (TBD)
-**Planned:** After VERIFY, before FSD Approval Gate
+### AutoResearch (Karpathy Experimental Loop)
+**Placement:** After VERIFY (Phase 7), before FSD Approval Gate
 
-Karpathy's experimental loop adapted for thinking:
-- Run thought experiments
-- Test assumptions
-- Keep ideas that prove valuable
-- Discard ones that don't
-- Iterate for 1-3 days
-- Then finalize FSD
+Karpathy's experimental loop adapted for structured thinking. While the Software Foundry's AutoResearch validates code with runtime experiments, the Thinking Foundry's AutoResearch validates reasoning with real-world data.
+
+#### The Pattern
+
+```
+program.md (research protocol)  ← Human writes what to investigate
+       ↓
+   Agent Loop                   ← Agents research autonomously
+       ↓
+   Results + Signal             ← Each cycle MUST produce new signal or terminate
+       ↓
+   Ratchet Decision             ← Strengthen conclusions that hold, revise those that don't
+       ↓
+   Repeat or Terminate          ← Max iterations: 5 (thinking) or 3 (quick decisions)
+```
+
+#### How It Works in the Thinking Foundry
+
+1. **Write `program.md`** — research questions derived from the VERIFY phase output:
+   ```markdown
+   # AutoResearch Protocol — [Decision Name]
+
+   ## Questions to Validate
+   1. Is the €50K market assumption correct? (competitor pricing research)
+   2. Do users actually switch tools for this pain point? (churn data)
+   3. Is the 3-month timeline realistic for this scope? (comparable launches)
+
+   ## Research Methods
+   - [ ] Web search: competitor pricing pages, G2 reviews, Crunchbase funding
+   - [ ] Knowledge base: query Supabase for similar decisions in frameworks
+   - [ ] Market data: TAM/SAM/SOM calculation with real numbers
+   - [ ] Expert precedent: what did YC/Hormozi/McKinsey say about similar situations?
+
+   ## Terminate If: No new signal after 2 cycles
+   ## Max Iterations: 5
+   ```
+
+2. **Agent Research Loop** — each cycle:
+   - Pick highest-priority unanswered question
+   - Run real research (web search, knowledge base queries, competitor analysis)
+   - Record findings in `findings.md` (append-only)
+   - Assess: did this change our confidence in the FSD?
+
+3. **Ratchet Rule** — findings accumulate, never regress:
+   - Conclusions that hold up under research → confidence increases
+   - Conclusions that break under data → flag for FSD revision
+   - 2 cycles with no new signal → terminate (don't manufacture busy work)
+
+4. **Synthesis** — AutoResearch Report:
+   - Which assumptions were validated? (confidence UP)
+   - Which assumptions were invalidated? (FSD needs revision)
+   - Which remain untested? (acknowledged risk in FSD)
+   - Confidence delta: pre vs post AutoResearch
+
+#### What AutoResearch Is NOT
+
+- NOT more brainstorming (that's MINE/SCOUT)
+- NOT more stress-testing (that's CRUCIBLE)
+- NOT opinion gathering (that's AUDITOR)
+- It IS: **data-driven validation of the conclusions you already reached**
+
+#### Mode Applicability
+
+| Mode | Runs AutoResearch? | Max Cycles |
+|------|-------------------|------------|
+| **PRODUCT DECISION** | ✅ Full | 5 |
+| **STRATEGIC CHOICE** | ✅ Full | 5 |
+| **PERSONAL DECISION** | ✅ Scoped (personal constraints only) | 3 |
+| **BUSINESS PROBLEM** | ✅ Full | 5 |
+| **QUICK DECISION** | ⏭ Skip (time constraint) | — |
+
+#### Output
+
+AutoResearch Report → feeds into FSD Approval Gate. If confidence dropped below 8, the FSD routes back to ASSAY for revision before approval.
 
 ---
 
@@ -165,5 +232,5 @@ Future: Automated phase transitions with framework injection, constraint trackin
 
 ---
 
-**Status:** 7 phases complete, AutoResearch loop pending design
+**Status:** 7 phases + AutoResearch loop complete. FSD Approval Gate defined.
 **Last Updated:** 2026-03-30

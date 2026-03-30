@@ -44,6 +44,7 @@ It's an **IDEO-style consultation** delivered by AI — a co-founder in the room
 | 5 | AUDITOR | 15 min | Quality check. Blind spots? Confidence ≥8? |
 | 6 | PLAN | 15 min | Concrete answers. What to do, why, first step tomorrow |
 | 7 | VERIFY | 5 min | Document everything. Export to GitHub + Drive |
+| 7b | AUTORESEARCH | 1-3 hrs | Karpathy experimental loop — validate reasoning with real data |
 
 ### Critical Design Principles
 
