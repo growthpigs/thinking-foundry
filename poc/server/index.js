@@ -23,6 +23,13 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+const cors = require('cors');
+const ALLOWED_ORIGINS = [
+  'https://frontend-jet-psi-12.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json());
 
 // Link-based auth (routes registered before static to take priority)
@@ -86,7 +93,13 @@ app.post('/api/drive/setup', async (req, res) => {
 
 // ─── WebSocket (audio + control) ───
 
-wss.on('connection', (clientWs) => {
+wss.on('connection', (clientWs, req) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    console.log(`[WS] Rejected connection from origin: ${origin}`);
+    clientWs.close(1008, 'Origin not allowed');
+    return;
+  }
   console.log('[WS] Client connected');
 
   const session = new SessionState();
