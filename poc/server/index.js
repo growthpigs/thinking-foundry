@@ -437,7 +437,7 @@ wss.on('connection', (clientWs, req) => {
 
             // Reconnect Gemini with new phase context + carry-forward
             if (gemini) {
-              const phaseKnowledge = await knowledgeLoader.load({
+              let phaseKnowledge = await knowledgeLoader.load({
                 phase: toPhase,
                 frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
                 fullContent: false,
