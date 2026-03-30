@@ -196,6 +196,23 @@ thinking-foundry/
 
 ---
 
+## WHERE OUTPUTS GO (Three-Tier System)
+
+The Thinking Foundry is the TOOL. The outputs go elsewhere:
+
+```
+Session output → growthpigs/thinking-foundry-vault (as GitHub issue)
+  → 90% stay as vault issues forever (decisions, ideas, explorations)
+  → ~10% promoted to growthpigs/fledgling (folder with FSD + research)
+  → ~2-5% graduated to own project repo (full Software Foundry scaffold)
+```
+
+**This repo stays clean as methodology/product code.** No session data here.
+
+See: [Thinking Foundry Vault](https://github.com/growthpigs/thinking-foundry-vault) | [Fledgling](https://github.com/growthpigs/fledgling) | [Software Foundry](https://github.com/growthpigs/the-foundry)
+
+---
+
 ## PHILOSOPHY
 
 The Thinking Foundry is not software. It's how Roderic thinks, made repeatable and teachable.
