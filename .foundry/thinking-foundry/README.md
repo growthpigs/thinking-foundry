@@ -123,6 +123,41 @@ program.md (research protocol)  ← Human writes what to investigate
    - Which remain untested? (acknowledged risk in FSD)
    - Confidence delta: pre vs post AutoResearch
 
+#### Supabase Knowledge Base Integration
+
+The Thinking Foundry's knowledge base (8 frameworks in Supabase with semantic search) is a primary research tool during AutoResearch. Each cycle can query the knowledge base with constraint-matched queries:
+
+```
+Cycle question: "Is our pricing model viable?"
+  → Query Supabase: framework=hormozi, constraint=pricing, context=[user's budget+market]
+  → Returns: Hormozi's pricing principles matched to THIS user's situation
+  → Signal: Hormozi says "price on value not cost" — our cost-plus model conflicts
+
+Cycle question: "Is 3 months realistic for MVP?"
+  → Query Supabase: framework=yc, constraint=timeline, context=[scope+team_size]
+  → Returns: YC data on comparable MVP timelines
+  → Signal: YC says "if it takes > 6 weeks, scope is too big" — we need to cut
+```
+
+**Knowledge base query pattern:**
+1. Extract the assumption being tested
+2. Identify which framework(s) have relevant wisdom
+3. Include the user's specific constraints as query context
+4. Compare framework recommendation vs our conclusion
+5. Record agreement/conflict in findings.md
+
+**Available frameworks for research dispatch:**
+| Framework | Best For |
+|-----------|---------|
+| YC | Timeline, PMF, MVP scope, fundraising |
+| Hormozi | Pricing, acquisition, scaling, offer design |
+| McKinsey | Market sizing, competitive strategy, data-driven decisions |
+| IDEO | User empathy, design decisions, experience quality |
+| Lean | Build-measure-learn, pivot signals, validated learning |
+| Stoicism | Personal decisions, risk tolerance, resilience |
+| IndyDev Dan | Technical feasibility, AI patterns, development methodology |
+| Nate B. Jones | Agent operations, knowledge persistence |
+
 #### What AutoResearch Is NOT
 
 - NOT more brainstorming (that's MINE/SCOUT)
