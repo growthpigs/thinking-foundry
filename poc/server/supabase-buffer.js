@@ -179,7 +179,7 @@ class SupabaseBuffer {
    * @param {number[]} utteranceIds - IDs of flushed utterances
    */
   async markFlushed(utteranceIds) {
-    if (!utteranceIds.length) return;
+    if (!utteranceIds || !utteranceIds.length) return;
 
     const { error } = await this.supabase
       .from('utterances')
@@ -241,7 +241,10 @@ class SupabaseBuffer {
       .eq('phase', phase)
       .single();
 
-    if (error) return null;
+    if (error) {
+      console.error(`[SUPABASE] getCarryForward failed for phase ${phase}: ${error.message}`);
+      return null;
+    }
     return data;
   }
 

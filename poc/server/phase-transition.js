@@ -163,8 +163,13 @@ class PhaseTransitionHandler {
       // Captured a phase number
       if (/^\d$/.test(captured)) {
         const target = parseInt(captured);
-        if (target !== currentPhase && target >= 0 && target <= 7) {
-          return target;
+        // "I have what I need for phase N" means N is DONE — advance to N+1
+        const isCompletionSignal = /i have what i need|we'?re done with|that'?s enough for/i.test(text);
+        const resolvedTarget = (isCompletionSignal && target === currentPhase && target < 7)
+          ? target + 1
+          : target;
+        if (resolvedTarget !== currentPhase && resolvedTarget >= 0 && resolvedTarget <= 7) {
+          return resolvedTarget;
         }
       }
 
@@ -178,9 +183,9 @@ class PhaseTransitionHandler {
       }
     }
 
-    // Fallback: if we detect "I have what I need" or "we're done" without explicit target,
-    // advance to next phase
-    if (/i have what i need|we'?re done with|that'?s enough for|phase.*complete/i.test(text)) {
+    // Fallback: if we detect completion signals without explicit phase target,
+    // advance to next phase. Tightened to avoid false positives.
+    if (/i have what i need|that'?s enough for this phase|we'?re done with this phase/i.test(text)) {
       if (currentPhase < 7) {
         return currentPhase + 1;
       }
@@ -213,6 +218,9 @@ class PhaseTransitionHandler {
    * @returns {{ transition: boolean, toPhase?: number, confidence?: number }}
    */
   manualTransition(currentPhase, targetPhase) {
+    if (targetPhase < 0 || targetPhase > 7) {
+      return { transition: false, blocked: true, reason: `Invalid target phase: ${targetPhase}` };
+    }
     const now = Date.now();
     if (now - this.lastTransitionAt < this.debounceMs) {
       return { transition: false, blocked: true, reason: 'Too soon after last transition' };

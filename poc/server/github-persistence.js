@@ -106,10 +106,16 @@ class GitHubPersistence {
     });
 
     // Replace the Notes section content
-    const updatedBody = issue.body.replace(
+    const body = issue.body ?? '';
+    const updatedBody = body.replace(
       /## Notes\n\n[\s\S]*?(?=\n---\n\n## Carry-Forward)/,
       `## Notes\n\n${coalescedNotes}\n`
     );
+
+    if (updatedBody === body) {
+      console.warn(`[GITHUB] updatePhaseIssue #${issueNumber}: Notes section not found — body structure may have changed`);
+      return;
+    }
 
     await this.octokit.issues.update({
       owner: this.owner,
@@ -244,13 +250,15 @@ class GitHubPersistence {
    * @returns {string} Formatted markdown notes
    */
   static coalesceNotes(utterances) {
-    if (!utterances.length) return '_No new notes._';
+    if (!Array.isArray(utterances) || utterances.length === 0) return '_No new notes._';
 
     const lines = [];
     let lastSpeaker = null;
 
     for (const u of utterances) {
-      const time = new Date(u.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const rawTime = new Date(u.created_at);
+      const time = isNaN(rawTime) ? '??:??' : rawTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const text = u.text ?? '_(empty)_';
       const prefix = u.is_key_point ? '**' : '';
       const suffix = u.is_key_point ? '** ⭐' : '';
 
@@ -261,7 +269,7 @@ class GitHubPersistence {
         lastSpeaker = u.speaker;
       }
 
-      lines.push(`${prefix}${u.text}${suffix}`);
+      lines.push(`${prefix}${text}${suffix}`);
     }
 
     return lines.join('\n');
