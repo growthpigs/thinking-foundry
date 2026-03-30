@@ -11,6 +11,8 @@ const { DriveManager } = require('./drive-manager');
 const { ContextLoader } = require('../context/loader');
 const { GitHubConnector } = require('../context/github-connector');
 const { DriveConnector } = require('../context/drive-connector');
+const { SupabaseBuffer } = require('./supabase-buffer');
+const { GitHubPersistence } = require('./github-persistence');
 
 const app = express();
 const server = http.createServer(app);
@@ -68,6 +70,12 @@ wss.on('connection', (clientWs) => {
   const context = new ContextManager();
   const knowledgeLoader = new ContextLoader();
   let gemini = null;
+
+  // Persistence layers (initialized on session-setup)
+  let supabaseBuffer = null;
+  let githubPersistence = null;
+  let flushInterval = null;
+  const FLUSH_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
   const sendToClient = (type, data) => {
     if (clientWs.readyState === clientWs.OPEN) {
@@ -166,6 +174,52 @@ wss.on('connection', (clientWs) => {
     return { githubContext, driveContext, frameworks: frameworks || [] };
   }
 
+  /**
+   * Batch-flush unflushed utterances from Supabase to GitHub.
+   * Runs every 2 minutes. Coalesces notes and updates the phase issue.
+   */
+  const flushToGitHub = async () => {
+    if (!supabaseBuffer || !githubPersistence) return;
+
+    try {
+      const unflushed = await supabaseBuffer.getUnflushedUtterances();
+      if (unflushed.length === 0) return;
+
+      // Group by phase
+      const byPhase = {};
+      for (const u of unflushed) {
+        if (!byPhase[u.phase]) byPhase[u.phase] = [];
+        byPhase[u.phase].push(u);
+      }
+
+      for (const [phase, utterances] of Object.entries(byPhase)) {
+        const phaseNum = parseInt(phase);
+        let issue = githubPersistence.phaseIssues.get(phaseNum);
+
+        // Create phase issue if it doesn't exist yet
+        if (!issue) {
+          const sessionName = `Session ${new Date().toLocaleDateString()}`;
+          issue = await githubPersistence.createPhaseIssue(sessionName, phaseNum);
+        }
+
+        // Coalesce and update
+        const notes = GitHubPersistence.coalesceNotes(utterances);
+        await githubPersistence.updatePhaseIssue(issue.number, notes);
+      }
+
+      // Mark all as flushed
+      const ids = unflushed.map(u => u.id);
+      await supabaseBuffer.markFlushed(ids);
+
+      // Update session's github_issues reference
+      await supabaseBuffer.updateGitHubIssues(githubPersistence.getSessionIssues());
+
+      console.log(`[FLUSH] Flushed ${unflushed.length} utterances to GitHub`);
+    } catch (err) {
+      console.error(`[FLUSH] Error: ${err.message}`);
+    }
+  };
+
   const startGemini = async () => {
     // Load knowledge context for current phase, including external context and selected frameworks
     const knowledgeContext = await knowledgeLoader.load({
@@ -185,6 +239,15 @@ wss.on('connection', (clientWs) => {
       onTranscript: (role, text) => {
         context.addUtterance(role, text);
         sendToClient('transcript', { role, text });
+
+        // Write to Supabase in real-time (<50ms target)
+        if (supabaseBuffer) {
+          supabaseBuffer.writeUtterance(
+            session.currentPhase,
+            role === 'model' ? 'ai' : 'user',
+            text
+          ).catch(err => console.error('[SUPABASE] Write error:', err.message));
+        }
       },
 
       onAudio: (audioBase64) => {
@@ -240,6 +303,32 @@ wss.on('connection', (clientWs) => {
           frameworks: msg.frameworks || []
         });
 
+        // Initialize persistence layers
+        try {
+          if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+            supabaseBuffer = new SupabaseBuffer();
+            const accessToken = msg.accessToken || `session_${Date.now()}`;
+            await supabaseBuffer.startSession(accessToken);
+            console.log('[SETUP] Supabase buffer initialized');
+          }
+        } catch (err) {
+          console.warn('[SETUP] Supabase init failed (continuing without):', err.message);
+          supabaseBuffer = null;
+        }
+
+        try {
+          if (process.env.GITHUB_TOKEN) {
+            githubPersistence = new GitHubPersistence();
+            console.log('[SETUP] GitHub persistence initialized');
+
+            // Start flush interval (every 2 min)
+            flushInterval = setInterval(flushToGitHub, FLUSH_INTERVAL_MS);
+          }
+        } catch (err) {
+          console.warn('[SETUP] GitHub persistence init failed (continuing without):', err.message);
+          githubPersistence = null;
+        }
+
         try {
           const external = await fetchExternalContext({
             github: msg.github,
@@ -284,8 +373,50 @@ wss.on('connection', (clientWs) => {
       case 'phase':
         // Advance to specific phase
         const newPhase = msg.phase;
-        console.log(`[WS] Phase change: ${session.currentPhase} → ${newPhase}`);
+        const oldPhase = session.currentPhase;
+        console.log(`[WS] Phase change: ${oldPhase} → ${newPhase}`);
         session.setPhase(newPhase);
+
+        // Persistence: flush current phase, save carry-forward, create new phase issue
+        if (supabaseBuffer) {
+          // Flush remaining utterances from current phase before transitioning
+          await flushToGitHub();
+
+          // Save carry-forward if provided (from AI's Squeeze output)
+          if (msg.carryForward) {
+            await supabaseBuffer.saveCarryForward(
+              oldPhase,
+              msg.carryForward,
+              msg.confidence || null,
+              msg.squeezeNotes || null,
+              githubPersistence?.phaseIssues.get(oldPhase)?.url || null
+            );
+
+            // Add carry-forward to GitHub issue
+            const oldIssue = githubPersistence?.phaseIssues.get(oldPhase);
+            if (oldIssue && githubPersistence) {
+              await githubPersistence.addCarryForward(
+                oldIssue.number,
+                msg.carryForward,
+                msg.confidence,
+                msg.squeezeNotes
+              ).catch(err => console.error('[GITHUB] Carry-forward error:', err.message));
+              await githubPersistence.closePhaseIssue(oldIssue.number)
+                .catch(err => console.error('[GITHUB] Close error:', err.message));
+            }
+          }
+
+          // Update phase in Supabase
+          await supabaseBuffer.updatePhase(newPhase);
+
+          // Create GitHub issue for new phase
+          if (githubPersistence) {
+            const sessionName = `Session ${new Date().toLocaleDateString()}`;
+            await githubPersistence.createPhaseIssue(sessionName, newPhase)
+              .catch(err => console.error('[GITHUB] Create phase issue error:', err.message));
+          }
+        }
+
         if (gemini) {
           // Reload knowledge context for new phase, preserving session context
           const phaseKnowledge = await knowledgeLoader.load({
@@ -301,8 +432,51 @@ wss.on('connection', (clientWs) => {
         sendToClient('phase', { phase: newPhase });
         break;
 
+      case 'pause':
+        console.log('[WS] Session paused');
+        if (supabaseBuffer) {
+          await supabaseBuffer.pauseSession()
+            .catch(err => console.error('[SUPABASE] Pause error:', err.message));
+        }
+        sendToClient('status', { state: 'paused' });
+        break;
+
+      case 'resume':
+        console.log('[WS] Session resumed');
+        if (supabaseBuffer) {
+          await supabaseBuffer.resumeSession()
+            .catch(err => console.error('[SUPABASE] Resume error:', err.message));
+        }
+        sendToClient('status', { state: 'resumed' });
+        break;
+
       case 'stop':
         console.log('[WS] Stopping session');
+
+        // Final flush + cleanup
+        if (flushInterval) clearInterval(flushInterval);
+        await flushToGitHub(); // Final flush
+
+        if (githubPersistence) {
+          // Close the current phase issue
+          const currentIssue = githubPersistence.phaseIssues.get(session.currentPhase);
+          if (currentIssue) {
+            await githubPersistence.closePhaseIssue(currentIssue.number)
+              .catch(err => console.error('[GITHUB] Close error:', err.message));
+          }
+          // Cross-reference all session issues
+          const allIssues = githubPersistence.getSessionIssues();
+          if (allIssues.length > 1) {
+            await githubPersistence.linkSessionIssues(allIssues)
+              .catch(err => console.error('[GITHUB] Link error:', err.message));
+          }
+        }
+
+        if (supabaseBuffer) {
+          await supabaseBuffer.endSession()
+            .catch(err => console.error('[SUPABASE] End error:', err.message));
+        }
+
         if (gemini) gemini.close();
         sendToClient('status', { state: 'stopped' });
         break;
@@ -312,8 +486,17 @@ wss.on('connection', (clientWs) => {
     }
   });
 
-  clientWs.on('close', () => {
+  clientWs.on('close', async () => {
     console.log('[WS] Client disconnected');
+    if (flushInterval) clearInterval(flushInterval);
+
+    // Best-effort final flush on disconnect
+    try { await flushToGitHub(); } catch {}
+
+    if (supabaseBuffer) {
+      try { await supabaseBuffer.endSession(); } catch {}
+    }
+
     if (gemini) gemini.close();
   });
 });
@@ -326,5 +509,7 @@ server.listen(PORT, () => {
   console.log(`  Gemini API Key: ${process.env.GEMINI_API_KEY ? '✓ configured' : '✗ MISSING'}`);
   console.log(`  GitHub Token:   ${process.env.GITHUB_TOKEN ? '✓ configured' : '✗ MISSING'}`);
   console.log(`  Service Account:${process.env.GOOGLE_SERVICE_ACCOUNT ? ' ✓ configured' : ' ✗ MISSING'}`);
+  console.log(`  Supabase URL:   ${process.env.SUPABASE_URL ? '✓ configured' : '✗ MISSING (session persistence disabled)'}`);
+  console.log(`  Supabase Key:   ${process.env.SUPABASE_KEY ? '✓ configured' : '✗ MISSING (session persistence disabled)'}`);
   console.log('');
 });
