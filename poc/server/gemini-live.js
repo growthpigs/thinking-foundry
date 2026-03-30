@@ -29,6 +29,10 @@ class GeminiLiveManager {
     this.contextSummary = opts.contextSummary || '';
     this.knowledgeContext = opts.knowledgeContext || '';
 
+    // Framework JIT (Article 12)
+    this.frameworkFetcher = opts.frameworkFetcher || null;
+    this.toolDeclarations = opts.toolDeclarations || [];
+
     // Callbacks
     this.onTranscript = opts.onTranscript || (() => {});
     this.onAudio = opts.onAudio || (() => {});
@@ -108,8 +112,6 @@ class GeminiLiveManager {
       setup: {
         model: 'models/gemini-3.1-flash-live-preview',
         generationConfig: {
-          // Gemini Live only supports single modality. AUDIO for voice sessions.
-          // Transcript comes from a separate pipeline (future: Google STT).
           responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
@@ -121,9 +123,17 @@ class GeminiLiveManager {
         },
         systemInstruction: {
           parts: [{ text: systemPrompt }]
-        }
+        },
       }
     };
+
+    // Add framework tool declarations if available (Article 12: JIT)
+    if (this.toolDeclarations.length > 0) {
+      setupMessage.setup.tools = [{
+        functionDeclarations: this.toolDeclarations,
+      }];
+      console.log(`[GEMINI] Added ${this.toolDeclarations.length} tool declarations`);
+    }
 
     console.log(`[GEMINI] Sending setup for phase ${phase} (context: ${contextSummary ? contextSummary.length + ' chars' : 'none'})`);
     ws.send(JSON.stringify(setupMessage));
@@ -179,9 +189,32 @@ class GeminiLiveManager {
           }
         }
 
-        // Tool calls (future use)
-        if (msg.toolCall) {
-          console.log(`[GEMINI][${label}] Tool call:`, msg.toolCall);
+        // Tool calls — framework JIT fetching (Article 12)
+        if (msg.toolCall && this.frameworkFetcher) {
+          const calls = msg.toolCall.functionCalls || [];
+          for (const fc of calls) {
+            console.log(`[GEMINI][${label}] Tool call: ${fc.name}(${JSON.stringify(fc.args)})`);
+            this.frameworkFetcher.handleFunctionCall({ name: fc.name, args: fc.args })
+              .then(result => {
+                // Send function response back to Gemini
+                const responseMsg = {
+                  toolResponse: {
+                    functionResponses: [{
+                      id: fc.id,
+                      name: result.name,
+                      response: result.response,
+                    }]
+                  }
+                };
+                if (ws.readyState === WebSocket.OPEN) {
+                  ws.send(JSON.stringify(responseMsg));
+                  console.log(`[GEMINI] Sent tool response for ${fc.name}`);
+                }
+              })
+              .catch(err => {
+                console.error(`[GEMINI] Tool call error (${fc.name}):`, err.message);
+              });
+          }
         }
 
       } catch (err) {

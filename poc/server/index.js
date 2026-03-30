@@ -14,6 +14,7 @@ const { DriveConnector } = require('../context/drive-connector');
 const { SupabaseBuffer } = require('./supabase-buffer');
 const { GitHubPersistence } = require('./github-persistence');
 const { PhaseTransitionHandler } = require('./phase-transition');
+const { FrameworkFetcher } = require('./framework-fetcher');
 
 const app = express();
 const server = http.createServer(app);
@@ -75,6 +76,7 @@ wss.on('connection', (clientWs) => {
   // Persistence layers (initialized on session-setup)
   let supabaseBuffer = null;
   let githubPersistence = null;
+  let frameworkFetcher = null;
   let flushInterval = null;
   let phaseHandler = null;
   const FLUSH_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
@@ -243,6 +245,8 @@ wss.on('connection', (clientWs) => {
       phase: session.currentPhase,
       contextSummary: context.getCondensedContext(),
       knowledgeContext,
+      frameworkFetcher: frameworkFetcher || null,
+      toolDeclarations: frameworkFetcher ? FrameworkFetcher.getGeminiFunctionDeclarations() : [],
 
       onTranscript: (role, text) => {
         context.addUtterance(role, text);
@@ -391,6 +395,17 @@ wss.on('connection', (clientWs) => {
         } catch (err) {
           console.warn('[SETUP] GitHub persistence init failed (continuing without):', err.message);
           githubPersistence = null;
+        }
+
+        // Initialize framework JIT fetcher (Article 12)
+        try {
+          if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+            frameworkFetcher = new FrameworkFetcher();
+            console.log('[SETUP] Framework fetcher initialized');
+          }
+        } catch (err) {
+          console.warn('[SETUP] Framework fetcher init failed (continuing without):', err.message);
+          frameworkFetcher = null;
         }
 
         try {
