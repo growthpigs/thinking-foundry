@@ -180,17 +180,21 @@ thinking-foundry/
 - ✅ 15-minute auto-reconnection (3-phase swap)
 - ✅ 8 phase prompts
 - ✅ Pre-session setup screen (GitHub, Drive, framework selection)
-- ✅ Knowledge base system (5 frameworks + 3 mentors)
+- ✅ Knowledge base system (8 frameworks, 78 chunks in Supabase pgvector)
 - ✅ Context connectors (GitHub + Drive)
-- ✅ Pause button
-- ✅ Deployed on Railway
+- ✅ Pause button (with Supabase persistence + atomic pause counter)
+- ✅ Deployed on Railway (7 env vars: Gemini, GitHub, Supabase, Google SA)
+- ✅ SupabaseBuffer — real-time session persistence (<50ms writes)
+- ✅ GitHubPersistence — ONE issue per phase in thinking-foundry-vault
+- ✅ PhaseTransitionHandler — AI-driven phase transitions (Article 10)
+- ✅ 2-minute batch flush (Supabase → GitHub coalesced notes)
+- ✅ Carry-forward + Squeeze persistence (Articles 8-9)
+- ✅ Confidence gate (blocks transitions below 6/10)
 
 ### What Needs Work
 - ❌ Transcript display (Gemini Live AUDIO-only, need separate STT pipeline)
 - ❌ Real-time outline view (show key points, not raw transcript)
-- ❌ GitHub issue export (built but untested with real sessions)
 - ❌ Google Drive folder creation (built but needs service account setup)
-- ❌ Phase transition by AI (currently manual "Next Phase" button)
 - ❌ Production frontend (React + Vercel, currently vanilla HTML)
 - ❌ Authentication (link-based for MVP)
 

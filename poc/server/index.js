@@ -435,65 +435,31 @@ wss.on('connection', (clientWs) => {
         break;
 
       case 'phase':
-        // Advance to specific phase
-        const newPhase = msg.phase;
-        const oldPhase = session.currentPhase;
-        console.log(`[WS] Phase change: ${oldPhase} → ${newPhase}`);
-        session.setPhase(newPhase);
-
-        // Persistence: flush current phase, save carry-forward, create new phase issue
-        if (supabaseBuffer) {
-          // Flush remaining utterances from current phase before transitioning
-          await flushToGitHub();
-
-          // Save carry-forward if provided (from AI's Squeeze output)
-          if (msg.carryForward) {
-            await supabaseBuffer.saveCarryForward(
-              oldPhase,
-              msg.carryForward,
-              msg.confidence || null,
-              msg.squeezeNotes || null,
-              githubPersistence?.phaseIssues.get(oldPhase)?.url || null
-            );
-
-            // Add carry-forward to GitHub issue
-            const oldIssue = githubPersistence?.phaseIssues.get(oldPhase);
-            if (oldIssue && githubPersistence) {
-              await githubPersistence.addCarryForward(
-                oldIssue.number,
-                msg.carryForward,
-                msg.confidence,
-                msg.squeezeNotes
-              ).catch(err => console.error('[GITHUB] Carry-forward error:', err.message));
-              await githubPersistence.closePhaseIssue(oldIssue.number)
-                .catch(err => console.error('[GITHUB] Close error:', err.message));
-            }
+        // Manual phase advance — delegate to PhaseTransitionHandler
+        // which fires the same onTransition callback (no duplicated logic)
+        console.log(`[WS] Manual phase change requested: ${session.currentPhase} → ${msg.phase}`);
+        if (phaseHandler) {
+          const result = phaseHandler.manualTransition(session.currentPhase, msg.phase);
+          if (result?.blocked) {
+            sendToClient('phase_blocked', { reason: result.reason });
           }
-
-          // Update phase in Supabase
-          await supabaseBuffer.updatePhase(newPhase);
-
-          // Create GitHub issue for new phase
-          if (githubPersistence) {
-            const sessionName = `Session ${new Date().toLocaleDateString()}`;
-            await githubPersistence.createPhaseIssue(sessionName, newPhase)
-              .catch(err => console.error('[GITHUB] Create phase issue error:', err.message));
+          // onTransition callback handles all persistence + Gemini reconnection
+        } else {
+          // Fallback: no phase handler, just update state and reconnect
+          session.setPhase(msg.phase);
+          if (gemini) {
+            const phaseKnowledge = await knowledgeLoader.load({
+              phase: msg.phase,
+              frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
+              fullContent: false,
+              githubContext: sessionGithubContext || undefined,
+              driveContext: sessionDriveContext || undefined
+            });
+            gemini.knowledgeContext = phaseKnowledge;
+            await gemini.forceReconnect(msg.phase, context.getCondensedContext());
           }
+          sendToClient('phase', { phase: msg.phase });
         }
-
-        if (gemini) {
-          // Reload knowledge context for new phase, preserving session context
-          const phaseKnowledge = await knowledgeLoader.load({
-            phase: newPhase,
-            frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
-            fullContent: false,
-            githubContext: sessionGithubContext || undefined,
-            driveContext: sessionDriveContext || undefined
-          });
-          gemini.knowledgeContext = phaseKnowledge;
-          await gemini.forceReconnect(newPhase, context.getCondensedContext());
-        }
-        sendToClient('phase', { phase: newPhase });
         break;
 
       case 'pause':
