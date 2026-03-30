@@ -192,11 +192,11 @@ thinking-foundry/
 - ✅ Confidence gate (blocks transitions below 6/10)
 
 ### What Needs Work
-- ❌ Transcript display (Gemini Live AUDIO-only, need separate STT pipeline)
 - ❌ Real-time outline view (show key points, not raw transcript)
 - ❌ Google Drive folder creation (built but needs service account setup)
 - ❌ Production frontend (React + Vercel, currently vanilla HTML)
 - ❌ Authentication (link-based for MVP)
+- ❌ Deepgram API key needed for user STT (sign up at deepgram.com, $200 free credit)
 
 ---
 
