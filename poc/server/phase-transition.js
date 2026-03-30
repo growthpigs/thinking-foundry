@@ -135,9 +135,10 @@ class PhaseTransitionHandler {
     this.recentAiText = [];
     this.pendingSqueeze = null;
 
-    // Notify
+    // Notify (catch async errors to prevent unhandled rejections)
     if (this.onTransition) {
-      this.onTransition(currentPhase, targetPhase, meta);
+      Promise.resolve(this.onTransition(currentPhase, targetPhase, meta))
+        .catch(err => console.error('[PHASE] Transition callback error:', err.message));
     }
 
     return {
@@ -228,7 +229,8 @@ class PhaseTransitionHandler {
     this.pendingSqueeze = null;
 
     if (this.onTransition) {
-      this.onTransition(currentPhase, targetPhase, meta);
+      Promise.resolve(this.onTransition(currentPhase, targetPhase, meta))
+        .catch(err => console.error('[PHASE] Manual transition callback error:', err.message));
     }
 
     return {

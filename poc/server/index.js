@@ -179,9 +179,13 @@ wss.on('connection', (clientWs) => {
   /**
    * Batch-flush unflushed utterances from Supabase to GitHub.
    * Runs every 2 minutes. Coalesces notes and updates the phase issue.
+   * Guard prevents concurrent flushes from overlapping.
    */
+  let flushing = false;
   const flushToGitHub = async () => {
     if (!supabaseBuffer || !githubPersistence) return;
+    if (flushing) return; // Prevent concurrent flushes
+    flushing = true;
 
     try {
       const unflushed = await supabaseBuffer.getUnflushedUtterances();
@@ -219,6 +223,8 @@ wss.on('connection', (clientWs) => {
       console.log(`[FLUSH] Flushed ${unflushed.length} utterances to GitHub`);
     } catch (err) {
       console.error(`[FLUSH] Error: ${err.message}`);
+    } finally {
+      flushing = false;
     }
   };
 
@@ -549,10 +555,14 @@ wss.on('connection', (clientWs) => {
     if (flushInterval) clearInterval(flushInterval);
 
     // Best-effort final flush on disconnect
-    try { await flushToGitHub(); } catch {}
+    try { await flushToGitHub(); } catch (err) {
+      console.warn('[WS] Final flush on disconnect failed:', err.message);
+    }
 
     if (supabaseBuffer) {
-      try { await supabaseBuffer.endSession(); } catch {}
+      try { await supabaseBuffer.endSession(); } catch (err) {
+        console.warn('[WS] End session on disconnect failed:', err.message);
+      }
     }
 
     if (gemini) gemini.close();
