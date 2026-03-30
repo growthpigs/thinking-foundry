@@ -16,12 +16,30 @@ const { GitHubPersistence } = require('./github-persistence');
 const { PhaseTransitionHandler } = require('./phase-transition');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
+const { LinkAuth } = require('./link-auth');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 app.use(express.json());
+
+// Link-based auth (routes registered before static to take priority)
+let linkAuth = null;
+try {
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    linkAuth = new LinkAuth({
+      baseUrl: process.env.RAILWAY_PUBLIC_DOMAIN
+        ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+        : (process.env.BASE_URL || ''),
+    });
+    linkAuth.registerRoutes(app, path.join(__dirname, '..', 'public'));
+    console.log(`[AUTH] Link auth initialized (admin key: ${linkAuth.getAdminKey()})`);
+  }
+} catch (err) {
+  console.warn('[AUTH] Link auth init failed:', err.message);
+}
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ─── REST Endpoints ───
