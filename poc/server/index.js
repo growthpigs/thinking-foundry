@@ -34,7 +34,8 @@ try {
         : (process.env.BASE_URL || ''),
     });
     linkAuth.registerRoutes(app, path.join(__dirname, '..', 'public'));
-    console.log(`[AUTH] Link auth initialized (admin key: ${linkAuth.getAdminKey()})`);
+    const keySource = process.env.ADMIN_API_KEY ? 'from env' : 'auto-generated';
+    console.log(`[AUTH] Link auth initialized (admin key: ${keySource}${keySource === 'auto-generated' ? ' — ' + linkAuth.getAdminKey() : ''})`);
   }
 } catch (err) {
   console.warn('[AUTH] Link auth init failed:', err.message);
