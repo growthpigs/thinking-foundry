@@ -48,7 +48,12 @@ export function SessionPage() {
     return (
       <div className="min-h-screen flex flex-col bg-[#0a0a0f]">
         <PhaseIndicator phase={ws.phase} intentMode={ws.intentMode} />
-        <SessionComplete issues={ws.sessionIssues} />
+        <SessionComplete
+          issues={ws.sessionIssues}
+          onGenerateCrucible={ws.generateCrucible}
+          crucibleStatus={ws.crucibleStatus}
+          audioUrl={ws.audioUrl}
+        />
       </div>
     );
   }

@@ -24,6 +24,8 @@ export function useWebSocket(token: string | null) {
   const [intentMode, setIntentMode] = useState<string | null>(null);
   const [squeezeInfo, setSqueezeInfo] = useState<{ confidence: number; notes?: string } | null>(null);
   const [sessionIssues, setSessionIssues] = useState<Array<{ phase: number; url: string }>>([]);
+  const [crucibleStatus, setCrucibleStatus] = useState<'idle' | 'generating' | 'ready' | 'failed'>('idle');
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const idCounter = useRef(0);
 
   const connect = useCallback(() => {
@@ -94,6 +96,19 @@ export function useWebSocket(token: string | null) {
             setStatus('stopped');
             if (msg.issues) setSessionIssues(msg.issues as Array<{ phase: number; url: string }>);
             break;
+
+          case 'crucible_status':
+            setCrucibleStatus('generating');
+            break;
+
+          case 'crucible_ready':
+            setCrucibleStatus('ready');
+            setAudioUrl(msg.audioUrl as string);
+            break;
+
+          case 'crucible_failed':
+            setCrucibleStatus('failed');
+            break;
         }
       } catch {}
     };
@@ -132,6 +147,10 @@ export function useWebSocket(token: string | null) {
     setStatus('stopped');
   }, []);
 
+  const generateCrucible = useCallback(() => {
+    wsRef.current?.send(JSON.stringify({ type: 'generate_crucible' }));
+  }, []);
+
   useEffect(() => {
     return () => {
       wsRef.current?.close();
@@ -141,6 +160,7 @@ export function useWebSocket(token: string | null) {
 
   return {
     status, phase, transcript, intentMode, squeezeInfo, sessionIssues,
-    connect, sendAudio, sendRawAudio, pause, resume, stop,
+    crucibleStatus, audioUrl,
+    connect, sendAudio, sendRawAudio, pause, resume, stop, generateCrucible,
   };
 }

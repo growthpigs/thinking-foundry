@@ -17,6 +17,7 @@ const { PhaseTransitionHandler } = require('./phase-transition');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
 const { LinkAuth } = require('./link-auth');
+const { CrucibleAudio } = require('./crucible-audio');
 
 const app = express();
 const server = http.createServer(app);
@@ -98,6 +99,7 @@ wss.on('connection', (clientWs) => {
   let githubPersistence = null;
   let frameworkFetcher = null;
   let sttPipeline = null;
+  let crucibleAudio = null;
   let flushInterval = null;
   let phaseHandler = null;
   const FLUSH_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
@@ -482,6 +484,17 @@ wss.on('connection', (clientWs) => {
           frameworkFetcher = null;
         }
 
+        // Initialize Crucible audio (Article 19-20)
+        try {
+          if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+            crucibleAudio = new CrucibleAudio();
+            console.log('[SETUP] Crucible audio initialized');
+          }
+        } catch (err) {
+          console.warn('[SETUP] Crucible audio init failed (continuing without):', err.message);
+          crucibleAudio = null;
+        }
+
         // Initialize STT pipeline for user speech transcription
         try {
           if (process.env.DEEPGRAM_API_KEY) {
@@ -596,6 +609,30 @@ wss.on('connection', (clientWs) => {
         sendToClient('status', { state: 'resumed' });
         break;
 
+      case 'generate_crucible':
+        // Article 19: Offered, Not Forced. User chose to generate.
+        console.log('[WS] Crucible audio generation requested');
+        if (!crucibleAudio || !supabaseBuffer?.sessionId) {
+          sendToClient('crucible_failed', {
+            error: 'Crucible audio not available',
+            message: 'Audio generation failed. Your session is still saved in GitHub.'
+          });
+          break;
+        }
+        sendToClient('crucible_status', { status: 'generating' });
+        crucibleAudio.generateCrucibleAudio(
+          supabaseBuffer.sessionId,
+          msg.sessionName || 'Thinking Session'
+        ).then(result => {
+          sendToClient('crucible_ready', { audioUrl: result.audioUrl, status: 'ready' });
+        }).catch(err => {
+          sendToClient('crucible_failed', {
+            error: err.message,
+            message: 'Audio generation failed. Your session is still saved in GitHub.'
+          });
+        });
+        break;
+
       case 'stop':
         console.log('[WS] Stopping session');
 
@@ -656,6 +693,9 @@ wss.on('connection', (clientWs) => {
     if (gemini) gemini.close();
   });
 });
+
+// ─── Crucible Audio Auth Restoration ───
+CrucibleAudio.restoreAuth();
 
 // ─── Start ───
 
