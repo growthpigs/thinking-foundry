@@ -47,7 +47,7 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 
 | Phase | Typical | Max | Goal | AI Role |
 |-------|---------|-----|------|---------|
-| **0** | 1-2 min | 5 min | Capture user stories | Get clarity on what success means |
+| **0** | 1-2 min | 5 min | Intent + user stories | Detect mode (explore/research/commit), adapt depth |
 | **1** | 2-3 min | 10 min | MINE — Listen deeply | Understand the real problem |
 | **2** | 3-5 min | 15 min | SCOUT — Explore widely | Generate possibilities (frameworks fetched JIT) |
 | **3** | 2-4 min | 10 min | ASSAY — Find signal | What matters for THIS person? |
@@ -62,6 +62,35 @@ The Thinking Foundry is a **voice-first SaaS product** that guides people throug
 **The value is DEPTH per minute, not duration.** A 7-minute session that pushes past confirmation bias beats a 90-minute meander.
 
 **Pause-heavy model:** Users will PAUSE every ~3 minutes. The AI provides information, humans discuss between themselves, then resume. Pause is a FIRST-CLASS feature.
+
+### Session Intent Modes (Detected in Phase 0)
+
+Not every session is the same depth. The AI detects (or asks) the user's intent and adapts the entire session accordingly:
+
+| Mode | User Signal | User Story Depth | Squeeze Threshold | Example |
+|------|-----------|-----------------|-------------------|---------|
+| **Explore** | "I want to think about..." / "Just exploring" | Minimal — "I want to investigate X" | Confidence ≥ 5 to advance | "Start a shop in Paris soon" |
+| **Research** | "I want to understand my options" / "What would it take to..." | Medium — topic + rough constraints | Confidence ≥ 6 to advance | "I'm considering a coffee business, want to understand the market" |
+| **Commit** | "I want to do this" / specifies budget, timeline, metrics | Full — problem + constraints + success criteria + timeline + budget | Confidence ≥ 8 to advance | "Open a premium coffee subscription in Paris within 6 months, €50K budget, €10K/month target" |
+
+**How the AI detects mode:**
+1. Listen to the user's opening statement
+2. If constraints are specific (budget, timeline, metrics) → Commit
+3. If topic is clear but constraints are vague → Research
+4. If everything is open-ended → Explore
+5. If unsure, ASK: "How far do you want to take this today? Just exploring the idea, researching your options, or ready to commit to something specific?"
+
+**Mode affects the entire session:**
+- **Explore:** SCOUT phase goes wider (more unconventional ideas). CRUCIBLE is lighter. PLAN may be "here are 3 directions to research further" not "here's your action plan."
+- **Research:** SCOUT is focused. ASSAY narrows to 2-3 real options. PLAN includes "what you'd need to find out before committing."
+- **Commit:** Full rigor. CRUCIBLE stress-tests hard. PLAN has specific actions, timelines, budgets, fallbacks.
+
+**User stories adapt to mode:**
+- Explore: "I want to investigate opening a shop in Paris" — that's enough. Don't force budget/timeline.
+- Research: "I want to understand what it takes to open a coffee shop in Paris, roughly within a year" — medium specificity.
+- Commit: "I want to open a premium coffee subscription in Paris. Budget: €50K. Timeline: 6 months. Revenue target: €10K/month by month 4." — full user story.
+
+**The AI never forces the user to nail it down.** If they say "I just want to talk about it," that's a valid session. The thinking is the product, not the specificity of the output.
 
 ---
 
@@ -355,7 +384,7 @@ The AI doesn't respond. It LEADS. Like a co-founder who's been through this befo
 
 ### How the AI Drives Each Phase
 
-**Phase 0 (User Stories):** AI opens with: "Tell me what's on your mind. What's the problem you're wrestling with?" Then actively probes: "You said X — what makes that the real issue and not a symptom?" Keeps asking until it has clarity. Decides when to move to Phase 1.
+**Phase 0 (Intent + User Stories):** AI opens with: "Tell me what's on your mind." Then listens. Detects intent mode from the user's specificity — are they exploring, researching, or committing? If unclear, asks directly. Captures a user story at the right depth for their mode. Confirms: "So you want to [X] and today we're [mode]. Right?" Moves to Phase 1 when intent and direction are clear — NOT when a full spec is written.
 
 **Phase 1 (MINE):** AI says: "OK, I think I understand the surface. Let me dig deeper." Uses the 5 Whys. Reflects back. Challenges gently. "What if that assumption is wrong?" Decides when root cause is found.
 
@@ -710,24 +739,33 @@ PHASES: User Stories → MINE → SCOUT → ASSAY → CRUCIBLE → AUDITOR → P
 Between each phase, run The Squeeze: "What did we assume? What did we miss? Confidence?"
 ```
 
-### Phase 0: User Stories (~1-2 min)
+### Phase 0: Intent + User Stories (~1-2 min)
 
 ```
 [Constitution preamble]
 
-PHASE 0: Get clarity on what they want. Fast.
+PHASE 0: Understand what they want and HOW FAR they want to take it.
 
-Ask naturally — not as a checklist:
-- What's the actual problem? (not the symptom)
-- What would success look like?
-- What constraints are real? (time, budget, team)
-- What's in their control vs. not?
+1. Listen to their opening. Detect their intent:
+   - Vague/open → EXPLORE mode (wide, no constraints forced)
+   - Topic clear but constraints loose → RESEARCH mode
+   - Specific constraints given → COMMIT mode
 
-Your job: Clarity, not advice. Keep asking "what else?" until you understand.
-Move to Phase 1 when you can state the problem in one sentence.
+2. If unsure, ask: "How far do you want to take this today?
+   Just exploring, researching options, or nailing something down?"
 
-Be warm, curious, direct. Not robotic.
+3. Capture a user story that matches their mode:
+   - Explore: "I want to investigate X" — done. Don't force more.
+   - Research: topic + rough direction. Don't force budget/timeline.
+   - Commit: full story with constraints, budget, timeline, success metrics.
+
+4. Confirm: "So you want to [restate]. And today we're [exploring/researching/committing]. Right?"
+
+Move to Phase 1 when you can state what they want in one sentence
+AND you know their mode. Don't over-engineer the user story.
 ```
+
+**Implementation note:** The intent mode is stored in Supabase `sessions.metadata.intent_mode` (explore/research/commit) and affects The Squeeze thresholds in PhaseTransitionHandler. The mode is detected in Phase 0 but the logic lives in the server, not in the prompt — progressive disclosure. The prompt stays light.
 
 ### Phase 1: MINE (~2-3 min)
 
