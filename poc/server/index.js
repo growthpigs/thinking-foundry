@@ -13,6 +13,7 @@ const { GitHubConnector } = require('../context/github-connector');
 const { DriveConnector } = require('../context/drive-connector');
 const { SupabaseBuffer } = require('./supabase-buffer');
 const { GitHubPersistence } = require('./github-persistence');
+const { PhaseTransitionHandler } = require('./phase-transition');
 
 const app = express();
 const server = http.createServer(app);
@@ -75,6 +76,7 @@ wss.on('connection', (clientWs) => {
   let supabaseBuffer = null;
   let githubPersistence = null;
   let flushInterval = null;
+  let phaseHandler = null;
   const FLUSH_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
   const sendToClient = (type, data) => {
@@ -248,6 +250,15 @@ wss.on('connection', (clientWs) => {
             text
           ).catch(err => console.error('[SUPABASE] Write error:', err.message));
         }
+
+        // Check AI responses for phase transition signals (Article 10)
+        if (role === 'model' && phaseHandler) {
+          const result = phaseHandler.processAiUtterance(text, session.currentPhase);
+          if (result?.blocked) {
+            sendToClient('phase_blocked', { reason: result.reason, confidence: result.confidence });
+          }
+          // If transition detected, onTransition callback handles everything
+        }
       },
 
       onAudio: (audioBase64) => {
@@ -301,6 +312,53 @@ wss.on('connection', (clientWs) => {
           github: msg.github || '(none)',
           documents: msg.documents ? `${msg.documents.length} files` : '(none)',
           frameworks: msg.frameworks || []
+        });
+
+        // Initialize AI-driven phase transition handler (Article 10)
+        phaseHandler = new PhaseTransitionHandler({
+          onTransition: async (fromPhase, toPhase, meta) => {
+            console.log(`[PHASE] AI-driven transition: ${fromPhase} → ${toPhase} (confidence: ${meta.confidence || 'N/A'})`);
+
+            // Orchestrate the full transition
+            session.setPhase(toPhase);
+
+            if (supabaseBuffer) {
+              await flushToGitHub();
+              if (meta.squeezeNotes) {
+                await supabaseBuffer.saveCarryForward(
+                  fromPhase, meta.squeezeNotes, meta.confidence, meta.squeezeNotes,
+                  githubPersistence?.phaseIssues.get(fromPhase)?.url || null
+                ).catch(err => console.error('[SUPABASE] Carry-forward error:', err.message));
+              }
+              await supabaseBuffer.updatePhase(toPhase);
+            }
+
+            if (githubPersistence) {
+              const oldIssue = githubPersistence.phaseIssues.get(fromPhase);
+              if (oldIssue) {
+                await githubPersistence.closePhaseIssue(oldIssue.number)
+                  .catch(err => console.error('[GITHUB] Close error:', err.message));
+              }
+              const sessionName = `Session ${new Date().toLocaleDateString()}`;
+              await githubPersistence.createPhaseIssue(sessionName, toPhase)
+                .catch(err => console.error('[GITHUB] Create error:', err.message));
+            }
+
+            // Reconnect Gemini with new phase context
+            if (gemini) {
+              const phaseKnowledge = await knowledgeLoader.load({
+                phase: toPhase,
+                frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
+                fullContent: false,
+                githubContext: sessionGithubContext || undefined,
+                driveContext: sessionDriveContext || undefined,
+              });
+              gemini.knowledgeContext = phaseKnowledge;
+              await gemini.forceReconnect(toPhase, context.getCondensedContext());
+            }
+
+            sendToClient('phase', { phase: toPhase, fromPhase, confidence: meta.confidence, aiDriven: true });
+          },
         });
 
         // Initialize persistence layers
