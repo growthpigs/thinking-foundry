@@ -164,7 +164,7 @@ class GitHubPersistence {
     });
 
     const updatedBody = issue.body.replace(
-      /## Carry-Forward\n\n[\s\S]*/,
+      /## Carry-Forward\n\n[\s\S]*?$/,
       `## Carry-Forward\n\n${carryForwardText}\n\n**Confidence:** ${confidence || 'N/A'}/10`
     );
 
@@ -230,16 +230,18 @@ class GitHubPersistence {
       `_Session completed: ${new Date().toISOString()}_`,
     ].join('\n');
 
-    // Add index comment to the first issue
-    const firstIssue = sessionIssues.sort((a, b) => a.phase - b.phase)[0];
-    await this.octokit.issues.createComment({
-      owner: this.owner,
-      repo: this.repo,
-      issue_number: firstIssue.number,
-      body: comment,
-    });
+    // Add index comment to EVERY issue (bidirectional linking)
+    const sorted = sessionIssues.sort((a, b) => a.phase - b.phase);
+    for (const issue of sorted) {
+      await this.octokit.issues.createComment({
+        owner: this.owner,
+        repo: this.repo,
+        issue_number: issue.number,
+        body: comment,
+      });
+    }
 
-    console.log(`[GITHUB] Linked ${sessionIssues.length} session issues on #${firstIssue.number}`);
+    console.log(`[GITHUB] Linked ${sessionIssues.length} session issues (bidirectional)`);
   }
 
   /**
