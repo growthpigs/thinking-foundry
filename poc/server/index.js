@@ -169,6 +169,11 @@ wss.on('connection', (clientWs, req) => {
     }
   };
 
+  // Drive sync — folder URL from setup, used for forward sync
+  let driveFolderUrl = null;
+  let driveManager = null;
+  let driveSessionFolderId = null;
+
   // Stores session-level external context fetched during setup
   let sessionGithubContext = '';
   let sessionDriveContext = '';
@@ -518,6 +523,40 @@ wss.on('connection', (clientWs, req) => {
               await gemini.forceReconnect(toPhase, context.getCondensedContext());
             }
 
+            // Forward sync to Google Drive — create phase document
+            if (driveManager && driveSessionFolderId) {
+              try {
+                const PHASE_NAMES = ['User Stories','Mine','Scout','Assay','Crucible','Auditor','Plan','Verify'];
+                const phaseName = PHASE_NAMES[fromPhase] || 'Phase ' + fromPhase;
+                const docContent = [
+                  '# Phase ' + fromPhase + ': ' + phaseName,
+                  '',
+                  '**Confidence:** ' + (meta.confidence || 'N/A') + '/10',
+                  '**Session:** ' + new Date().toLocaleDateString(),
+                  '',
+                  '## Carry-Forward',
+                  '',
+                  carryForwardText,
+                  '',
+                  meta.squeezeNotes ? '## Squeeze Notes\n\n' + meta.squeezeNotes : '',
+                ].filter(Boolean).join('\n');
+
+                await driveManager.drive.files.create({
+                  requestBody: {
+                    name: 'Phase ' + fromPhase + ' - ' + phaseName + '.md',
+                    mimeType: 'text/markdown',
+                    parents: [driveSessionFolderId]
+                  },
+                  media: { mimeType: 'text/markdown', body: docContent },
+                  fields: 'id,webViewLink'
+                });
+                console.log('[DRIVE] Created document for Phase ' + fromPhase);
+                sendToClient('drive_sync', { phase: fromPhase, phaseName: phaseName });
+              } catch (err) {
+                console.error('[DRIVE] Document creation failed:', err.message);
+              }
+            }
+
             sendToClient('phase', { phase: toPhase, fromPhase, confidence: meta.confidence, aiDriven: true });
           },
         });
@@ -552,6 +591,27 @@ wss.on('connection', (clientWs, req) => {
         } catch (err) {
           console.warn('[SETUP] GitHub persistence init failed (continuing without):', err.message);
           githubPersistence = null;
+        }
+
+        // Initialize Google Drive forward sync
+        if (msg.drive) {
+          driveFolderUrl = msg.drive;
+          try {
+            driveManager = new DriveManager();
+            await driveManager.init();
+            // Create session subfolder in the user's Drive folder
+            const sessionName = msg.label || 'Thinking Session ' + new Date().toLocaleDateString();
+            const parsed = parseDriveUrl(msg.drive);
+            if (parsed) {
+              driveSessionFolderId = parsed.id;
+              console.log('[DRIVE] Forward sync enabled — folder: ' + parsed.id);
+              sendToClient('drive_status', { connected: true, folderUrl: msg.drive });
+            }
+          } catch (err) {
+            console.warn('[DRIVE] Init failed (continuing without):', err.message);
+            driveManager = null;
+            sendToClient('drive_status', { connected: false, error: err.message });
+          }
         }
 
         // Initialize framework JIT fetcher (Article 12)
