@@ -26,6 +26,7 @@ const wss = new WebSocketServer({ server });
 const cors = require('cors');
 const ALLOWED_ORIGINS = [
   'https://frontend-jet-psi-12.vercel.app',
+  'https://thinking-foundry-production.up.railway.app',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
