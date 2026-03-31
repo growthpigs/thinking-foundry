@@ -170,6 +170,7 @@ wss.on('connection', (clientWs, req) => {
   };
 
   // Drive sync — folder URL from setup, used for forward sync
+  let serverPaused = false;
   let driveFolderUrl = null;
   let driveManager = null;
   let driveSessionFolderId = null;
@@ -417,9 +418,9 @@ wss.on('connection', (clientWs, req) => {
     try {
       msg = JSON.parse(raw);
     } catch {
-      // Binary audio data — fork to Gemini AND STT
-      if (gemini) gemini.sendAudio(raw);
-      if (sttPipeline) sttPipeline.feedAudio(raw);
+      // Binary audio data — fork to Gemini AND STT (gated by pause)
+      if (!serverPaused && gemini) gemini.sendAudio(raw);
+      if (!serverPaused && sttPipeline) sttPipeline.feedAudio(raw);
       return;
     }
 
@@ -700,9 +701,9 @@ wss.on('connection', (clientWs, req) => {
         break;
 
       case 'audio':
-        // Base64-encoded audio from client — fork to Gemini AND STT
-        if (gemini) gemini.sendAudioBase64(msg.data);
-        if (sttPipeline) sttPipeline.feedAudioBase64(msg.data);
+        // Base64-encoded audio from client — fork to Gemini AND STT (gated by pause)
+        if (!serverPaused && gemini) gemini.sendAudioBase64(msg.data);
+        if (!serverPaused && sttPipeline) sttPipeline.feedAudioBase64(msg.data);
         break;
 
       case 'phase':
@@ -719,7 +720,7 @@ wss.on('connection', (clientWs, req) => {
           // Fallback: no phase handler, just update state and reconnect
           session.setPhase(msg.phase);
           if (gemini) {
-            const phaseKnowledge = await knowledgeLoader.load({
+            let phaseKnowledge = await knowledgeLoader.load({
               phase: msg.phase,
               frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
               fullContent: false,
@@ -735,6 +736,7 @@ wss.on('connection', (clientWs, req) => {
 
       case 'pause':
         console.log('[WS] Session paused');
+        serverPaused = true;
         if (supabaseBuffer) {
           await supabaseBuffer.pauseSession()
             .catch(err => console.error('[SUPABASE] Pause error:', err.message));
@@ -744,6 +746,7 @@ wss.on('connection', (clientWs, req) => {
 
       case 'resume':
         console.log('[WS] Session resumed');
+        serverPaused = false;
         if (supabaseBuffer) {
           await supabaseBuffer.resumeSession()
             .catch(err => console.error('[SUPABASE] Resume error:', err.message));

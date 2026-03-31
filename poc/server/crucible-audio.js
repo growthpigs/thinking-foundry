@@ -128,10 +128,50 @@ class CrucibleAudio {
   }
 
   /**
-   * Spawn the Python crucible-worker.py subprocess.
+   * Call the Crucible worker — either via HTTP (production) or subprocess (local dev).
+   * Production: CRUCIBLE_SERVICE_URL env var points to separate Python service.
+   * Local: falls back to spawning crucible-worker.py subprocess.
    * @returns {Promise<object>} Worker result JSON
    */
   _runPythonWorker(input) {
+    const serviceUrl = process.env.CRUCIBLE_SERVICE_URL;
+
+    // Production path: HTTP call to separate Crucible service
+    if (serviceUrl) {
+      return this._runViaHttp(serviceUrl, input);
+    }
+
+    // Local dev fallback: subprocess
+    return this._runViaSubprocess(input);
+  }
+
+  async _runViaHttp(serviceUrl, input) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(serviceUrl + '/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Crucible service error ${res.status}: ${body}`);
+      }
+
+      return await res.json();
+    } catch (err) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') throw new Error('Crucible audio generation timed out (10 min)');
+      throw err;
+    }
+  }
+
+  _runViaSubprocess(input) {
     return new Promise((resolve, reject) => {
       const proc = spawn('python3', [WORKER_PATH], {
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -143,16 +183,13 @@ class CrucibleAudio {
       proc.stdout.on('data', (data) => { stdout += data.toString(); });
       proc.stderr.on('data', (data) => {
         stderr += data.toString();
-        // Log Python stderr in real-time for progress
         const lines = data.toString().split('\n').filter(Boolean);
         lines.forEach(line => console.log(line));
       });
 
-      // Send input as JSON to stdin
       proc.stdin.write(JSON.stringify(input));
       proc.stdin.end();
 
-      // Timeout
       const timer = setTimeout(() => {
         proc.kill('SIGTERM');
         reject(new Error('Crucible audio generation timed out (10 min)'));
