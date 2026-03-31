@@ -456,16 +456,8 @@ wss.on('connection', (clientWs, req) => {
           },
         });
 
-        // Validate link token at WebSocket layer
+        // Token already validated at GET /s/:token — just use it for session ID
         const accessToken = msg.accessToken || `session_${Date.now()}`;
-        if (linkAuth && msg.accessToken) {
-          const validation = linkAuth.validateToken(msg.accessToken);
-          if (!validation.valid) {
-            sendToClient('error', { message: `Session link invalid: ${validation.reason}` });
-            clientWs.close(1008, validation.reason);
-            return;
-          }
-        }
 
         // Initialize persistence layers
         try {

@@ -5,6 +5,23 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0a0a0f;color:#e4e4e7;font-family:system-ui,sans-serif;height:100vh;display:flex;flex-direction:column}
+
+/* Setup screen */
+#setup{display:flex;align-items:center;justify-content:center;flex:1;padding:32px}
+#setup-box{max-width:480px;width:100%}
+#setup-box h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
+#setup-box .sub{color:#71717a;font-size:0.875rem;margin-bottom:32px}
+#setup-box label{display:block;font-size:0.8rem;color:#a1a1aa;margin-bottom:6px;margin-top:16px}
+#setup-box input{width:100%;background:#111118;border:1px solid #2a2a34;color:#e4e4e7;padding:10px 14px;border-radius:8px;font-size:0.9rem}
+#setup-box input::placeholder{color:#52525b}
+#setup-box .hint{font-size:0.75rem;color:#52525b;margin-top:4px}
+#setup-box .optional{color:#52525b;font-size:0.7rem;margin-left:4px}
+#startBtn{width:100%;margin-top:32px;padding:14px;border-radius:10px;background:#6366f1;color:#fff;border:none;font-size:1rem;font-weight:600;cursor:pointer}
+#startBtn:hover{background:#4f46e5}
+#startBtn:disabled{background:#27272a;color:#52525b;cursor:not-allowed}
+
+/* Session screen */
+#session{display:none;flex:1;flex-direction:column}
 #phase-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#111118;border-bottom:1px solid #1a1a24;font-size:13px;color:#a1a1aa}
 .phase-dot{width:8px;height:8px;border-radius:50%;background:#2a2a34}.phase-dot.active{background:#6366f1;width:12px;height:12px}
 #transcript{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
@@ -18,26 +35,85 @@ body{background:#0a0a0f;color:#e4e4e7;font-family:system-ui,sans-serif;height:10
 #stopBtn{padding:16px 20px;border-radius:12px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);cursor:pointer;font-weight:600}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-#waiting{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#52525b}
+#waiting{text-align:center;color:#52525b;padding:40px}
 </style></head>
 <body>
-<div id="phase-bar"><div class="phase-dot active"></div><span id="phaseLabel">Phase 0: User Stories</span><span id="status" style="margin-left:auto"></span></div>
-<div id="transcript"><div id="waiting">🎙️<br>Connecting...</div></div>
-<div id="controls">
-  <button id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
-  <button id="stopBtn" onclick="endSession()">End</button>
-  <span id="liveDot" style="display:none"><span class="live-dot"></span></span>
+
+<!-- SETUP SCREEN -->
+<div id="setup">
+  <div id="setup-box">
+    <h1>The Thinking Foundry</h1>
+    <p class="sub">Structured thinking. From confusion to clarity.</p>
+
+    <label>GitHub Repository <span class="optional">(optional)</span></label>
+    <input type="url" id="githubInput" placeholder="https://github.com/owner/repo">
+    <p class="hint">If you have a project repo, paste the URL. The AI will read it for context.</p>
+
+    <label>Upload Documents <span class="optional">(optional)</span></label>
+    <input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx">
+    <p class="hint">Upload any documents related to your decision. The AI will use them as context.</p>
+
+    <button id="startBtn" onclick="startSession()">Start Session</button>
+  </div>
 </div>
+
+<!-- SESSION SCREEN -->
+<div id="session">
+  <div id="phase-bar"><div class="phase-dot active"></div><span id="phaseLabel">Phase 0: User Stories</span><span id="status" style="margin-left:auto"></span></div>
+  <div id="transcript"><div id="waiting">Connecting to AI...</div></div>
+  <div id="controls">
+    <button id="pauseBtn" onclick="togglePause()">Pause</button>
+    <button id="stopBtn" onclick="endSession()">End</button>
+    <span id="liveDot" style="display:none"><span class="live-dot"></span></span>
+  </div>
+</div>
+
 <script>
 var TOKEN = window.__TF_TOKEN || '';
 var PHASES = ['User Stories','Mine','Scout','Assay','Crucible','Auditor','Plan','Verify'];
 var ws, audioCtx, processor, stream, paused = false, phase = 0;
+var githubUrl = '', uploadedDocs = [];
 
-function connect() {
+function startSession() {
+  githubUrl = document.getElementById('githubInput').value.trim();
+  var fileInput = document.getElementById('docsInput');
+
+  // Read uploaded files
+  var files = fileInput.files;
+  if (files.length > 0) {
+    var pending = files.length;
+    for (var i = 0; i < files.length; i++) {
+      (function(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedDocs.push({ name: file.name, content: e.target.result });
+          pending--;
+          if (pending === 0) connectWs();
+        };
+        reader.readAsText(file);
+      })(files[i]);
+    }
+  } else {
+    connectWs();
+  }
+
+  // Switch to session screen
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('session').style.display = 'flex';
+}
+
+function connectWs() {
   var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host);
   ws.onopen = function() {
-    ws.send(JSON.stringify({ type: 'session-setup', accessToken: TOKEN, frameworks: ['stoicism'] }));
+    var setupMsg = {
+      type: 'session-setup',
+      accessToken: TOKEN,
+      github: githubUrl || null,
+      documents: uploadedDocs.length > 0 ? uploadedDocs : null,
+      frameworks: ['stoicism']
+    };
+    ws.send(JSON.stringify(setupMsg));
     document.getElementById('status').textContent = 'Connecting to AI...';
   };
   ws.onmessage = function(e) {
@@ -46,7 +122,7 @@ function connect() {
       if (msg.type === 'status' && msg.state === 'connected') {
         document.getElementById('waiting').style.display = 'none';
         document.getElementById('liveDot').style.display = 'inline-block';
-        document.getElementById('status').innerHTML = '<span class="live-dot"></span> Live';
+        document.getElementById('status').textContent = 'Live';
         startMic();
       }
       if (msg.type === 'transcript' || msg.type === 'user_transcript') {
@@ -66,20 +142,21 @@ function connect() {
       if (msg.type === 'error') { addMessage('ai', 'Error: ' + msg.message); }
     } catch(err) {}
   };
-  ws.onclose = function() { document.getElementById('status').textContent = 'Disconnected'; };
+  ws.onclose = function(e) { document.getElementById('status').textContent = 'Disconnected (' + e.code + ')'; };
+  ws.onerror = function() { document.getElementById('status').textContent = 'Connection failed'; };
 }
 
 function addMessage(speaker, text) {
   var el = document.createElement('div');
   el.className = 'msg ' + speaker;
-  el.innerHTML = '<div class="label">' + (speaker === 'ai' ? '🤖 AI' : '🗣️ You') + '</div>' + text;
+  el.innerHTML = '<div class="label">' + (speaker === 'ai' ? 'AI' : 'You') + '</div>' + text;
   var t = document.getElementById('transcript');
   t.appendChild(el);
   t.scrollTop = t.scrollHeight;
 }
 
 function startMic() {
-  navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true } })
+  navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
     .then(function(s) {
       stream = s;
       audioCtx = new AudioContext({ sampleRate: 16000 });
@@ -101,7 +178,7 @@ function startMic() {
 function togglePause() {
   paused = !paused;
   if (ws) ws.send(JSON.stringify({ type: paused ? 'pause' : 'resume' }));
-  document.getElementById('pauseBtn').textContent = paused ? '▶ Resume' : '⏸ Pause';
+  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
   document.getElementById('pauseBtn').className = paused ? 'paused' : '';
 }
 
@@ -109,7 +186,5 @@ function endSession() {
   if (ws) ws.send(JSON.stringify({ type: 'stop' }));
   if (stream) stream.getTracks().forEach(function(t) { t.stop(); });
 }
-
-connect();
 </script>
 </body></html>
