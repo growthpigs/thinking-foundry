@@ -1,91 +1,197 @@
 <!DOCTYPE html>
-<html><head>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Thinking Foundry</title>
+<title>The Thinking Foundry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0f;color:#e4e4e7;font-family:system-ui,sans-serif;height:100vh;display:flex;flex-direction:column}
-#setup{display:flex;align-items:center;justify-content:center;flex:1;padding:32px}
-#setup-box{max-width:480px;width:100%}
-#setup-box h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
-#setup-box .sub{color:#71717a;font-size:0.875rem;margin-bottom:32px}
-#setup-box label{display:block;font-size:0.8rem;color:#a1a1aa;margin-bottom:6px;margin-top:16px}
-#setup-box input{width:100%;background:#111118;border:1px solid #2a2a34;color:#e4e4e7;padding:10px 14px;border-radius:8px;font-size:0.9rem}
-#setup-box input::placeholder{color:#52525b}
-#setup-box .hint{font-size:0.75rem;color:#52525b;margin-top:4px}
-#setup-box .optional{color:#52525b;font-size:0.7rem;margin-left:4px}
-#startBtn{width:100%;margin-top:32px;padding:14px;border-radius:10px;background:#6366f1;color:#fff;border:none;font-size:1rem;font-weight:600;cursor:pointer}
-#startBtn:hover{background:#4f46e5}
-#session{display:none;flex:1;flex-direction:column}
-#phase-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#111118;border-bottom:1px solid #1a1a24;font-size:13px;color:#a1a1aa}
-.phase-dot{width:10px;height:10px;border-radius:50%;background:#6366f1}
-#outline{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-.outline-item{background:#111118;border:1px solid #1a1a24;border-radius:10px;padding:12px 16px}
-.outline-item .phase-label{font-size:0.7rem;color:#6366f1;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
-.outline-item .point{font-size:0.9rem;line-height:1.5;color:#d4d4d8}
-#status-bar{padding:8px 16px;background:#111118;border-top:1px solid #1a1a24;font-size:0.8rem;color:#52525b;display:flex;align-items:center;gap:8px}
-#status-bar .speaking{color:#22c55e}
-#controls{padding:12px 16px;background:#0a0a0f;border-top:1px solid #1a1a24;display:flex;gap:12px;align-items:center}
-#pauseBtn{flex:1;padding:16px;border-radius:12px;font-size:18px;font-weight:600;border:none;cursor:pointer;background:#27272a;color:#e4e4e7}
-#pauseBtn.paused{background:#6366f1;color:#fff}
-#stopBtn{padding:16px 20px;border-radius:12px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);cursor:pointer;font-weight:600}
-.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite}
+:root{
+  --bg:#faf9f7;--bg-card:#fff;--bg-drawer:#fff;
+  --text:#1a1a1a;--text-muted:#8b8685;--text-light:#b5b0ae;
+  --border:#e8e5e3;--border-light:#f0eeed;
+  --accent:#4f46e5;--accent-light:#eef2ff;
+  --ai-border:#4f46e5;--user-border:#d97706;
+  --success:#16a34a;--danger:#dc2626;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans','Segoe UI',system-ui,sans-serif;
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text)}
+
+/* === SETUP SCREEN === */
+#setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.setup-card{max-width:460px;width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px 36px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.setup-card h1{font-family:var(--serif);font-size:1.75rem;font-weight:400;margin-bottom:4px}
+.setup-card .sub{color:var(--text-muted);font-size:0.875rem;margin-bottom:28px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:0.8rem;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:0.02em}
+.field .opt{font-weight:400;color:var(--text-light);font-size:0.7rem;margin-left:4px}
+.field input[type="url"],.field input[type="text"]{width:100%;border:1px solid var(--border);padding:10px 14px;border-radius:8px;font-size:0.875rem;font-family:var(--sans);color:var(--text);background:var(--bg);transition:border-color 0.15s}
+.field input:focus{outline:none;border-color:var(--accent)}
+.field input::placeholder{color:var(--text-light)}
+.field .hint{font-size:0.75rem;color:var(--text-light);margin-top:4px;line-height:1.4}
+.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;color:var(--text-muted);font-size:0.8rem;cursor:pointer;transition:border-color 0.15s}
+.drop-zone:hover{border-color:var(--accent)}
+.drop-zone input{display:none}
+.start-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;font-family:var(--sans);cursor:pointer;margin-top:8px;transition:background 0.15s}
+.start-btn:hover{background:#4338ca}
+
+/* === SESSION SCREEN === */
+#session{display:none;height:100vh;flex-direction:column}
+.top-bar{display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg-card);font-size:0.8rem;gap:12px}
+.top-bar .title{font-family:var(--serif);font-size:1rem;color:var(--text)}
+.top-bar .phase-name{color:var(--text-muted);font-weight:500}
+.top-bar .status{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--text-muted)}
+.live-ring{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-#empty-state{text-align:center;color:#52525b;padding:60px 20px}
+
+/* Insights area */
+.insights{flex:1;overflow-y:auto;padding:20px 24px}
+.insights-empty{text-align:center;color:var(--text-light);padding:60px 20px;font-size:0.9rem;line-height:1.6}
+.bullet{display:flex;gap:10px;padding:6px 0;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.bullet .bar{width:3px;border-radius:2px;flex-shrink:0;margin-top:3px;height:16px}
+.bullet .bar.ai{background:var(--ai-border)}
+.bullet .bar.user{background:var(--user-border)}
+.bullet .text{font-size:0.875rem;line-height:1.5;color:var(--text)}
+
+/* Status bar */
+.status-bar{padding:6px 24px;font-size:0.75rem;color:var(--text-light);border-top:1px solid var(--border-light);background:var(--bg)}
+.status-bar .speaking{color:var(--accent);font-weight:500}
+
+/* Input bar */
+.input-bar{display:flex;gap:8px;padding:8px 16px;border-top:1px solid var(--border);background:var(--bg-card)}
+.input-bar input{flex:1;border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-family:var(--sans);color:var(--text);background:var(--bg)}
+.input-bar input:focus{outline:none;border-color:var(--accent)}
+.input-bar input::placeholder{color:var(--text-light)}
+.input-bar .upload-btn{padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text-muted);font-size:0.8rem;cursor:pointer;white-space:nowrap}
+.input-bar .upload-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Phase bar + controls */
+.bottom-bar{display:flex;align-items:center;padding:10px 16px;gap:8px;border-top:1px solid var(--border);background:var(--bg-card)}
+.phase-circles{display:flex;gap:6px;flex:1;justify-content:center}
+.phase-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.2s;background:var(--bg-card)}
+.phase-circle.current{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.phase-circle.done{border-color:var(--success);color:var(--success);background:#f0fdf4}
+.phase-circle:hover{border-color:var(--accent);transform:scale(1.1)}
+.pause-btn{padding:10px 28px;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;font-family:var(--sans);cursor:pointer;background:#f4f3f1;color:var(--text);transition:all 0.15s}
+.pause-btn:hover{background:#e8e5e3}
+.pause-btn.paused{background:var(--accent);color:#fff}
+.end-btn{padding:10px 16px;border:1px solid var(--border);border-radius:10px;font-size:0.8rem;color:var(--danger);background:var(--bg-card);cursor:pointer;font-family:var(--sans)}
+
+/* Phase drawer */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.2);opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:10}
+.drawer-overlay.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;bottom:0;left:0;right:0;background:var(--bg-drawer);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);z-index:11;max-height:60vh;display:flex;flex-direction:column}
+.drawer.open{transform:translateY(0)}
+.drawer-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 0;flex-shrink:0;cursor:grab}
+.drawer-header{padding:16px 24px 12px;border-bottom:1px solid var(--border-light);display:flex;align-items:baseline;gap:12px}
+.drawer-header h3{font-family:var(--serif);font-size:1.1rem;font-weight:400}
+.drawer-header .conf{font-size:0.75rem;color:var(--text-muted)}
+.drawer-body{overflow-y:auto;padding:16px 24px 24px;flex:1}
+.drawer-body .bullet{padding:4px 0}
+.drawer-footer{padding:8px 24px 16px;border-top:1px solid var(--border-light);font-size:0.75rem;color:var(--text-light);display:flex;gap:16px}
+.drawer-footer a{color:var(--accent);text-decoration:none}
 </style></head>
 <body>
 
+<!-- SETUP -->
 <div id="setup">
-  <div id="setup-box">
+  <div class="setup-card">
     <h1>The Thinking Foundry</h1>
     <p class="sub">Structured thinking. From confusion to clarity.</p>
-    <label>GitHub Repository <span class="optional">(optional)</span></label>
-    <input type="url" id="githubInput" placeholder="https://github.com/owner/repo">
-    <p class="hint">Paste a project repo URL. The AI reads it for context.</p>
-    <label>Upload Documents <span class="optional">(optional)</span></label>
-    <input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx">
-    <p class="hint">Upload documents related to your decision.</p>
-    <button id="startBtn" onclick="startSession()">Start Session</button>
+    <div class="field">
+      <label>GitHub Repository <span class="opt">optional</span></label>
+      <input type="url" id="githubInput" placeholder="https://github.com/owner/repo">
+      <p class="hint">Paste a project repo. The AI reads it for context before the session starts.</p>
+    </div>
+    <div class="field">
+      <label>Google Drive Folder <span class="opt">optional</span></label>
+      <input type="url" id="driveInput" placeholder="https://drive.google.com/drive/folders/...">
+      <p class="hint">Session documents will be saved to this folder as you go.</p>
+    </div>
+    <div class="field">
+      <label>Upload Documents <span class="opt">optional</span></label>
+      <div class="drop-zone" onclick="document.getElementById('docsInput').click()">
+        Drop files here or click to browse
+        <input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx">
+      </div>
+      <p class="hint">.txt .md .pdf .docx accepted</p>
+    </div>
+    <button class="start-btn" onclick="startSession()">Start Session</button>
   </div>
 </div>
 
+<!-- SESSION -->
 <div id="session">
-  <div id="phase-bar">
-    <div class="phase-dot"></div>
-    <span id="phaseLabel">Phase 0: User Stories</span>
-    <span style="margin-left:auto" id="statusLabel">Connecting...</span>
+  <div class="top-bar">
+    <span class="title">The Thinking Foundry</span>
+    <span class="phase-name" id="phaseLabel">Phase 0: User Stories</span>
+    <span class="status" id="statusArea">Connecting...</span>
   </div>
-  <div id="outline">
-    <div id="empty-state">Waiting for the session to begin...<br>The AI will speak to you directly. Key points appear here as summaries.</div>
+
+  <div class="insights" id="insights">
+    <div class="insights-empty" id="emptyState">Waiting for the session to begin. The AI will speak to you directly. Key insights appear here as bullet points.</div>
   </div>
-  <div id="status-bar">
-    <span id="aiStatus">AI is listening</span>
+
+  <div class="status-bar" id="statusBar">AI is listening</div>
+
+  <div class="input-bar">
+    <input type="text" id="contextInput" placeholder="Paste text or a URL to share with the AI..." onkeydown="if(event.key==='Enter')sendContext()">
+    <button class="upload-btn" onclick="document.getElementById('midDocsInput').click()">Upload</button>
+    <input type="file" id="midDocsInput" style="display:none" multiple onchange="uploadMidSession(this)">
   </div>
-  <div id="controls">
-    <button id="pauseBtn" onclick="togglePause()">Pause</button>
-    <button id="stopBtn" onclick="endSession()">End</button>
+
+  <div class="bottom-bar">
+    <div class="phase-circles" id="phaseCircles"></div>
+    <button class="pause-btn" id="pauseBtn" onclick="togglePause()">Pause</button>
+    <button class="end-btn" onclick="endSession()">End</button>
   </div>
+</div>
+
+<!-- PHASE DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h3 id="drawerTitle">Phase 0: User Stories</h3>
+    <span class="conf" id="drawerConf"></span>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer" id="drawerFooter"></div>
 </div>
 
 <script>
 var TOKEN = window.__TF_TOKEN || '';
 var PHASES = ['User Stories','Mine','Scout','Assay','Crucible','Auditor','Plan','Verify'];
 var ws, micCtx, processor, micStream, paused = false, phase = 0;
+var playCtx = null, audioQueue = [], isPlaying = false;
 
-// Audio playback — queue base64 PCM chunks and play sequentially
-var playCtx = null;
-var audioQueue = [];
-var isPlaying = false;
+// Bullet storage per phase
+var phaseBullets = {};
+for (var i = 0; i < 8; i++) phaseBullets[i] = [];
+
+// Build phase circles
+(function() {
+  var container = document.getElementById('phaseCircles');
+  for (var i = 0; i < 8; i++) {
+    var el = document.createElement('div');
+    el.className = 'phase-circle' + (i === 0 ? ' current' : '');
+    el.textContent = i + 1;
+    el.setAttribute('data-phase', i);
+    el.onclick = function() { openDrawer(parseInt(this.getAttribute('data-phase'))); };
+    container.appendChild(el);
+  }
+})();
 
 function startSession() {
-  var githubUrl = document.getElementById('githubInput').value.trim();
+  var github = document.getElementById('githubInput').value.trim();
+  var drive = document.getElementById('driveInput').value.trim();
   var fileInput = document.getElementById('docsInput');
   var docs = [];
   var files = fileInput.files;
-
   document.getElementById('setup').style.display = 'none';
   document.getElementById('session').style.display = 'flex';
-
   if (files.length > 0) {
     var pending = files.length;
     for (var i = 0; i < files.length; i++) {
@@ -94,150 +200,159 @@ function startSession() {
         reader.onload = function(e) {
           docs.push({ name: file.name, content: e.target.result });
           pending--;
-          if (pending === 0) connectWs(githubUrl, docs);
+          if (pending === 0) connectWs(github, drive, docs);
         };
         reader.readAsText(file);
       })(files[i]);
     }
   } else {
-    connectWs(githubUrl, docs);
+    connectWs(github, drive, docs);
   }
 }
 
-function connectWs(githubUrl, docs) {
+function connectWs(github, drive, docs) {
   var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host);
-  ws.binaryType = 'arraybuffer';
-
   ws.onopen = function() {
     ws.send(JSON.stringify({
-      type: 'session-setup',
-      accessToken: TOKEN,
-      github: githubUrl || null,
+      type: 'session-setup', accessToken: TOKEN,
+      github: github || null, drive: drive || null,
       documents: docs.length > 0 ? docs : null,
       frameworks: ['stoicism']
     }));
-    document.getElementById('statusLabel').textContent = 'Connecting to AI...';
+    document.getElementById('statusArea').textContent = 'Connecting to AI...';
   };
-
   ws.onmessage = function(e) {
-    if (typeof e.data !== 'string') return; // skip binary
+    if (typeof e.data !== 'string') return;
     try {
       var msg = JSON.parse(e.data);
-
       if (msg.type === 'status' && msg.state === 'connected') {
-        document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('statusLabel').innerHTML = '<span class="live-dot"></span> Live';
-        document.getElementById('aiStatus').textContent = 'AI is listening...';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('statusArea').innerHTML = '<span class="live-ring"></span> Live';
+        document.getElementById('statusBar').textContent = 'AI is listening';
         startMic();
       }
-
-      // Play AI audio — this is the voice output
       if (msg.type === 'audio' && msg.data) {
         queueAudio(msg.data);
-        document.getElementById('aiStatus').innerHTML = '<span class="speaking">AI is speaking...</span>';
+        document.getElementById('statusBar').innerHTML = '<span class="speaking">AI is speaking</span>';
       }
-
-      // AI transcript — accumulate into sentences, show as outline points (not word-by-word)
-      if (msg.type === 'transcript' && msg.role === 'model') {
-        accumulateAiText(msg.text || '');
+      if (msg.type === 'outline_item') {
+        addBullet(msg.speaker, msg.text, msg.phase);
+        if (msg.speaker === 'ai') document.getElementById('statusBar').textContent = 'AI is listening';
       }
-
-      // User transcript — only show final results as outline points
-      if (msg.type === 'user_transcript' && msg.isFinal && msg.text && msg.text.trim()) {
-        addOutlineItem('You said', msg.text.trim());
-      }
-
       if (msg.type === 'phase' || msg.type === 'phase_transition') {
-        phase = msg.phase || msg.to || 0;
-        document.getElementById('phaseLabel').textContent = 'Phase ' + phase + ': ' + PHASES[phase];
-        addOutlineItem('Phase transition', 'Moving to Phase ' + phase + ': ' + PHASES[phase]);
+        var newPhase = msg.phase || msg.to || 0;
+        updatePhase(newPhase);
       }
-
       if (msg.type === 'status' && msg.state === 'stopped') {
-        document.getElementById('statusLabel').textContent = 'Session ended';
-        document.getElementById('pauseBtn').textContent = 'Session Ended';
+        document.getElementById('statusArea').textContent = 'Session ended';
+        document.getElementById('pauseBtn').textContent = 'Ended';
         document.getElementById('pauseBtn').disabled = true;
-        document.getElementById('aiStatus').textContent = 'Session complete';
+        document.getElementById('statusBar').textContent = 'Session complete';
       }
-
-      if (msg.type === 'error') { addOutlineItem('Error', msg.message); }
+      if (msg.type === 'interrupted') {
+        audioQueue = []; isPlaying = false; // Clear audio on barge-in
+      }
+      if (msg.type === 'error') addBullet('ai', 'Error: ' + msg.message, phase);
     } catch(err) {}
   };
-
-  ws.onclose = function(e) { document.getElementById('statusLabel').textContent = 'Disconnected (' + e.code + ')'; };
+  ws.onclose = function(e) { document.getElementById('statusArea').textContent = 'Disconnected (' + e.code + ')'; };
 }
 
-// Accumulate AI transcript text into complete sentences before showing
-var aiTextBuffer = '';
-var aiFlushTimer = null;
-function accumulateAiText(text) {
-  aiTextBuffer += text;
-  // Flush when we hit sentence-ending punctuation or after 3 seconds
-  if (/[.!?]\s*$/.test(aiTextBuffer)) {
-    flushAiText();
-  } else {
-    clearTimeout(aiFlushTimer);
-    aiFlushTimer = setTimeout(flushAiText, 3000);
-  }
-}
-function flushAiText() {
-  clearTimeout(aiFlushTimer);
-  var text = aiTextBuffer.trim();
-  aiTextBuffer = '';
-  if (text.length > 5) {
-    addOutlineItem('AI', text);
-    document.getElementById('aiStatus').textContent = 'AI is listening...';
-  }
-}
-
-function addOutlineItem(label, text) {
+function addBullet(speaker, text, p) {
+  if (!text || text.trim().length < 3) return;
+  var phaseNum = p !== undefined ? p : phase;
+  phaseBullets[phaseNum] = phaseBullets[phaseNum] || [];
+  phaseBullets[phaseNum].push({ speaker: speaker, text: text });
+  var container = document.getElementById('insights');
   var el = document.createElement('div');
-  el.className = 'outline-item';
-  el.innerHTML = '<div class="phase-label">' + label + '</div><div class="point">' + text + '</div>';
-  var container = document.getElementById('outline');
+  el.className = 'bullet';
+  el.innerHTML = '<div class="bar ' + speaker + '"></div><div class="text">' + text + '</div>';
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
 }
 
-// --- Audio Playback ---
-function queueAudio(base64) {
-  audioQueue.push(base64);
-  if (!isPlaying) drainAudioQueue();
+function updatePhase(newPhase) {
+  phase = newPhase;
+  document.getElementById('phaseLabel').textContent = 'Phase ' + phase + ': ' + PHASES[phase];
+  var circles = document.querySelectorAll('.phase-circle');
+  circles.forEach(function(c) {
+    var p = parseInt(c.getAttribute('data-phase'));
+    c.className = 'phase-circle' + (p === phase ? ' current' : (p < phase ? ' done' : ''));
+  });
 }
 
-function drainAudioQueue() {
-  if (audioQueue.length === 0) { isPlaying = false; return; }
-  isPlaying = true;
-  var b64 = audioQueue.shift();
+// Phase drawer
+function openDrawer(p) {
+  var bullets = phaseBullets[p] || [];
+  document.getElementById('drawerTitle').textContent = 'Phase ' + p + ': ' + PHASES[p];
+  document.getElementById('drawerConf').textContent = p < phase ? 'Completed' : (p === phase ? 'In progress' : '');
+  var body = document.getElementById('drawerBody');
+  body.innerHTML = '';
+  if (bullets.length === 0) {
+    body.innerHTML = '<div style="color:var(--text-light);font-size:0.85rem">No insights captured yet for this phase.</div>';
+  } else {
+    bullets.forEach(function(b) {
+      var el = document.createElement('div');
+      el.className = 'bullet';
+      el.innerHTML = '<div class="bar ' + b.speaker + '"></div><div class="text">' + b.text + '</div>';
+      body.appendChild(el);
+    });
+  }
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
 
-  try {
-    if (!playCtx) playCtx = new AudioContext({ sampleRate: 24000 });
-
-    // Decode base64 to raw bytes
-    var raw = atob(b64);
-    var bytes = new Uint8Array(raw.length);
-    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-
-    // Gemini sends raw PCM 16-bit LE at 24kHz
-    var samples = new Int16Array(bytes.buffer);
-    var float32 = new Float32Array(samples.length);
-    for (var j = 0; j < samples.length; j++) float32[j] = samples[j] / 32768.0;
-
-    var audioBuf = playCtx.createBuffer(1, float32.length, 24000);
-    audioBuf.getChannelData(0).set(float32);
-
-    var source = playCtx.createBufferSource();
-    source.buffer = audioBuf;
-    source.connect(playCtx.destination);
-    source.onended = function() { drainAudioQueue(); };
-    source.start();
-  } catch(err) {
-    drainAudioQueue(); // skip bad chunk, continue
+// Mid-session context input
+function sendContext() {
+  var input = document.getElementById('contextInput');
+  var text = input.value.trim();
+  if (!text || !ws) return;
+  ws.send(JSON.stringify({ type: 'session-setup', documents: [{ name: 'pasted-context', content: text }] }));
+  addBullet('user', 'Shared context: ' + (text.length > 60 ? text.substring(0, 57) + '...' : text), phase);
+  input.value = '';
+}
+function uploadMidSession(input) {
+  var files = input.files;
+  for (var i = 0; i < files.length; i++) {
+    (function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        ws.send(JSON.stringify({ type: 'session-setup', documents: [{ name: file.name, content: e.target.result }] }));
+        addBullet('user', 'Uploaded: ' + file.name, phase);
+      };
+      reader.readAsText(file);
+    })(files[i]);
   }
 }
 
-// --- Microphone Capture ---
+// Audio playback (PCM 16-bit LE @ 24kHz)
+function queueAudio(b64) { audioQueue.push(b64); if (!isPlaying) drainAudio(); }
+function drainAudio() {
+  if (audioQueue.length === 0) { isPlaying = false; return; }
+  isPlaying = true;
+  var b64 = audioQueue.shift();
+  try {
+    if (!playCtx) playCtx = new AudioContext({ sampleRate: 24000 });
+    var raw = atob(b64), bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    var samples = new Int16Array(bytes.buffer);
+    var f32 = new Float32Array(samples.length);
+    for (var j = 0; j < samples.length; j++) f32[j] = samples[j] / 32768.0;
+    var buf = playCtx.createBuffer(1, f32.length, 24000);
+    buf.getChannelData(0).set(f32);
+    var src = playCtx.createBufferSource();
+    src.buffer = buf; src.connect(playCtx.destination);
+    src.onended = function() { drainAudio(); };
+    src.start();
+  } catch(err) { drainAudio(); }
+}
+
+// Microphone (PCM 16kHz mono)
 function startMic() {
   navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
     .then(function(s) {
@@ -252,20 +367,18 @@ function startMic() {
         for (var i = 0; i < f32.length; i++) { var sv = Math.max(-1, Math.min(1, f32[i])); i16[i] = sv < 0 ? sv * 0x8000 : sv * 0x7FFF; }
         ws.send(i16.buffer);
       };
-      source.connect(processor);
-      processor.connect(micCtx.destination);
+      source.connect(processor); processor.connect(micCtx.destination);
     })
-    .catch(function(err) { addOutlineItem('Error', 'Microphone access denied: ' + err.message); });
+    .catch(function(err) { addBullet('ai', 'Microphone access denied: ' + err.message, phase); });
 }
 
 function togglePause() {
   paused = !paused;
   if (ws) ws.send(JSON.stringify({ type: paused ? 'pause' : 'resume' }));
   document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
-  document.getElementById('pauseBtn').className = paused ? 'paused' : '';
-  document.getElementById('aiStatus').textContent = paused ? 'Session paused' : 'AI is listening...';
+  document.getElementById('pauseBtn').className = 'pause-btn' + (paused ? ' paused' : '');
+  document.getElementById('statusBar').textContent = paused ? 'Session paused' : 'AI is listening';
 }
-
 function endSession() {
   if (ws) ws.send(JSON.stringify({ type: 'stop' }));
   if (micStream) micStream.getTracks().forEach(function(t) { t.stop(); });
