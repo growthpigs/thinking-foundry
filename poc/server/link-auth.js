@@ -188,6 +188,90 @@ class LinkAuth {
       });
     });
 
+    // GET /admin — simple admin page to create session links
+    app.get('/admin', (req, res) => {
+      res.send(`<!DOCTYPE html>
+<html><head><title>Thinking Foundry — Admin</title>
+<style>
+  body { font-family: system-ui; background: #0a0a0f; color: #e4e4e7; margin: 0; padding: 40px; }
+  h1 { font-size: 1.5rem; margin-bottom: 8px; }
+  p.sub { color: #71717a; font-size: 0.875rem; margin-bottom: 32px; }
+  form { display: flex; gap: 12px; margin-bottom: 24px; }
+  input { background: #111118; border: 1px solid #2a2a34; color: #e4e4e7; padding: 12px 16px; border-radius: 8px; font-size: 1rem; flex: 1; }
+  input::placeholder { color: #52525b; }
+  button { background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 600; }
+  button:hover { background: #4f46e5; }
+  #result { display: none; background: #111118; border: 1px solid #22c55e; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  #result a { color: #6366f1; word-break: break-all; }
+  #result .copy { background: #1a1a24; border: 1px solid #2a2a34; color: #e4e4e7; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; display: inline-block; font-size: 0.875rem; }
+  #links { margin-top: 32px; }
+  #links table { width: 100%; border-collapse: collapse; }
+  #links th, #links td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #1a1a24; font-size: 0.875rem; }
+  #links th { color: #71717a; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+  .used { color: #71717a; }
+  .active { color: #22c55e; }
+</style></head>
+<body>
+  <h1>The Thinking Foundry — Admin</h1>
+  <p class="sub">Create session links for your users</p>
+
+  <form id="createForm">
+    <input type="text" id="nameInput" placeholder="Person's name (for your records)" required />
+    <button type="submit">Create Link</button>
+  </form>
+
+  <div id="result">
+    <p style="margin:0 0 8px 0; font-size:0.875rem; color:#71717a;">Session link created for <strong id="resultName"></strong>:</p>
+    <a id="resultLink" href="#" target="_blank"></a>
+    <br/>
+    <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('resultLink').href); this.textContent='Copied!'">Copy link</button>
+  </div>
+
+  <div id="links">
+    <h3 style="font-size:1rem; color:#a1a1aa;">Active Links</h3>
+    <table><thead><tr><th>Name</th><th>Status</th><th>Created</th></tr></thead><tbody id="linksBody"></tbody></table>
+  </div>
+
+  <script>
+    const API_KEY = new URLSearchParams(window.location.search).get('key') || prompt('Admin API key:');
+    if (!API_KEY) document.body.innerHTML = '<h1>API key required</h1><p>Add ?key=YOUR_KEY to the URL</p>';
+
+    document.getElementById('createForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('nameInput').value;
+      const res = await fetch('/admin/create-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+        body: JSON.stringify({ label: name })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const fullUrl = window.location.origin + data.url;
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('resultName').textContent = name;
+        document.getElementById('resultLink').href = fullUrl;
+        document.getElementById('resultLink').textContent = fullUrl;
+        document.getElementById('nameInput').value = '';
+        loadLinks();
+      } else {
+        alert('Error: ' + (data.error || 'Unknown'));
+      }
+    });
+
+    async function loadLinks() {
+      const res = await fetch('/admin/links?key=' + API_KEY);
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('linksBody').innerHTML = data.links.map(l =>
+          '<tr><td>' + (l.label || '—') + '</td><td class="' + (l.used ? 'used' : 'active') + '">' + (l.used ? 'Used' : 'Active') + '</td><td>' + new Date(l.createdAt).toLocaleString() + '</td></tr>'
+        ).join('');
+      }
+    }
+    if (API_KEY) loadLinks();
+  </script>
+</body></html>`);
+    });
+
     // GET /admin/links — list active tokens (admin only)
     app.get('/admin/links', (req, res) => {
       const apiKey = req.headers['x-api-key'] || req.query.key;
