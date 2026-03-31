@@ -246,7 +246,7 @@ class LinkAuth {
       });
       const data = await res.json();
       if (data.ok) {
-        const fullUrl = window.location.origin + data.url;
+        const fullUrl = data.url.startsWith('http') ? data.url : window.location.origin + data.url;
         document.getElementById('result').style.display = 'block';
         document.getElementById('resultName').textContent = name;
         document.getElementById('resultLink').href = fullUrl;
