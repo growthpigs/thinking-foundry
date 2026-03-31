@@ -124,6 +124,51 @@ wss.on('connection', (clientWs, req) => {
     }
   };
 
+  // --- Outline Item Condensation (Option D-Fixed) ---
+  let aiTurnBuffer = '';
+
+  function flushAiTurnBuffer() {
+    const text = aiTurnBuffer.trim();
+    aiTurnBuffer = '';
+    if (text.length < 30) return; // skip noise ("Interesting." / "Go on.")
+
+    // Take FIRST sentence — prompts enforce insight-first, question-last
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    let bullet = sentences[0] || text;
+
+    // If first sentence is very short, concatenate first two
+    if (bullet.length < 40 && sentences.length > 1) {
+      bullet = sentences[0] + ' ' + sentences[1];
+    }
+
+    // Cap at ~80 chars
+    if (bullet.length > 80) {
+      bullet = bullet.substring(0, 77) + '...';
+    }
+
+    sendToClient('outline_item', { speaker: 'ai', text: bullet, phase: session.currentPhase });
+
+    // Persist as key point
+    if (supabaseBuffer) {
+      supabaseBuffer.writeUtterance(session.currentPhase, 'ai', bullet, true)
+        .catch(err => console.error('[OUTLINE] Supabase write error:', err.message));
+    }
+  }
+
+  function condensUserTranscript(text) {
+    if (!text || text.trim().length < 5) return;
+    let bullet = text.trim();
+    if (bullet.length > 80) {
+      bullet = bullet.substring(0, 77) + '...';
+    }
+    sendToClient('outline_item', { speaker: 'user', text: bullet, phase: session.currentPhase });
+
+    if (supabaseBuffer) {
+      supabaseBuffer.writeUtterance(session.currentPhase, 'user', bullet, true)
+        .catch(err => console.error('[OUTLINE] Supabase write error:', err.message));
+    }
+  };
+
   // Stores session-level external context fetched during setup
   let sessionGithubContext = '';
   let sessionDriveContext = '';
@@ -285,17 +330,28 @@ wss.on('connection', (clientWs, req) => {
       frameworkFetcher: frameworkFetcher || null,
       toolDeclarations: frameworkFetcher ? FrameworkFetcher.getGeminiFunctionDeclarations() : [],
 
+      onTurnComplete: () => {
+        // AI finished speaking — flush accumulated text as condensed bullet
+        flushAiTurnBuffer();
+      },
+
       onTranscript: (role, text) => {
         context.addUtterance(role, text);
-        sendToClient('transcript', { role, text });
 
-        // Write to Supabase in real-time (<50ms target)
-        if (supabaseBuffer) {
-          supabaseBuffer.writeUtterance(
-            session.currentPhase,
-            role === 'model' ? 'ai' : 'user',
-            text
-          ).catch(err => console.error('[SUPABASE] Write error:', err.message));
+        if (role === 'model') {
+          // Accumulate AI text — don't send raw to client
+          aiTurnBuffer += text + ' ';
+          // Still write raw to Supabase for full persistence
+          if (supabaseBuffer) {
+            supabaseBuffer.writeUtterance(session.currentPhase, 'ai', text)
+              .catch(err => console.error('[SUPABASE] Write error:', err.message));
+          }
+        } else {
+          // User text — write raw to Supabase
+          if (supabaseBuffer) {
+            supabaseBuffer.writeUtterance(session.currentPhase, 'user', text)
+              .catch(err => console.error('[SUPABASE] Write error:', err.message));
+          }
         }
 
         // Check AI responses for phase transition signals (Article 10)
@@ -314,11 +370,20 @@ wss.on('connection', (clientWs, req) => {
 
       onInterrupted: () => {
         console.log('[GEMINI] Barge-in detected — clearing client playback');
+        // Flush partial buffer if substantial, otherwise discard
+        if (aiTurnBuffer.trim().length > 50) {
+          flushAiTurnBuffer();
+        } else {
+          aiTurnBuffer = '';
+        }
         sendToClient('interrupted', {});
       },
 
       onReconnecting: () => {
         console.log('[GEMINI] Reconnection starting...');
+        // Flush any accumulated buffer before reconnecting
+        if (aiTurnBuffer.trim().length > 30) flushAiTurnBuffer();
+        else aiTurnBuffer = '';
         sendToClient('status', { state: 'reconnecting' });
       },
 
@@ -516,14 +581,15 @@ wss.on('connection', (clientWs, req) => {
           if (process.env.DEEPGRAM_API_KEY) {
             sttPipeline = new SttPipeline();
             sttPipeline.onTranscript((text, isFinal) => {
-              if (!text) return;
-              // Send transcript to client for real-time display
-              sendToClient('user_transcript', { text, isFinal });
-              // Write final transcripts to Supabase
-              if (isFinal && text.trim() && supabaseBuffer) {
-                supabaseBuffer.writeUtterance(
-                  session.currentPhase, 'user', text.trim()
-                ).catch(err => console.error('[STT] Supabase write error:', err.message));
+              if (!text || !text.trim()) return;
+              // Only emit condensed bullet for final transcripts
+              if (isFinal) {
+                condensUserTranscript(text);
+                // Also write raw to Supabase
+                if (supabaseBuffer) {
+                  supabaseBuffer.writeUtterance(session.currentPhase, 'user', text.trim())
+                    .catch(err => console.error('[STT] Supabase write error:', err.message));
+                }
               }
             });
             sttPipeline.onError((err) => {

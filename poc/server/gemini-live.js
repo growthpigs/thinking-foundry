@@ -39,6 +39,7 @@ class GeminiLiveManager {
     this.onInterrupted = opts.onInterrupted || (() => {});
     this.onReconnecting = opts.onReconnecting || (() => {});
     this.onReconnected = opts.onReconnected || (() => {});
+    this.onTurnComplete = opts.onTurnComplete || (() => {});
     this.onError = opts.onError || (() => {});
     this.onClose = opts.onClose || (() => {});
 
@@ -165,11 +166,8 @@ class GeminiLiveManager {
         if (msg.serverContent) {
           const parts = msg.serverContent.modelTurn?.parts || [];
           for (const part of parts) {
-            if (part.text) {
-              if (!isStandby || this.isSwapping) {
-                this.onTranscript('model', part.text);
-              }
-            }
+            // In AUDIO-only mode, text comes via outputTranscription, not modelTurn.parts
+            // Only forward audio data from parts to avoid duplicate transcript
             if (part.inlineData) {
               if (!isStandby || this.isSwapping) {
                 this.onAudio(part.inlineData.data);
@@ -177,7 +175,7 @@ class GeminiLiveManager {
             }
           }
 
-          // Output audio transcription (AI speech → text, from outputAudioTranscription config)
+          // AI text comes ONLY from outputAudioTranscription (single authoritative source)
           if (msg.serverContent.outputTranscription?.text) {
             if (!isStandby || this.isSwapping) {
               this.onTranscript('model', msg.serverContent.outputTranscription.text);
@@ -195,6 +193,9 @@ class GeminiLiveManager {
           // Check for turn completion
           if (msg.serverContent.turnComplete) {
             console.log(`[GEMINI][${label}] Turn complete`);
+            if (!isStandby || this.isSwapping) {
+              this.onTurnComplete();
+            }
           }
         }
 
