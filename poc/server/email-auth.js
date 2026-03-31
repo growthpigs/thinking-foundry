@@ -21,6 +21,13 @@ class EmailAuth {
     this.magicLinks = new Map(); // token → { email, expiresAt }
     this.users = new Map(); // email → { pinHash, createdAt }
     this.deviceTokens = new Map(); // deviceToken → email
+
+    // Email whitelist — only these emails can request magic links
+    // Managed via admin page (/admin) or ALLOWED_EMAILS env var
+    this.allowedEmails = new Set();
+    if (process.env.ALLOWED_EMAILS) {
+      process.env.ALLOWED_EMAILS.split(',').forEach(e => this.allowedEmails.add(e.trim().toLowerCase()));
+    }
   }
 
   /**
@@ -28,9 +35,39 @@ class EmailAuth {
    * @param {string} email
    * @returns {{ sent: boolean, message: string }}
    */
+  /**
+   * Add an email to the whitelist.
+   * @param {string} email
+   */
+  addAllowedEmail(email) {
+    this.allowedEmails.add(email.toLowerCase().trim());
+    console.log(`[AUTH] Added to whitelist: ${email}`);
+  }
+
+  /**
+   * Remove an email from the whitelist.
+   * @param {string} email
+   */
+  removeAllowedEmail(email) {
+    this.allowedEmails.delete(email.toLowerCase().trim());
+  }
+
+  /**
+   * Get all allowed emails.
+   * @returns {string[]}
+   */
+  getAllowedEmails() {
+    return Array.from(this.allowedEmails);
+  }
+
   async sendMagicLink(email) {
     if (!email || !email.includes('@')) {
       return { sent: false, message: 'Invalid email address' };
+    }
+
+    // Whitelist check — only pre-approved emails can use the system
+    if (this.allowedEmails.size > 0 && !this.allowedEmails.has(email.toLowerCase())) {
+      return { sent: false, message: 'This email is not registered. Please contact your session host.' };
     }
 
     const token = crypto.randomUUID();

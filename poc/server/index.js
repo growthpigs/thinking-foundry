@@ -74,7 +74,29 @@ try {
       }
     });
 
-    console.log('[AUTH] Email auth initialized (magic link + PIN)');
+    // Admin whitelist management
+    app.post('/admin/invite', (req, res) => {
+      const apiKey = req.headers['x-api-key'];
+      if (!linkAuth || !linkAuth.isAdminKey(apiKey)) {
+        return res.status(401).json({ error: 'Invalid admin key' });
+      }
+      const { email } = req.body || {};
+      if (!email || !email.includes('@')) {
+        return res.json({ success: false, message: 'Invalid email' });
+      }
+      emailAuth.addAllowedEmail(email);
+      res.json({ success: true, message: 'User invited: ' + email });
+    });
+
+    app.get('/admin/whitelist', (req, res) => {
+      const apiKey = req.headers['x-api-key'] || req.query.key;
+      if (!linkAuth || !linkAuth.isAdminKey(apiKey)) {
+        return res.status(401).json({ error: 'Invalid admin key' });
+      }
+      res.json({ emails: emailAuth.getAllowedEmails() });
+    });
+
+    console.log('[AUTH] Email auth initialized (magic link + PIN + whitelist)');
   }
 } catch (err) {
   console.warn('[AUTH] Email auth init failed:', err.message);
