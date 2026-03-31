@@ -1,10 +1,63 @@
 # The Thinking Foundry — Project Context
 
 **Type:** Voice-first SaaS product
-**Status:** POC deployed (Railway), building toward MVP
+**Status:** MVP — backend complete, UI redesign deployed, needs live voice test
 **Repo:** growthpigs/thinking-foundry
-**Deploy:** thinking-foundry-production.up.railway.app (Railway, auto-deploys from main)
+**Frontend:** https://frontend-jet-psi-12.vercel.app (Vercel, React)
+**Backend:** https://thinking-foundry-production.up.railway.app (Railway, auto-deploys from main)
+**Vault:** growthpigs/thinking-foundry-vault (session issues, one per phase)
+**Supabase:** vkizhvkgjimthhfefzhy (Badaboost org, West EU)
 **Started:** 2026-03-28
+**Admin:** https://thinking-foundry-production.up.railway.app/admin?key=tf-admin-foundry-2026
+
+---
+
+## STATUS LINE FORMAT (MANDATORY)
+
+Every reply at task completion must include this footer:
+
+```
+CC Engaged: [#NNN Title](https://github.com/growthpigs/thinking-foundry/issues/NNN) | Status: [In Progress/Complete]
+CC Queue: [queued items with issue URLs]
+Open Loops: [untracked ideas not yet in GitHub]
+Coming: [planned items, upcoming work]
+MCPs: Railway [status] | Vercel [status] | Supabase [status] | Chrome [status]
+X/Y complete | Z% confident
+DD.MM HH:MM | ~Xk tokens | ~$X.XX
+```
+
+Rules:
+- CC Engaged MUST have the GitHub issue URL (full clickable link)
+- If no issue exists for current work, create one first
+- GitHub is the SINGLE SOURCE OF TRUTH — not .md files
+- After every piece of work: create/update/close the relevant GitHub issue
+- CLAUDE.md is the AI-readable context file (what this is, how to build)
+- Issues track what's being done, what's decided, what remains
+
+---
+
+## ENVIRONMENT VARIABLES
+
+### Railway (10 vars)
+| Var | Purpose | Status |
+|-----|---------|--------|
+| GEMINI_API_KEY | Gemini Live voice API | Set |
+| SUPABASE_URL | Supabase project URL | Set |
+| SUPABASE_KEY | Supabase service role key | Set |
+| GITHUB_TOKEN | Fine-grained PAT for vault repo | Set |
+| GITHUB_OWNER | growthpigs | Set |
+| GITHUB_REPO | thinking-foundry-vault | Set |
+| DEEPGRAM_API_KEY | Deepgram STT for user speech | Set |
+| ADMIN_API_KEY | Link auth admin key | Set (tf-admin-foundry-2026) |
+| GOOGLE_SERVICE_ACCOUNT | Google Drive service account JSON path | Not configured |
+| NOTEBOOKLM_AUTH_B64 | Base64-encoded NotebookLM auth | Not configured |
+| CRUCIBLE_SERVICE_URL | HTTP endpoint for Python Crucible service | Not configured |
+
+### Vercel (2 vars)
+| Var | Purpose |
+|-----|---------|
+| VITE_WS_URL | wss://thinking-foundry-production.up.railway.app |
+| VITE_API_URL | https://thinking-foundry-production.up.railway.app |
 
 ---
 
@@ -205,11 +258,25 @@ thinking-foundry/
 - ✅ Confidence gate (blocks transitions below 6/10)
 
 ### What Needs Work
-- ❌ Real-time outline view (show key points, not raw transcript)
-- ❌ Google Drive folder creation (built but needs service account setup)
-- ❌ Production frontend (React + Vercel, currently vanilla HTML)
-- ❌ Authentication (link-based for MVP)
-- ❌ Deepgram API key needed for user STT (sign up at deepgram.com, $200 free credit)
+- ❌ Live voice test with new UI (condensation + audio playback)
+- ❌ GOOGLE_SERVICE_ACCOUNT env var (Drive forward sync wired but needs credentials)
+- ❌ CRUCIBLE_SERVICE_URL (Python service on separate Railway instance)
+- ❌ NOTEBOOKLM_AUTH_B64 (run `notebooklm login`, base64 encode storage_state.json)
+- ❌ UX redesign polish (see [#20](https://github.com/growthpigs/thinking-foundry/issues/20))
+
+### What Was Built (2026-03-30 to 2026-03-31, 36 commits)
+| Component | File | Purpose |
+|---|---|---|
+| SupabaseBuffer | poc/server/supabase-buffer.js | Real-time session persistence (<50ms) |
+| GitHubPersistence | poc/server/github-persistence.js | ONE issue per phase in vault |
+| PhaseTransitionHandler | poc/server/phase-transition.js | AI-driven transitions + active Squeeze |
+| FrameworkFetcher | poc/server/framework-fetcher.js | JIT tool-use via pgvector (78 chunks) |
+| SttPipeline | poc/server/stt-pipeline.js | Deepgram WebSocket for user speech |
+| LinkAuth | poc/server/link-auth.js | Click link, start session, admin page |
+| CrucibleAudio | poc/server/crucible-audio.js | NotebookLM debate audio bridge |
+| DriveManager | poc/server/drive-manager.js | Google Drive folder/doc creation |
+| Session UI | poc/public/session.html | Editorial notebook design, bullet points, phase drawer |
+| React Frontend | frontend/ | Vercel-deployed alternative (to be updated with new design) |
 
 ---
 
