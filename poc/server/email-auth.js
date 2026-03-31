@@ -11,20 +11,16 @@
  */
 
 const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
 
 class EmailAuth {
-  constructor({ supabaseUrl, supabaseKey, resendApiKey, baseUrl } = {}) {
-    const url = supabaseUrl || process.env.SUPABASE_URL;
-    const key = supabaseKey || process.env.SUPABASE_KEY;
-    this.resendApiKey = resendApiKey || process.env.RESEND_API_KEY;
+  constructor({ resendApiKey, baseUrl } = {}) {
+    this.resendApiKey = resendApiKey !== undefined ? resendApiKey : process.env.RESEND_API_KEY;
     this.baseUrl = baseUrl || process.env.BASE_URL || '';
 
-    if (!url || !key) throw new Error('EmailAuth: SUPABASE_URL and SUPABASE_KEY required');
-    this.supabase = createClient(url, key);
-
-    // In-memory magic link store (MVP — move to Supabase later for multi-instance)
+    // In-memory stores (MVP — move to Supabase later for multi-instance)
     this.magicLinks = new Map(); // token → { email, expiresAt }
+    this.users = new Map(); // email → { pinHash, createdAt }
+    this.deviceTokens = new Map(); // deviceToken → email
   }
 
   /**
@@ -120,28 +116,11 @@ class EmailAuth {
     const pinHash = crypto.createHash('sha256').update(pin + email).digest('hex');
     const deviceToken = crypto.randomUUID();
 
-    // Upsert user
-    const { error } = await this.supabase
-      .from('users')
-      .upsert({
-        email: email.toLowerCase(),
-        pin_hash: pinHash,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'email' });
+    // Store user (in-memory for MVP)
+    this.users.set(email.toLowerCase(), { pinHash, createdAt: new Date().toISOString() });
 
-    if (error) {
-      console.error('[AUTH] User upsert error:', error.message);
-      return { success: false, message: 'Failed to save PIN' };
-    }
-
-    // Save device token
-    await this.supabase
-      .from('device_tokens')
-      .insert({
-        email: email.toLowerCase(),
-        device_token: deviceToken,
-        created_at: new Date().toISOString(),
-      });
+    // Store device token
+    this.deviceTokens.set(deviceToken, email.toLowerCase());
 
     // Consume magic link
     if (magicToken) this.magicLinks.delete(magicToken);
@@ -157,30 +136,20 @@ class EmailAuth {
    * @returns {{ valid: boolean, email?: string, message?: string }}
    */
   async verifyPin(deviceToken, pin) {
-    // Look up device
-    const { data: device } = await this.supabase
-      .from('device_tokens')
-      .select('email')
-      .eq('device_token', deviceToken)
-      .single();
-
-    if (!device) return { valid: false, message: 'Device not recognized. Please use your email link.' };
+    // Look up device (in-memory)
+    const email = this.deviceTokens.get(deviceToken);
+    if (!email) return { valid: false, message: 'Device not recognized. Please use your email link.' };
 
     // Look up user + verify PIN
-    const { data: user } = await this.supabase
-      .from('users')
-      .select('pin_hash')
-      .eq('email', device.email)
-      .single();
-
+    const user = this.users.get(email);
     if (!user) return { valid: false, message: 'User not found' };
 
-    const pinHash = crypto.createHash('sha256').update(pin + device.email).digest('hex');
-    if (pinHash !== user.pin_hash) {
+    const pinHash = crypto.createHash('sha256').update(pin + email).digest('hex');
+    if (pinHash !== user.pinHash) {
       return { valid: false, message: 'Wrong PIN' };
     }
 
-    return { valid: true, email: device.email };
+    return { valid: true, email };
   }
 
   /**
