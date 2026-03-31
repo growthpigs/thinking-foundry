@@ -89,7 +89,7 @@ class EmailAuth {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'The Thinking Foundry <noreply@thinkingfoundry.app>',
+            from: process.env.RESEND_FROM_EMAIL || 'The Thinking Foundry <onboarding@resend.dev>',
             to: [email],
             subject: 'Your Thinking Foundry session link',
             html: `
