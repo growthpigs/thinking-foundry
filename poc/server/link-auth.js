@@ -152,21 +152,15 @@ class LinkAuth {
         `);
       }
 
-      // Serve the session UI with the token embedded
-      // The client JS reads it and passes it in the WebSocket session-setup message
-      res.send(`
-        <!DOCTYPE html>
-        <html><head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Thinking Foundry</title>
-          <link rel="stylesheet" href="/style.css">
-          <script>window.__TF_TOKEN = "${token}";</script>
-        </head>
-        <body>
-          <script src="/app.js"></script>
-        </body></html>
-      `);
+      // Serve session page with token injected
+      const fs = require('fs');
+      const sessionHtml = fs.readFileSync(
+        require('path').join(staticDir, 'session.html'), 'utf-8'
+      );
+      res.send(sessionHtml.replace(
+        "window.__TF_TOKEN || ''",
+        "'" + token + "'"
+      ));
     });
 
     // POST /admin/create-link — generate a new session link
