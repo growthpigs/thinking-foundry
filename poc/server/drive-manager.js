@@ -26,17 +26,32 @@ class DriveManager {
   async init() {
     if (this.initialized) return;
 
-    const saPath = process.env.GOOGLE_SERVICE_ACCOUNT;
-    if (!saPath) {
-      throw new Error('GOOGLE_SERVICE_ACCOUNT not configured');
+    let keyFile = null;
+
+    // Option 1: Base64-encoded service account JSON from env var (Railway)
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_B64) {
+      try {
+        const decoded = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
+        keyFile = JSON.parse(decoded);
+        console.log('[DRIVE] Using service account from GOOGLE_SERVICE_ACCOUNT_B64');
+      } catch (err) {
+        throw new Error('Failed to decode GOOGLE_SERVICE_ACCOUNT_B64: ' + err.message);
+      }
+    }
+    // Option 2: File path (local dev)
+    else if (process.env.GOOGLE_SERVICE_ACCOUNT) {
+      const saPath = process.env.GOOGLE_SERVICE_ACCOUNT;
+      if (!fs.existsSync(saPath)) {
+        throw new Error('Service account file not found: ' + saPath);
+      }
+      keyFile = JSON.parse(fs.readFileSync(saPath, 'utf-8'));
+      console.log('[DRIVE] Using service account from file: ' + saPath);
+    }
+    else {
+      throw new Error('No Google service account configured. Set GOOGLE_SERVICE_ACCOUNT_B64 or GOOGLE_SERVICE_ACCOUNT');
     }
 
-    if (!fs.existsSync(saPath)) {
-      throw new Error(`Service account file not found: ${saPath}`);
-    }
-
-    const keyFile = JSON.parse(fs.readFileSync(saPath, 'utf-8'));
-
+    this.serviceAccountEmail = keyFile.client_email;
     const auth = new google.auth.GoogleAuth({
       credentials: keyFile,
       scopes: ['https://www.googleapis.com/auth/drive']
@@ -44,7 +59,7 @@ class DriveManager {
 
     this.drive = google.drive({ version: 'v3', auth });
     this.initialized = true;
-    console.log('[DRIVE] Initialized with service account');
+    console.log('[DRIVE] Initialized — service account: ' + this.serviceAccountEmail);
   }
 
   /**

@@ -108,7 +108,7 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
     <div class="field">
       <label>Google Drive Folder <span class="opt">optional</span></label>
       <input type="url" id="driveInput" placeholder="https://drive.google.com/drive/folders/...">
-      <p class="hint">Session documents will be saved to this folder as you go.</p>
+      <p class="hint">Share this folder with the Thinking Foundry service account first. Session documents will be saved here as you go.</p>
     </div>
     <div class="field">
       <label>Upload Documents <span class="opt">optional</span></label>
@@ -127,6 +127,7 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   <div class="top-bar">
     <span class="title">The Thinking Foundry</span>
     <span class="phase-name" id="phaseLabel">Phase 0: User Stories</span>
+    <span id="connIndicators" style="display:flex;gap:8px;font-size:0.7rem;color:var(--text-light)"></span>
     <span class="status" id="statusArea">Connecting...</span>
   </div>
 
@@ -212,6 +213,14 @@ function startSession() {
 }
 
 function connectWs(github, drive, docs) {
+  // Show connection indicators
+  var indicators = document.getElementById('connIndicators');
+  var parts = [];
+  if (github) parts.push('<span style="color:var(--success)">GitHub</span>');
+  if (drive) parts.push('<span style="color:var(--text-light)">Drive (pending)</span>');
+  if (docs.length > 0) parts.push('<span style="color:var(--success)">' + docs.length + ' docs</span>');
+  indicators.innerHTML = parts.join(' | ');
+
   var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host);
   ws.onopen = function() {
@@ -253,6 +262,17 @@ function connectWs(github, drive, docs) {
       }
       if (msg.type === 'interrupted') {
         audioQueue = []; isPlaying = false; // Clear audio on barge-in
+      }
+      if (msg.type === 'drive_status') {
+        var ind = document.getElementById('connIndicators');
+        if (msg.connected) {
+          ind.innerHTML = ind.innerHTML.replace('Drive (pending)', '<span style="color:var(--success)">Drive</span>');
+        } else {
+          ind.innerHTML = ind.innerHTML.replace('Drive (pending)', '<span style="color:var(--danger)">Drive failed</span>');
+        }
+      }
+      if (msg.type === 'drive_sync') {
+        addBullet('ai', 'Saved to Drive: Phase ' + msg.phase + ' - ' + msg.phaseName, msg.phase);
       }
       if (msg.type === 'error') addBullet('ai', 'Error: ' + msg.message, phase);
     } catch(err) {}
