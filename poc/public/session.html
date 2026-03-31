@@ -137,8 +137,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   <div class="status-bar" id="statusBar">AI is listening</div>
 
   <div class="input-bar">
-    <input type="text" id="contextInput" placeholder="Paste text or a URL to share with the AI..." onkeydown="if(event.key==='Enter')sendContext()">
-    <button class="upload-btn" onclick="document.getElementById('midDocsInput').click()">Upload</button>
+    <input type="text" id="contextInput" placeholder="Type a message or paste text to share with the AI..." onkeydown="if(event.key==='Enter')sendContext()">
+    <button class="upload-btn" onclick="sendContext()" title="Send text">Send</button>
+    <button class="upload-btn" onclick="document.getElementById('midDocsInput').click()" title="Upload a file">File</button>
     <input type="file" id="midDocsInput" style="display:none" multiple onchange="uploadMidSession(this)">
   </div>
 

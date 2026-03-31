@@ -155,17 +155,36 @@ wss.on('connection', (clientWs, req) => {
     }
   }
 
+  // Accumulate user speech into complete thoughts (Deepgram fires many isFinals per turn)
+  let userTurnBuffer = '';
+  let userFlushTimer = null;
+
   function condensUserTranscript(text) {
-    if (!text || text.trim().length < 5) return;
-    let bullet = text.trim();
-    if (bullet.length > 80) {
-      bullet = bullet.substring(0, 77) + '...';
-    }
+    if (!text || text.trim().length < 3) return;
+    userTurnBuffer += text.trim() + ' ';
+
+    // Flush after 2 seconds of silence (user stopped speaking)
+    clearTimeout(userFlushTimer);
+    userFlushTimer = setTimeout(flushUserTurnBuffer, 2000);
+  }
+
+  function flushUserTurnBuffer() {
+    clearTimeout(userFlushTimer);
+    var text = userTurnBuffer.trim();
+    userTurnBuffer = '';
+    if (text.length < 10) return; // skip noise
+
+    // Take first sentence if long, or full text if short
+    var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.trim().length > 0; });
+    var bullet = sentences[0] || text;
+    if (bullet.length < 30 && sentences.length > 1) bullet = sentences[0] + ' ' + sentences[1];
+    if (bullet.length > 80) bullet = bullet.substring(0, 77) + '...';
+
     sendToClient('outline_item', { speaker: 'user', text: bullet, phase: session.currentPhase });
 
     if (supabaseBuffer) {
       supabaseBuffer.writeUtterance(session.currentPhase, 'user', bullet, true)
-        .catch(err => console.error('[OUTLINE] Supabase write error:', err.message));
+        .catch(function(err) { console.error('[OUTLINE] Supabase write error:', err.message); });
     }
   };
 
