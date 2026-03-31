@@ -17,6 +17,7 @@ const { PhaseTransitionHandler } = require('./phase-transition');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
 const { LinkAuth } = require('./link-auth');
+const { EmailAuth } = require('./email-auth');
 const { CrucibleAudio } = require('./crucible-audio');
 
 const app = express();
@@ -48,6 +49,35 @@ try {
   }
 } catch (err) {
   console.warn('[AUTH] Link auth init failed:', err.message);
+}
+
+// Email auth (magic link + PIN + device cookie)
+try {
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    const emailAuth = new EmailAuth({
+      baseUrl: process.env.RAILWAY_PUBLIC_DOMAIN
+        ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+        : (process.env.BASE_URL || ''),
+    });
+    emailAuth.registerRoutes(app);
+
+    // Session creation route (after PIN verified)
+    app.get('/session/new', (req, res) => {
+      // Create a session token and redirect to the session page
+      const token = require('crypto').randomUUID();
+      if (linkAuth) {
+        linkAuth.createLink({ label: 'email-auth-session' }).then(link => {
+          res.redirect('/s/' + link.token);
+        });
+      } else {
+        res.redirect('/s/' + token);
+      }
+    });
+
+    console.log('[AUTH] Email auth initialized (magic link + PIN)');
+  }
+} catch (err) {
+  console.warn('[AUTH] Email auth init failed:', err.message);
 }
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
