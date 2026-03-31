@@ -240,11 +240,8 @@ wss.on('connection', (clientWs, req) => {
     }
   };
 
-  // Drive sync — folder URL from setup, used for forward sync
   let serverPaused = false;
-  let driveFolderUrl = null;
   let driveManager = null;
-  let driveSessionFolderId = null;
 
   // Stores session-level external context fetched during setup
   let sessionGithubContext = '';
@@ -595,37 +592,19 @@ wss.on('connection', (clientWs, req) => {
               await gemini.forceReconnect(toPhase, context.getCondensedContext());
             }
 
-            // Forward sync to Google Drive — create phase document
-            if (driveManager && driveSessionFolderId) {
+            // Forward sync to Google Drive — write phase output into its subfolder
+            if (driveManager && driveManager.sessionFolderId) {
               try {
-                const PHASE_NAMES = ['User Stories','Mine','Scout','Assay','Crucible','Auditor','Plan','Verify'];
-                const phaseName = PHASE_NAMES[fromPhase] || 'Phase ' + fromPhase;
-                const docContent = [
-                  '# Phase ' + fromPhase + ': ' + phaseName,
-                  '',
-                  '**Confidence:** ' + (meta.confidence || 'N/A') + '/10',
-                  '**Session:** ' + new Date().toLocaleDateString(),
-                  '',
-                  '## Carry-Forward',
-                  '',
-                  carryForwardText,
-                  '',
-                  meta.squeezeNotes ? '## Squeeze Notes\n\n' + meta.squeezeNotes : '',
-                ].filter(Boolean).join('\n');
-
-                await driveManager.drive.files.create({
-                  requestBody: {
-                    name: 'Phase ' + fromPhase + ' - ' + phaseName + '.md',
-                    mimeType: 'text/markdown',
-                    parents: [driveSessionFolderId]
-                  },
-                  media: { mimeType: 'text/markdown', body: docContent },
-                  fields: 'id,webViewLink'
+                const result = await driveManager.writePhaseDoc(fromPhase, carryForwardText, {
+                  confidence: meta.confidence,
+                  squeezeNotes: meta.squeezeNotes
                 });
-                console.log('[DRIVE] Created document for Phase ' + fromPhase);
-                sendToClient('drive_sync', { phase: fromPhase, phaseName: phaseName });
+                if (result) {
+                  const { PHASE_NAMES } = require('./drive-manager');
+                  sendToClient('drive_sync', { phase: fromPhase, phaseName: PHASE_NAMES[fromPhase] });
+                }
               } catch (err) {
-                console.error('[DRIVE] Document creation failed:', err.message);
+                console.error('[DRIVE] Phase doc write failed:', err.message);
               }
             }
 
@@ -665,20 +644,17 @@ wss.on('connection', (clientWs, req) => {
           githubPersistence = null;
         }
 
-        // Initialize Google Drive forward sync
-        if (msg.drive) {
-          driveFolderUrl = msg.drive;
+        // Initialize Google Drive — always create session folder if SA is configured
+        if (DriveManager.isConfigured()) {
           try {
             driveManager = new DriveManager();
             await driveManager.init();
-            // Create session subfolder in the user's Drive folder
-            const sessionName = msg.label || 'Thinking Session ' + new Date().toLocaleDateString();
-            const parsed = parseDriveUrl(msg.drive);
-            if (parsed) {
-              driveSessionFolderId = parsed.id;
-              console.log('[DRIVE] Forward sync enabled — folder: ' + parsed.id);
-              sendToClient('drive_status', { connected: true, folderUrl: msg.drive });
-            }
+            const sessionLabel = msg.label || 'Thinking Session';
+            // userEmail comes from auth (link token or email auth)
+            const userEmail = msg.userEmail || null;
+            const driveResult = await driveManager.createSessionWithPhases(sessionLabel, userEmail);
+            console.log(`[DRIVE] Session folder created: ${driveResult.sessionFolderUrl}`);
+            sendToClient('drive_status', { connected: true, folderUrl: driveResult.sessionFolderUrl });
           } catch (err) {
             console.warn('[DRIVE] Init failed (continuing without):', err.message);
             driveManager = null;

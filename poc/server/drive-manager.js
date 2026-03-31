@@ -2,25 +2,45 @@
  * Google Drive Manager
  *
  * Creates folder structure in Google Drive using a service account.
- * The service account approach avoids user OAuth flows — simpler for POC.
+ * The service account approach avoids user OAuth flows.
+ *
+ * Flow:
+ *   1. Session starts -> createSessionWithPhases() creates:
+ *        Thinking Foundry Sessions/
+ *        └── [Session Name] - [Date]/
+ *            ├── 1 - User Stories/
+ *            ├── 2 - Mine/
+ *            ├── 3 - Scout/
+ *            ├── 4 - Assay/
+ *            ├── 5 - Crucible/
+ *            ├── 6 - Auditor/
+ *            ├── 7 - Plan/
+ *            └── 8 - Verify/
+ *
+ *   2. Phase completes -> writePhaseDoc() writes output into that phase's folder
+ *   3. Session folder is shared with the user's email (appears in "Shared with me")
  *
  * Setup:
- * 1. Create a service account in Google Cloud Console
- * 2. Enable Google Drive API
- * 3. Download JSON key file
- * 4. Set GOOGLE_SERVICE_ACCOUNT env var to the path
- *
- * The service account creates folders in its own Drive space,
- * then shares them with the user's email so they appear in "Shared with me".
+ *   Set GOOGLE_SERVICE_ACCOUNT_B64 (Railway) or GOOGLE_SERVICE_ACCOUNT (local path)
  */
 
 const { google } = require('googleapis');
 const fs = require('fs');
 
+const PHASE_NAMES = [
+  'User Stories', 'Mine', 'Scout', 'Assay',
+  'Crucible', 'Auditor', 'Plan', 'Verify'
+];
+
 class DriveManager {
   constructor() {
     this.drive = null;
     this.initialized = false;
+    this.serviceAccountEmail = null;
+
+    // Session state
+    this.sessionFolderId = null;
+    this.phaseFolderIds = {}; // phaseNum -> folderId
   }
 
   async init() {
@@ -28,7 +48,7 @@ class DriveManager {
 
     let keyFile = null;
 
-    // Option 1: Base64-encoded service account JSON from env var (Railway)
+    // Option 1: Base64-encoded service account JSON (Railway)
     if (process.env.GOOGLE_SERVICE_ACCOUNT_B64) {
       try {
         const decoded = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
@@ -70,7 +90,6 @@ class DriveManager {
 
     const rootName = 'Thinking Foundry Sessions';
 
-    // Search for existing folder
     const res = await this.drive.files.list({
       q: `name='${rootName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: 'files(id, name)',
@@ -78,11 +97,9 @@ class DriveManager {
     });
 
     if (res.data.files.length > 0) {
-      console.log(`[DRIVE] Found existing root folder: ${res.data.files[0].id}`);
       return res.data.files[0].id;
     }
 
-    // Create root folder
     const folder = await this.drive.files.create({
       requestBody: {
         name: rootName,
@@ -96,75 +113,53 @@ class DriveManager {
   }
 
   /**
-   * Create session folder structure:
-   *   Thinking Foundry Sessions/
-   *   └── [Session Name] - [Date]/
-   *       ├── MINE/phase-output.md
-   *       ├── SCOUT/phase-output.md
-   *       └── ... etc
+   * Create session folder with all 8 phase subfolders up front.
+   * Call this once at session start.
+   *
+   * @param {string} sessionName - e.g. "Product Strategy" or "Thinking Session"
+   * @param {string} [userEmail] - If provided, folder is shared with this email
+   * @returns {{ sessionFolderId, sessionFolderUrl, phaseFolderIds }}
    */
-  async createSessionFolder(sessionName, userEmail, phaseOutputs) {
+  async createSessionWithPhases(sessionName, userEmail) {
     await this.init();
 
     const rootId = await this.getOrCreateRootFolder();
     const dateStr = new Date().toISOString().split('T')[0];
-    const sessionFolderName = `${sessionName} - ${dateStr}`;
+    const folderName = `${sessionName || 'Thinking Session'} - ${dateStr}`;
 
     // Create session folder
     const sessionFolder = await this.drive.files.create({
       requestBody: {
-        name: sessionFolderName,
+        name: folderName,
         mimeType: 'application/vnd.google-apps.folder',
         parents: [rootId]
       },
       fields: 'id, webViewLink'
     });
 
-    const sessionFolderId = sessionFolder.data.id;
-    console.log(`[DRIVE] Created session folder: ${sessionFolderName} (${sessionFolderId})`);
+    this.sessionFolderId = sessionFolder.data.id;
+    console.log(`[DRIVE] Created session folder: ${folderName} (${this.sessionFolderId})`);
 
-    // Create phase subfolders and files
-    const phaseNames = {
-      1: 'MINE', 2: 'SCOUT', 3: 'ASSAY', 4: 'CRUCIBLE',
-      5: 'AUDITOR', 6: 'PLAN', 7: 'VERIFY'
-    };
-
-    for (const [phaseNum, phaseName] of Object.entries(phaseNames)) {
-      // Create phase subfolder
+    // Create all 8 phase subfolders
+    for (let i = 0; i < PHASE_NAMES.length; i++) {
       const phaseFolder = await this.drive.files.create({
         requestBody: {
-          name: phaseName,
+          name: `${i + 1} - ${PHASE_NAMES[i]}`,
           mimeType: 'application/vnd.google-apps.folder',
-          parents: [sessionFolderId]
+          parents: [this.sessionFolderId]
         },
         fields: 'id'
       });
-
-      // Create phase output file if we have content
-      const output = phaseOutputs && phaseOutputs[phaseNum];
-      if (output) {
-        const content = typeof output === 'string' ? output : output.output || '';
-        await this.drive.files.create({
-          requestBody: {
-            name: 'phase-output.md',
-            mimeType: 'text/markdown',
-            parents: [phaseFolder.data.id]
-          },
-          media: {
-            mimeType: 'text/markdown',
-            body: `# ${phaseName} Output\n\n${content}`
-          },
-          fields: 'id'
-        });
-        console.log(`[DRIVE] Created ${phaseName}/phase-output.md`);
-      }
+      this.phaseFolderIds[i] = phaseFolder.data.id;
     }
 
-    // Share with user if email provided
+    console.log(`[DRIVE] Created 8 phase subfolders`);
+
+    // Share with user
     if (userEmail) {
       try {
         await this.drive.permissions.create({
-          fileId: sessionFolderId,
+          fileId: this.sessionFolderId,
           requestBody: {
             role: 'writer',
             type: 'user',
@@ -179,10 +174,73 @@ class DriveManager {
     }
 
     return {
-      folderId: sessionFolderId,
-      folderUrl: sessionFolder.data.webViewLink
+      sessionFolderId: this.sessionFolderId,
+      sessionFolderUrl: sessionFolder.data.webViewLink,
+      phaseFolderIds: { ...this.phaseFolderIds }
     };
+  }
+
+  /**
+   * Write phase output into the phase subfolder's description.
+   * Uses folder description (metadata, no storage quota needed) instead of
+   * file upload, because service accounts have 0 storage quota on personal
+   * Google accounts. Description limit is ~8000 chars — enough for summaries.
+   *
+   * @param {number} phaseNum - 0-7
+   * @param {string} content - Phase output text
+   * @param {object} [meta] - Optional metadata (confidence, squeezeNotes)
+   * @returns {{ folderId, folderUrl } | null}
+   */
+  async writePhaseDoc(phaseNum, content, meta) {
+    if (!this.sessionFolderId) {
+      console.warn('[DRIVE] No session folder — call createSessionWithPhases first');
+      return null;
+    }
+
+    const folderId = this.phaseFolderIds[phaseNum];
+    if (!folderId) {
+      console.warn(`[DRIVE] No folder for phase ${phaseNum}`);
+      return null;
+    }
+
+    const phaseName = PHASE_NAMES[phaseNum] || 'Phase ' + phaseNum;
+    let description = [
+      `Phase ${phaseNum + 1}: ${phaseName}`,
+      `Confidence: ${(meta && meta.confidence) || 'N/A'}/10`,
+      `Date: ${new Date().toLocaleDateString()}`,
+      '',
+      content || '(No output captured)',
+      '',
+      (meta && meta.squeezeNotes) ? 'Squeeze Notes:\n' + meta.squeezeNotes : '',
+    ].filter(Boolean).join('\n');
+
+    // Truncate to ~7500 chars to stay within Google's description limit
+    if (description.length > 7500) {
+      description = description.substring(0, 7497) + '...';
+    }
+
+    try {
+      const folder = await this.drive.files.update({
+        fileId: folderId,
+        requestBody: { description },
+        fields: 'id, webViewLink'
+      });
+
+      console.log(`[DRIVE] Wrote Phase ${phaseNum + 1} (${phaseName}) to folder description`);
+      return { folderId: folder.data.id, folderUrl: folder.data.webViewLink };
+    } catch (err) {
+      console.error(`[DRIVE] Failed to write Phase ${phaseNum} description: ${err.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Check if Drive is configured (has credentials in env).
+   * Does NOT initialize — just checks env vars.
+   */
+  static isConfigured() {
+    return !!(process.env.GOOGLE_SERVICE_ACCOUNT_B64 || process.env.GOOGLE_SERVICE_ACCOUNT);
   }
 }
 
-module.exports = { DriveManager };
+module.exports = { DriveManager, PHASE_NAMES };

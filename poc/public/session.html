@@ -3,197 +3,372 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The Thinking Foundry</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#faf9f7;--bg-card:#fff;--bg-drawer:#fff;
-  --text:#1a1a1a;--text-muted:#8b8685;--text-light:#b5b0ae;
-  --border:#e8e5e3;--border-light:#f0eeed;
-  --accent:#4f46e5;--accent-light:#eef2ff;
-  --ai-border:#4f46e5;--user-border:#d97706;
-  --success:#16a34a;--danger:#dc2626;
-  --serif:'DM Serif Display',Georgia,serif;
-  --sans:'DM Sans','Segoe UI',system-ui,sans-serif;
+  --bg:#f8f7f4;
+  --bg-card:#ffffff;
+  --bg-elevated:#fdfcfa;
+  --bg-hover:#f3f1ed;
+  --bg-input:#f8f7f4;
+  --text:#1c1917;
+  --text-secondary:#57534e;
+  --text-muted:#a8a29e;
+  --text-faint:#d6d3d1;
+  --border:#e7e5e4;
+  --border-light:#f5f5f4;
+  --accent:#292524;
+  --accent-soft:#44403c;
+  --accent-surface:rgba(41,37,36,0.06);
+  --ai-accent:#1d4ed8;
+  --ai-surface:#eff6ff;
+  --ai-border:#bfdbfe;
+  --user-accent:#92400e;
+  --user-surface:#fffbeb;
+  --green:#15803d;
+  --green-surface:#f0fdf4;
+  --red:#b91c1c;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+  --radius-sm:6px;
+  --radius:10px;
+  --radius-lg:14px;
+  --radius-xl:20px;
+  --shadow-sm:0 1px 2px rgba(28,25,23,0.04);
+  --shadow:0 1px 3px rgba(28,25,23,0.06),0 1px 2px rgba(28,25,23,0.04);
+  --shadow-lg:0 4px 16px rgba(28,25,23,0.08),0 1px 3px rgba(28,25,23,0.04);
+  --shadow-xl:0 8px 30px rgba(28,25,23,0.12);
 }
-html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text)}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
 
-/* === SETUP SCREEN === */
-#setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
-.setup-card{max-width:460px;width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px 36px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-.setup-card h1{font-family:var(--serif);font-size:1.75rem;font-weight:400;margin-bottom:4px}
-.setup-card .sub{color:var(--text-muted);font-size:0.875rem;margin-bottom:28px}
-.field{margin-bottom:20px}
-.field label{display:block;font-size:0.8rem;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:0.02em}
-.field .opt{font-weight:400;color:var(--text-light);font-size:0.7rem;margin-left:4px}
-.field input[type="url"],.field input[type="text"]{width:100%;border:1px solid var(--border);padding:10px 14px;border-radius:8px;font-size:0.875rem;font-family:var(--sans);color:var(--text);background:var(--bg);transition:border-color 0.15s}
-.field input:focus{outline:none;border-color:var(--accent)}
-.field input::placeholder{color:var(--text-light)}
-.field .hint{font-size:0.75rem;color:var(--text-light);margin-top:4px;line-height:1.4}
-.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;color:var(--text-muted);font-size:0.8rem;cursor:pointer;transition:border-color 0.15s}
-.drop-zone:hover{border-color:var(--accent)}
+/* ── SETUP SCREEN ── */
+#setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;position:relative}
+#setup::before{content:'';position:absolute;top:0;left:0;right:0;height:50vh;background:linear-gradient(180deg,#eae8e4 0%,var(--bg) 100%);z-index:0}
+.setup-card{max-width:480px;width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:44px 40px;box-shadow:var(--shadow-lg);position:relative;z-index:1}
+.setup-brand{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.setup-brand .mark{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.setup-brand .mark svg{width:14px;height:14px}
+.setup-card h1{font-family:var(--serif);font-size:1.65rem;font-weight:400;letter-spacing:-0.01em}
+.setup-card .sub{color:var(--text-secondary);font-size:0.85rem;margin-bottom:32px;margin-top:2px;line-height:1.5}
+.field{margin-bottom:22px}
+.field label{display:flex;align-items:center;gap:6px;font-size:0.75rem;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase}
+.field .tag{font-size:0.65rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;padding:1px 6px;background:var(--bg);border-radius:3px;border:1px solid var(--border-light)}
+.field input[type="url"],.field input[type="text"]{width:100%;border:1px solid var(--border);padding:10px 14px;border-radius:var(--radius);font-size:0.85rem;font-family:var(--sans);color:var(--text);background:var(--bg-input);transition:all 0.15s}
+.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-surface)}
+.field input::placeholder{color:var(--text-faint)}
+.field .hint{font-size:0.72rem;color:var(--text-muted);margin-top:5px;line-height:1.45}
+.drop-zone{border:1.5px dashed var(--border);border-radius:var(--radius);padding:22px 16px;text-align:center;color:var(--text-muted);font-size:0.78rem;cursor:pointer;transition:all 0.2s;background:var(--bg-input)}
+.drop-zone:hover{border-color:var(--accent-soft);color:var(--text-secondary);background:var(--accent-surface)}
+.drop-zone.has-files{border-color:var(--green);background:var(--green-surface);color:var(--green)}
 .drop-zone input{display:none}
-.start-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;font-family:var(--sans);cursor:pointer;margin-top:8px;transition:background 0.15s}
-.start-btn:hover{background:#4338ca}
+.drop-zone .icon{display:block;margin:0 auto 6px;color:var(--text-muted);opacity:0.5}
+.start-btn{width:100%;padding:13px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:0.9rem;font-weight:600;font-family:var(--sans);cursor:pointer;margin-top:12px;transition:all 0.2s;letter-spacing:0.01em}
+.start-btn:hover{background:var(--accent-soft);box-shadow:var(--shadow)}
+.start-btn:active{transform:scale(0.99)}
 
-/* === SESSION SCREEN === */
-#session{display:none;height:100vh;flex-direction:column}
-.top-bar{display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg-card);font-size:0.8rem;gap:12px}
-.top-bar .title{font-family:var(--serif);font-size:1rem;color:var(--text)}
-.top-bar .phase-name{color:var(--text-muted);font-weight:500}
-.top-bar .status{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--text-muted)}
-.live-ring{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+/* ── SESSION SCREEN ── */
+#session{display:none;height:100vh;flex-direction:column;background:var(--bg)}
 
-/* Insights area */
-.insights{flex:1;overflow-y:auto;padding:20px 24px}
-.insights-empty{text-align:center;color:var(--text-light);padding:60px 20px;font-size:0.9rem;line-height:1.6}
-.bullet{display:flex;gap:10px;padding:6px 0;animation:fadeIn 0.3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.bullet .bar{width:3px;border-radius:2px;flex-shrink:0;margin-top:3px;height:16px}
-.bullet .bar.ai{background:var(--ai-border)}
-.bullet .bar.user{background:var(--user-border)}
-.bullet .text{font-size:0.875rem;line-height:1.5;color:var(--text)}
+/* Top bar */
+.top-bar{display:flex;align-items:center;padding:0 20px;height:48px;border-bottom:1px solid var(--border);background:var(--bg-card);gap:12px;flex-shrink:0}
+.top-bar .logo{display:flex;align-items:center;gap:8px}
+.top-bar .logo .mark{width:22px;height:22px;background:var(--accent);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.top-bar .logo .mark svg{width:11px;height:11px}
+.top-bar .logo span{font-family:var(--serif);font-size:0.95rem;color:var(--text)}
+.top-bar .divider{width:1px;height:20px;background:var(--border)}
+.top-bar .phase-badge{display:flex;align-items:center;gap:6px;font-size:0.75rem;font-weight:600;color:var(--text-secondary);letter-spacing:0.02em}
+.top-bar .phase-badge .num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700}
+.top-bar .conn{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:0.7rem}
+.top-bar .conn-item{display:flex;align-items:center;gap:4px;color:var(--text-muted)}
+.top-bar .conn-item.ok{color:var(--green)}
+.top-bar .conn-item.err{color:var(--red)}
+.top-bar .status-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;color:var(--text-muted);background:var(--bg)}
+.top-bar .status-pill.live{color:var(--green);background:var(--green-surface)}
+.top-bar .status-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.top-bar .status-pill.live .dot{animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 
-/* Status bar */
-.status-bar{padding:6px 24px;font-size:0.75rem;color:var(--text-light);border-top:1px solid var(--border-light);background:var(--bg)}
-.status-bar .speaking{color:var(--accent);font-weight:500}
+/* ── INSIGHTS (main scrolling area) ── */
+.insights{flex:1;overflow-y:auto;padding:20px 28px 12px;scroll-behavior:smooth}
+.insights-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text-muted);padding:40px 20px}
+.insights-empty .icon-lg{width:48px;height:48px;border-radius:50%;background:var(--accent-surface);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.insights-empty h3{font-family:var(--serif);font-size:1.15rem;color:var(--text-secondary);margin-bottom:4px;font-weight:400}
+.insights-empty p{font-size:0.8rem;line-height:1.5;max-width:300px}
 
-/* Input bar */
-.input-bar{display:flex;gap:8px;padding:8px 16px;border-top:1px solid var(--border);background:var(--bg-card)}
-.input-bar input{flex:1;border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-family:var(--sans);color:var(--text);background:var(--bg)}
-.input-bar input:focus{outline:none;border-color:var(--accent)}
-.input-bar input::placeholder{color:var(--text-light)}
-.input-bar .upload-btn{padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text-muted);font-size:0.8rem;cursor:pointer;white-space:nowrap}
-.input-bar .upload-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* Bullet items */
+.bullet{display:flex;gap:12px;padding:8px 0;animation:slideIn 0.35s cubic-bezier(0.16,1,0.3,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bullet .indicator{width:3px;border-radius:2px;flex-shrink:0;min-height:18px;margin-top:2px}
+.bullet .indicator.ai{background:var(--ai-accent)}
+.bullet .indicator.user{background:var(--user-accent)}
+.bullet .indicator.system{background:var(--text-faint)}
+.bullet .content{flex:1;min-width:0}
+.bullet .content .text{font-size:0.84rem;line-height:1.55;color:var(--text)}
+.bullet .content .meta{font-size:0.68rem;color:var(--text-muted);margin-top:2px}
 
-/* Phase bar + controls */
-.bottom-bar{display:flex;align-items:center;padding:10px 16px;gap:8px;border-top:1px solid var(--border);background:var(--bg-card)}
-.phase-circles{display:flex;gap:6px;flex:1;justify-content:center}
-.phase-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.2s;background:var(--bg-card)}
-.phase-circle.current{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
-.phase-circle.done{border-color:var(--success);color:var(--success);background:#f0fdf4}
-.phase-circle:hover{border-color:var(--accent);transform:scale(1.1)}
-.pause-btn{padding:10px 28px;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;font-family:var(--sans);cursor:pointer;background:#f4f3f1;color:var(--text);transition:all 0.15s}
-.pause-btn:hover{background:#e8e5e3}
-.pause-btn.paused{background:var(--accent);color:#fff}
-.end-btn{padding:10px 16px;border:1px solid var(--border);border-radius:10px;font-size:0.8rem;color:var(--danger);background:var(--bg-card);cursor:pointer;font-family:var(--sans)}
+/* Phase separator */
+.phase-sep{display:flex;align-items:center;gap:12px;margin:20px 0 12px;font-size:0.7rem;font-weight:600;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase}
+.phase-sep::before,.phase-sep::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* Phase drawer */
-.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.2);opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:10}
+/* AI speaking indicator */
+.speaking-bar{padding:6px 28px;font-size:0.75rem;color:var(--ai-accent);font-weight:500;display:flex;align-items:center;gap:8px;background:var(--ai-surface);border-top:1px solid var(--ai-border);flex-shrink:0;transition:all 0.3s}
+.speaking-bar.hidden{height:0;padding:0 28px;opacity:0;border:none;overflow:hidden}
+.speaking-bar .wave{display:flex;align-items:center;gap:2px;height:14px}
+.speaking-bar .wave span{display:block;width:2px;border-radius:1px;background:var(--ai-accent);animation:wave 1.2s ease-in-out infinite}
+.speaking-bar .wave span:nth-child(1){height:4px;animation-delay:0s}
+.speaking-bar .wave span:nth-child(2){height:10px;animation-delay:0.15s}
+.speaking-bar .wave span:nth-child(3){height:6px;animation-delay:0.3s}
+.speaking-bar .wave span:nth-child(4){height:12px;animation-delay:0.45s}
+.speaking-bar .wave span:nth-child(5){height:4px;animation-delay:0.6s}
+@keyframes wave{0%,100%{height:4px}50%{height:14px}}
+
+.listening-bar{padding:6px 28px;font-size:0.75rem;color:var(--text-muted);font-weight:500;display:flex;align-items:center;gap:8px;background:var(--bg);border-top:1px solid var(--border-light);flex-shrink:0}
+.listening-bar .mic-icon{width:14px;height:14px;opacity:0.5}
+
+/* ── INPUT BAR ── */
+.input-bar{display:flex;gap:6px;padding:8px 16px;border-top:1px solid var(--border);background:var(--bg-card);align-items:center;flex-shrink:0}
+.input-bar input{flex:1;border:1px solid var(--border);padding:9px 14px;border-radius:var(--radius);font-size:0.8rem;font-family:var(--sans);color:var(--text);background:var(--bg-input);transition:all 0.15s}
+.input-bar input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-surface)}
+.input-bar input::placeholder{color:var(--text-faint)}
+.input-bar .action-btn{padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-card);color:var(--text-secondary);font-size:0.78rem;font-weight:500;cursor:pointer;white-space:nowrap;font-family:var(--sans);transition:all 0.15s;display:flex;align-items:center;gap:5px}
+.input-bar .action-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-surface)}
+.input-bar .action-btn svg{width:14px;height:14px;opacity:0.6}
+
+/* ── BOTTOM BAR (phases + controls) ── */
+.bottom-bar{display:flex;align-items:center;padding:10px 16px;gap:10px;border-top:1px solid var(--border);background:var(--bg-card);flex-shrink:0}
+.phase-track{display:flex;gap:4px;flex:1;justify-content:center;align-items:center}
+.phase-track .phase-dot{position:relative;width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--text-muted);cursor:pointer;transition:all 0.25s cubic-bezier(0.16,1,0.3,1);background:var(--bg-card);flex-shrink:0}
+.phase-track .phase-dot:hover{border-color:var(--accent);transform:scale(1.12);box-shadow:var(--shadow)}
+.phase-track .phase-dot.current{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 0 3px var(--accent-surface)}
+.phase-track .phase-dot.done{border-color:var(--green);color:var(--green);background:var(--green-surface)}
+.phase-track .phase-dot .label{position:absolute;bottom:-16px;font-size:0.55rem;font-weight:500;color:var(--text-muted);white-space:nowrap;opacity:0;transition:opacity 0.2s;pointer-events:none;letter-spacing:0.02em}
+.phase-track .phase-dot:hover .label,.phase-track .phase-dot.current .label{opacity:1}
+.phase-track .connector{width:12px;height:2px;background:var(--border);border-radius:1px;flex-shrink:0}
+.phase-track .connector.done{background:var(--green)}
+
+.ctrl-btn{padding:9px 22px;border:none;border-radius:var(--radius);font-size:0.82rem;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all 0.2s;letter-spacing:0.01em}
+.ctrl-btn.pause{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+.ctrl-btn.pause:hover{background:var(--bg-hover);border-color:var(--accent-soft)}
+.ctrl-btn.pause.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ctrl-btn.end{background:none;color:var(--red);border:1px solid var(--border);padding:9px 14px;font-size:0.78rem}
+.ctrl-btn.end:hover{background:#fef2f2;border-color:var(--red)}
+
+/* ── PHASE DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(28,25,23,0.15);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:50}
 .drawer-overlay.open{opacity:1;pointer-events:auto}
-.drawer{position:fixed;bottom:0;left:0;right:0;background:var(--bg-drawer);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);z-index:11;max-height:60vh;display:flex;flex-direction:column}
+.drawer{position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-top-left-radius:var(--radius-xl);border-top-right-radius:var(--radius-xl);box-shadow:var(--shadow-xl);transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.32,0.72,0,1);z-index:51;max-height:65vh;display:flex;flex-direction:column}
 .drawer.open{transform:translateY(0)}
-.drawer-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 0;flex-shrink:0;cursor:grab}
-.drawer-header{padding:16px 24px 12px;border-bottom:1px solid var(--border-light);display:flex;align-items:baseline;gap:12px}
-.drawer-header h3{font-family:var(--serif);font-size:1.1rem;font-weight:400}
-.drawer-header .conf{font-size:0.75rem;color:var(--text-muted)}
-.drawer-body{overflow-y:auto;padding:16px 24px 24px;flex:1}
-.drawer-body .bullet{padding:4px 0}
-.drawer-footer{padding:8px 24px 16px;border-top:1px solid var(--border-light);font-size:0.75rem;color:var(--text-light);display:flex;gap:16px}
-.drawer-footer a{color:var(--accent);text-decoration:none}
+.drawer-handle{width:32px;height:4px;border-radius:2px;background:var(--text-faint);margin:10px auto 0;flex-shrink:0;cursor:grab}
+.drawer-head{padding:16px 28px 14px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:14px}
+.drawer-head .phase-num{width:28px;height:28px;border-radius:7px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0}
+.drawer-head .phase-num.completed{background:var(--green)}
+.drawer-head .info{flex:1}
+.drawer-head .info h3{font-family:var(--serif);font-size:1.1rem;font-weight:400;margin-bottom:1px}
+.drawer-head .info .status-text{font-size:0.72rem;color:var(--text-muted);font-weight:500}
+.drawer-head .close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:all 0.15s}
+.drawer-head .close-btn:hover{background:var(--bg-hover);color:var(--text)}
+.drawer-body{overflow-y:auto;padding:16px 28px 28px;flex:1}
+.drawer-body .bullet{padding:5px 0}
+.drawer-body .empty{color:var(--text-muted);font-size:0.82rem;padding:20px 0;text-align:center}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .setup-card{padding:32px 24px;border-radius:var(--radius-lg)}
+  .insights{padding:16px 18px 8px}
+  .phase-track .phase-dot{width:28px;height:28px;font-size:0.65rem}
+  .phase-track .connector{width:6px}
+  .top-bar .logo span{display:none}
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+/* ── Transitions ── */
+.fade-in{animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style></head>
 <body>
 
-<!-- SETUP -->
+<!-- ════════════════ SETUP ════════════════ -->
 <div id="setup">
   <div class="setup-card">
-    <h1>The Thinking Foundry</h1>
-    <p class="sub">Structured thinking. From confusion to clarity.</p>
+    <div class="setup-brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <h1>The Thinking Foundry</h1>
+    </div>
+    <p class="sub">Structured thinking, from confusion to clarity. Connect your context, then start a voice session.</p>
+
     <div class="field">
-      <label>GitHub Repository <span class="opt">optional</span></label>
+      <label>GitHub Repository <span class="tag">Optional</span></label>
       <input type="url" id="githubInput" placeholder="https://github.com/owner/repo">
-      <p class="hint">Paste a project repo. The AI reads it for context before the session starts.</p>
+      <p class="hint">The AI reads your codebase for context before the session begins.</p>
     </div>
+
     <div class="field">
-      <label>Google Drive Folder <span class="opt">optional</span></label>
-      <input type="url" id="driveInput" placeholder="https://drive.google.com/drive/folders/...">
-      <p class="hint">Share this folder with the Thinking Foundry service account first. Session documents will be saved here as you go.</p>
-    </div>
-    <div class="field">
-      <label>Upload Documents <span class="opt">optional</span></label>
-      <div class="drop-zone" onclick="document.getElementById('docsInput').click()">
+      <label>Documents <span class="tag">Optional</span></label>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('docsInput').click()">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
         Drop files here or click to browse
-        <input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx">
+        <input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx" onchange="handleFileSelect(this)">
       </div>
-      <p class="hint">.txt .md .pdf .docx accepted</p>
+      <p class="hint">.txt .md .pdf .docx accepted. Share context documents before the session.</p>
     </div>
+
     <button class="start-btn" onclick="startSession()">Start Session</button>
   </div>
 </div>
 
-<!-- SESSION -->
+<!-- ════════════════ SESSION ════════════════ -->
 <div id="session">
+  <!-- Top bar -->
   <div class="top-bar">
-    <span class="title">The Thinking Foundry</span>
-    <span class="phase-name" id="phaseLabel">Phase 0: User Stories</span>
-    <span id="connIndicators" style="display:flex;gap:8px;font-size:0.7rem;color:var(--text-light)"></span>
-    <span class="status" id="statusArea">Connecting...</span>
+    <div class="logo">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <span>The Thinking Foundry</span>
+    </div>
+    <div class="divider"></div>
+    <div class="phase-badge" id="phaseBadge">
+      <span class="num" id="phaseNum">1</span>
+      <span id="phaseName">User Stories</span>
+    </div>
+    <div class="conn" id="connIndicators"></div>
+    <div class="status-pill" id="statusPill">
+      <span class="dot"></span>
+      <span id="statusText">Connecting</span>
+    </div>
   </div>
 
+  <!-- Main insights area -->
   <div class="insights" id="insights">
-    <div class="insights-empty" id="emptyState">Waiting for the session to begin. The AI will speak to you directly. Key insights appear here as bullet points.</div>
+    <div class="insights-empty" id="emptyState">
+      <div class="icon-lg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </div>
+      <h3>Ready to listen</h3>
+      <p>The AI will speak to you directly. Key insights appear here as condensed bullet points as the conversation unfolds.</p>
+    </div>
   </div>
 
-  <div class="status-bar" id="statusBar">AI is listening</div>
+  <!-- Speaking / listening indicator -->
+  <div class="speaking-bar hidden" id="speakingBar">
+    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    AI is speaking
+  </div>
+  <div class="listening-bar" id="listeningBar">
+    <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+    Listening
+  </div>
 
+  <!-- Input bar -->
   <div class="input-bar">
     <input type="text" id="contextInput" placeholder="Type a message or paste text to share with the AI..." onkeydown="if(event.key==='Enter')sendContext()">
-    <button class="upload-btn" onclick="sendContext()" title="Send text">Send</button>
-    <button class="upload-btn" onclick="document.getElementById('midDocsInput').click()" title="Upload a file">File</button>
+    <button class="action-btn" onclick="sendContext()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Send
+    </button>
+    <button class="action-btn" onclick="document.getElementById('midDocsInput').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      File
+    </button>
     <input type="file" id="midDocsInput" style="display:none" multiple onchange="uploadMidSession(this)">
   </div>
 
+  <!-- Phase bar + controls -->
   <div class="bottom-bar">
-    <div class="phase-circles" id="phaseCircles"></div>
-    <button class="pause-btn" id="pauseBtn" onclick="togglePause()">Pause</button>
-    <button class="end-btn" onclick="endSession()">End</button>
+    <div class="phase-track" id="phaseTrack"></div>
+    <button class="ctrl-btn pause" id="pauseBtn" onclick="togglePause()">Pause</button>
+    <button class="ctrl-btn end" onclick="endSession()">End</button>
   </div>
 </div>
 
-<!-- PHASE DRAWER -->
+<!-- ════════════════ PHASE DRAWER ════════════════ -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-header">
-    <h3 id="drawerTitle">Phase 0: User Stories</h3>
-    <span class="conf" id="drawerConf"></span>
+  <div class="drawer-handle" id="drawerHandle"></div>
+  <div class="drawer-head">
+    <div class="phase-num" id="drawerNum">1</div>
+    <div class="info">
+      <h3 id="drawerTitle">User Stories</h3>
+      <span class="status-text" id="drawerStatus"></span>
+    </div>
+    <button class="close-btn" onclick="closeDrawer()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
   <div class="drawer-body" id="drawerBody"></div>
-  <div class="drawer-footer" id="drawerFooter"></div>
 </div>
 
 <script>
+/* ════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════ */
 var TOKEN = window.__TF_TOKEN || '';
-var PHASES = ['User Stories','Mine','Scout','Assay','Crucible','Auditor','Plan','Verify'];
-var ws, micCtx, processor, micStream, paused = false, phase = 0;
+var PHASES = [
+  {name:'User Stories', short:'Stories'},
+  {name:'Mine', short:'Mine'},
+  {name:'Scout', short:'Scout'},
+  {name:'Assay', short:'Assay'},
+  {name:'Crucible', short:'Crucible'},
+  {name:'Auditor', short:'Auditor'},
+  {name:'Plan', short:'Plan'},
+  {name:'Verify', short:'Verify'}
+];
+var ws, micCtx, processor, micStream;
+var paused = false, phase = 0;
 var playCtx = null, audioQueue = [], isPlaying = false;
-
-// Bullet storage per phase
 var phaseBullets = {};
 for (var i = 0; i < 8; i++) phaseBullets[i] = [];
 
-// Build phase circles
+/* ── Build phase track ── */
 (function() {
-  var container = document.getElementById('phaseCircles');
+  var track = document.getElementById('phaseTrack');
   for (var i = 0; i < 8; i++) {
-    var el = document.createElement('div');
-    el.className = 'phase-circle' + (i === 0 ? ' current' : '');
-    el.textContent = i + 1;
-    el.setAttribute('data-phase', i);
-    el.onclick = function() { openDrawer(parseInt(this.getAttribute('data-phase'))); };
-    container.appendChild(el);
+    if (i > 0) {
+      var conn = document.createElement('div');
+      conn.className = 'connector';
+      conn.setAttribute('data-after', i);
+      track.appendChild(conn);
+    }
+    var dot = document.createElement('div');
+    dot.className = 'phase-dot' + (i === 0 ? ' current' : '');
+    dot.textContent = i + 1;
+    dot.setAttribute('data-phase', i);
+    dot.onclick = function() { openDrawer(parseInt(this.getAttribute('data-phase'))); };
+    var label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = PHASES[i].short;
+    dot.appendChild(label);
+    track.appendChild(dot);
   }
 })();
 
+/* ── File drop zone ── */
+function handleFileSelect(input) {
+  var zone = document.getElementById('dropZone');
+  if (input.files.length > 0) {
+    zone.className = 'drop-zone has-files';
+    zone.innerHTML = '<input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx" onchange="handleFileSelect(this)">' +
+      input.files.length + ' file' + (input.files.length > 1 ? 's' : '') + ' selected';
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   SESSION LIFECYCLE
+   ════════════════════════════════════════════════════ */
 function startSession() {
   var github = document.getElementById('githubInput').value.trim();
-  var drive = document.getElementById('driveInput').value.trim();
   var fileInput = document.getElementById('docsInput');
   var docs = [];
   var files = fileInput.files;
+
   document.getElementById('setup').style.display = 'none';
   document.getElementById('session').style.display = 'flex';
+
   if (files.length > 0) {
     var pending = files.length;
     for (var i = 0; i < files.length; i++) {
@@ -202,141 +377,242 @@ function startSession() {
         reader.onload = function(e) {
           docs.push({ name: file.name, content: e.target.result });
           pending--;
-          if (pending === 0) connectWs(github, drive, docs);
+          if (pending === 0) connectWs(github, docs);
         };
         reader.readAsText(file);
       })(files[i]);
     }
   } else {
-    connectWs(github, drive, docs);
+    connectWs(github, docs);
   }
 }
 
-function connectWs(github, drive, docs) {
-  // Show connection indicators
+function connectWs(github, docs) {
   var indicators = document.getElementById('connIndicators');
   var parts = [];
-  if (github) parts.push('<span style="color:var(--success)">GitHub</span>');
-  if (drive) parts.push('<span style="color:var(--text-light)">Drive (pending)</span>');
-  if (docs.length > 0) parts.push('<span style="color:var(--success)">' + docs.length + ' docs</span>');
-  indicators.innerHTML = parts.join(' | ');
+  if (github) parts.push('<span class="conn-item ok">GitHub</span>');
+  parts.push('<span class="conn-item" id="driveStatus">Drive</span>');
+  if (docs.length > 0) parts.push('<span class="conn-item ok">' + docs.length + ' doc' + (docs.length > 1 ? 's' : '') + '</span>');
+  indicators.innerHTML = parts.join('');
 
   var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host);
+
   ws.onopen = function() {
     ws.send(JSON.stringify({
-      type: 'session-setup', accessToken: TOKEN,
-      github: github || null, drive: drive || null,
+      type: 'session-setup',
+      accessToken: TOKEN,
+      github: github || null,
       documents: docs.length > 0 ? docs : null,
       frameworks: ['stoicism']
     }));
-    document.getElementById('statusArea').textContent = 'Connecting to AI...';
+    setStatus('connecting', 'Connecting');
   };
+
   ws.onmessage = function(e) {
     if (typeof e.data !== 'string') return;
     try {
       var msg = JSON.parse(e.data);
+
       if (msg.type === 'status' && msg.state === 'connected') {
         document.getElementById('emptyState').style.display = 'none';
-        document.getElementById('statusArea').innerHTML = '<span class="live-ring"></span> Live';
-        document.getElementById('statusBar').textContent = 'AI is listening';
+        setStatus('live', 'Live');
+        setAiState('listening');
         startMic();
       }
+
       if (msg.type === 'audio' && msg.data) {
         queueAudio(msg.data);
-        document.getElementById('statusBar').innerHTML = '<span class="speaking">AI is speaking</span>';
+        setAiState('speaking');
       }
+
       if (msg.type === 'outline_item') {
         addBullet(msg.speaker, msg.text, msg.phase);
-        if (msg.speaker === 'ai') document.getElementById('statusBar').textContent = 'AI is listening';
+        if (msg.speaker === 'ai') setAiState('listening');
       }
+
       if (msg.type === 'phase' || msg.type === 'phase_transition') {
         var newPhase = msg.phase || msg.to || 0;
         updatePhase(newPhase);
       }
+
       if (msg.type === 'status' && msg.state === 'stopped') {
-        document.getElementById('statusArea').textContent = 'Session ended';
+        setStatus('ended', 'Ended');
+        setAiState('ended');
         document.getElementById('pauseBtn').textContent = 'Ended';
         document.getElementById('pauseBtn').disabled = true;
-        document.getElementById('statusBar').textContent = 'Session complete';
       }
+
       if (msg.type === 'interrupted') {
-        audioQueue = []; isPlaying = false; // Clear audio on barge-in
+        audioQueue = [];
+        isPlaying = false;
       }
+
       if (msg.type === 'drive_status') {
-        var ind = document.getElementById('connIndicators');
-        if (msg.connected) {
-          ind.innerHTML = ind.innerHTML.replace('Drive (pending)', '<span style="color:var(--success)">Drive</span>');
-        } else {
-          ind.innerHTML = ind.innerHTML.replace('Drive (pending)', '<span style="color:var(--danger)">Drive failed</span>');
-        }
+        var ds = document.getElementById('driveStatus');
+        if (ds) ds.className = 'conn-item ' + (msg.connected ? 'ok' : 'err');
       }
+
       if (msg.type === 'drive_sync') {
-        addBullet('ai', 'Saved to Drive: Phase ' + msg.phase + ' - ' + msg.phaseName, msg.phase);
+        addBullet('system', 'Saved to Drive: Phase ' + msg.phase + ' -- ' + msg.phaseName, msg.phase);
       }
-      if (msg.type === 'error') addBullet('ai', 'Error: ' + msg.message, phase);
+
+      if (msg.type === 'error') addBullet('system', 'Error: ' + msg.message, phase);
     } catch(err) {}
   };
-  ws.onclose = function(e) { document.getElementById('statusArea').textContent = 'Disconnected (' + e.code + ')'; };
+
+  ws.onclose = function(e) {
+    setStatus('disconnected', 'Disconnected');
+  };
+}
+
+/* ════════════════════════════════════════════════════
+   UI HELPERS
+   ════════════════════════════════════════════════════ */
+function setStatus(state, text) {
+  var pill = document.getElementById('statusPill');
+  var label = document.getElementById('statusText');
+  label.textContent = text;
+  pill.className = 'status-pill' + (state === 'live' ? ' live' : '');
+}
+
+function setAiState(state) {
+  var speaking = document.getElementById('speakingBar');
+  var listening = document.getElementById('listeningBar');
+  if (state === 'speaking') {
+    speaking.className = 'speaking-bar';
+    listening.style.display = 'none';
+  } else if (state === 'listening') {
+    speaking.className = 'speaking-bar hidden';
+    listening.style.display = 'flex';
+  } else {
+    speaking.className = 'speaking-bar hidden';
+    listening.style.display = 'none';
+  }
 }
 
 function addBullet(speaker, text, p) {
   if (!text || text.trim().length < 3) return;
   var phaseNum = p !== undefined ? p : phase;
   phaseBullets[phaseNum] = phaseBullets[phaseNum] || [];
-  phaseBullets[phaseNum].push({ speaker: speaker, text: text });
+  phaseBullets[phaseNum].push({ speaker: speaker, text: text, time: new Date() });
+
   var container = document.getElementById('insights');
   var el = document.createElement('div');
   el.className = 'bullet';
-  el.innerHTML = '<div class="bar ' + speaker + '"></div><div class="text">' + text + '</div>';
+
+  var now = new Date();
+  var timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  el.innerHTML = '<div class="indicator ' + speaker + '"></div>' +
+    '<div class="content"><div class="text">' + escapeHtml(text) + '</div>' +
+    '<div class="meta">' + timeStr + ' -- Phase ' + (phaseNum + 1) + ': ' + PHASES[phaseNum].name + '</div></div>';
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
 }
 
-function updatePhase(newPhase) {
-  phase = newPhase;
-  document.getElementById('phaseLabel').textContent = 'Phase ' + phase + ': ' + PHASES[phase];
-  var circles = document.querySelectorAll('.phase-circle');
-  circles.forEach(function(c) {
-    var p = parseInt(c.getAttribute('data-phase'));
-    c.className = 'phase-circle' + (p === phase ? ' current' : (p < phase ? ' done' : ''));
-  });
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
 }
 
-// Phase drawer
+function updatePhase(newPhase) {
+  var prevPhase = phase;
+  phase = newPhase;
+
+  // Update top bar
+  document.getElementById('phaseNum').textContent = phase + 1;
+  document.getElementById('phaseName').textContent = PHASES[phase].name;
+
+  // Update phase dots
+  var dots = document.querySelectorAll('.phase-dot');
+  dots.forEach(function(d) {
+    var p = parseInt(d.getAttribute('data-phase'));
+    d.className = 'phase-dot' + (p === phase ? ' current' : (p < phase ? ' done' : ''));
+  });
+
+  // Update connectors
+  var conns = document.querySelectorAll('.connector');
+  conns.forEach(function(c) {
+    var after = parseInt(c.getAttribute('data-after'));
+    c.className = 'connector' + (after <= phase ? ' done' : '');
+  });
+
+  // Add phase separator in the insights
+  if (prevPhase !== newPhase) {
+    var container = document.getElementById('insights');
+    var sep = document.createElement('div');
+    sep.className = 'phase-sep';
+    sep.textContent = 'Phase ' + (phase + 1) + ': ' + PHASES[phase].name;
+    container.appendChild(sep);
+  }
+}
+
+/* ── Drawer ── */
 function openDrawer(p) {
   var bullets = phaseBullets[p] || [];
-  document.getElementById('drawerTitle').textContent = 'Phase ' + p + ': ' + PHASES[p];
-  document.getElementById('drawerConf').textContent = p < phase ? 'Completed' : (p === phase ? 'In progress' : '');
+  document.getElementById('drawerNum').textContent = p + 1;
+  document.getElementById('drawerNum').className = 'phase-num' + (p < phase ? ' completed' : '');
+  document.getElementById('drawerTitle').textContent = PHASES[p].name;
+  document.getElementById('drawerStatus').textContent = p < phase ? 'Completed' : (p === phase ? 'In progress' : 'Upcoming');
+
   var body = document.getElementById('drawerBody');
   body.innerHTML = '';
   if (bullets.length === 0) {
-    body.innerHTML = '<div style="color:var(--text-light);font-size:0.85rem">No insights captured yet for this phase.</div>';
+    body.innerHTML = '<div class="empty">No insights captured yet for this phase.</div>';
   } else {
     bullets.forEach(function(b) {
       var el = document.createElement('div');
       el.className = 'bullet';
-      el.innerHTML = '<div class="bar ' + b.speaker + '"></div><div class="text">' + b.text + '</div>';
+      el.innerHTML = '<div class="indicator ' + b.speaker + '"></div>' +
+        '<div class="content"><div class="text">' + escapeHtml(b.text) + '</div></div>';
       body.appendChild(el);
     });
   }
   document.getElementById('drawerOverlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
 }
+
 function closeDrawer() {
   document.getElementById('drawerOverlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
 }
 
-// Mid-session context input
+/* ── Drawer touch-to-dismiss ── */
+(function() {
+  var handle = document.getElementById('drawerHandle');
+  var drawer = document.getElementById('drawer');
+  var startY = 0, currentY = 0, dragging = false;
+
+  handle.addEventListener('pointerdown', function(e) {
+    dragging = true; startY = e.clientY; currentY = 0;
+    drawer.style.transition = 'none';
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', function(e) {
+    if (!dragging) return;
+    currentY = Math.max(0, e.clientY - startY);
+    drawer.style.transform = 'translateY(' + currentY + 'px)';
+  });
+  handle.addEventListener('pointerup', function() {
+    dragging = false;
+    drawer.style.transition = '';
+    if (currentY > 80) { closeDrawer(); }
+    else { drawer.style.transform = ''; }
+  });
+})();
+
+/* ── Mid-session context ── */
 function sendContext() {
   var input = document.getElementById('contextInput');
   var text = input.value.trim();
   if (!text || !ws) return;
   ws.send(JSON.stringify({ type: 'session-setup', documents: [{ name: 'pasted-context', content: text }] }));
-  addBullet('user', 'Shared context: ' + (text.length > 60 ? text.substring(0, 57) + '...' : text), phase);
+  addBullet('user', text.length > 80 ? text.substring(0, 77) + '...' : text, phase);
   input.value = '';
 }
+
 function uploadMidSession(input) {
   var files = input.files;
   for (var i = 0; i < files.length; i++) {
@@ -351,10 +627,16 @@ function uploadMidSession(input) {
   }
 }
 
-// Audio playback (PCM 16-bit LE @ 24kHz)
-function queueAudio(b64) { audioQueue.push(b64); if (!isPlaying) drainAudio(); }
+/* ════════════════════════════════════════════════════
+   AUDIO
+   ════════════════════════════════════════════════════ */
+function queueAudio(b64) {
+  audioQueue.push(b64);
+  if (!isPlaying) drainAudio();
+}
+
 function drainAudio() {
-  if (audioQueue.length === 0) { isPlaying = false; return; }
+  if (audioQueue.length === 0) { isPlaying = false; setAiState('listening'); return; }
   isPlaying = true;
   var b64 = audioQueue.shift();
   try {
@@ -367,39 +649,53 @@ function drainAudio() {
     var buf = playCtx.createBuffer(1, f32.length, 24000);
     buf.getChannelData(0).set(f32);
     var src = playCtx.createBufferSource();
-    src.buffer = buf; src.connect(playCtx.destination);
+    src.buffer = buf;
+    src.connect(playCtx.destination);
     src.onended = function() { drainAudio(); };
     src.start();
   } catch(err) { drainAudio(); }
 }
 
-// Microphone (PCM 16kHz mono)
+/* ════════════════════════════════════════════════════
+   MICROPHONE
+   ════════════════════════════════════════════════════ */
 function startMic() {
-  navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
-    .then(function(s) {
-      micStream = s;
-      micCtx = new AudioContext({ sampleRate: 16000 });
-      var source = micCtx.createMediaStreamSource(micStream);
-      processor = micCtx.createScriptProcessor(4096, 1, 1);
-      processor.onaudioprocess = function(e) {
-        if (paused || !ws || ws.readyState !== 1) return;
-        var f32 = e.inputBuffer.getChannelData(0);
-        var i16 = new Int16Array(f32.length);
-        for (var i = 0; i < f32.length; i++) { var sv = Math.max(-1, Math.min(1, f32[i])); i16[i] = sv < 0 ? sv * 0x8000 : sv * 0x7FFF; }
-        ws.send(i16.buffer);
-      };
-      source.connect(processor); processor.connect(micCtx.destination);
-    })
-    .catch(function(err) { addBullet('ai', 'Microphone access denied: ' + err.message, phase); });
+  navigator.mediaDevices.getUserMedia({
+    audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+  }).then(function(s) {
+    micStream = s;
+    micCtx = new AudioContext({ sampleRate: 16000 });
+    var source = micCtx.createMediaStreamSource(micStream);
+    processor = micCtx.createScriptProcessor(4096, 1, 1);
+    processor.onaudioprocess = function(e) {
+      if (paused || !ws || ws.readyState !== 1) return;
+      var f32 = e.inputBuffer.getChannelData(0);
+      var i16 = new Int16Array(f32.length);
+      for (var i = 0; i < f32.length; i++) {
+        var sv = Math.max(-1, Math.min(1, f32[i]));
+        i16[i] = sv < 0 ? sv * 0x8000 : sv * 0x7FFF;
+      }
+      ws.send(i16.buffer);
+    };
+    source.connect(processor);
+    processor.connect(micCtx.destination);
+  }).catch(function(err) {
+    addBullet('system', 'Microphone access denied: ' + err.message, phase);
+  });
 }
 
+/* ════════════════════════════════════════════════════
+   CONTROLS
+   ════════════════════════════════════════════════════ */
 function togglePause() {
   paused = !paused;
   if (ws) ws.send(JSON.stringify({ type: paused ? 'pause' : 'resume' }));
-  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
-  document.getElementById('pauseBtn').className = 'pause-btn' + (paused ? ' paused' : '');
-  document.getElementById('statusBar').textContent = paused ? 'Session paused' : 'AI is listening';
+  var btn = document.getElementById('pauseBtn');
+  btn.textContent = paused ? 'Resume' : 'Pause';
+  btn.className = 'ctrl-btn pause' + (paused ? ' active' : '');
+  setAiState(paused ? 'ended' : 'listening');
 }
+
 function endSession() {
   if (ws) ws.send(JSON.stringify({ type: 'stop' }));
   if (micStream) micStream.getTracks().forEach(function(t) { t.stop(); });
