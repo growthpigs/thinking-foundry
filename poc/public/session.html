@@ -399,6 +399,8 @@ function handleFileSelect(input) {
    SESSION LIFECYCLE
    ════════════════════════════════════════════════════ */
 function startSession() {
+  // Pre-create AudioContext on user gesture (required by Chrome autoplay policy)
+  ensurePlaybackCtx();
   var github = document.getElementById('githubInput').value.trim();
   var fileInput = document.getElementById('docsInput');
   var docs = [];
@@ -729,25 +731,32 @@ function queueAudio(b64) {
   if (!isPlaying) drainAudio();
 }
 
+function ensurePlaybackCtx() {
+  if (!playCtx) playCtx = new AudioContext({ sampleRate: 24000 });
+  // Chrome suspends AudioContext if created without user gesture — resume it
+  if (playCtx.state === 'suspended') playCtx.resume();
+  return playCtx;
+}
+
 function drainAudio() {
   if (audioQueue.length === 0) { isPlaying = false; setAiState('listening'); return; }
   isPlaying = true;
   var b64 = audioQueue.shift();
   try {
-    if (!playCtx) playCtx = new AudioContext({ sampleRate: 24000 });
+    var ctx = ensurePlaybackCtx();
     var raw = atob(b64), bytes = new Uint8Array(raw.length);
     for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
     var samples = new Int16Array(bytes.buffer);
     var f32 = new Float32Array(samples.length);
     for (var j = 0; j < samples.length; j++) f32[j] = samples[j] / 32768.0;
-    var buf = playCtx.createBuffer(1, f32.length, 24000);
+    var buf = ctx.createBuffer(1, f32.length, 24000);
     buf.getChannelData(0).set(f32);
-    var src = playCtx.createBufferSource();
+    var src = ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(playCtx.destination);
+    src.connect(ctx.destination);
     src.onended = function() { drainAudio(); };
     src.start();
-  } catch(err) { drainAudio(); }
+  } catch(err) { console.error('[AUDIO]', err.message); drainAudio(); }
 }
 
 /* ════════════════════════════════════════════════════
