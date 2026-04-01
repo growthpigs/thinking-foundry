@@ -315,8 +315,12 @@ input::placeholder{color:#d6d3d1}
 .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e7e5e4}
 .divider::before{left:0}.divider::after{right:0}
 #pinSection{display:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;opacity:0;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);z-index:100;pointer-events:none;background:#292524;color:#fff}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#b91c1c}
 </style></head>
 <body>
+<div class="toast" id="toast"></div>
 <div class="card">
   <h1>The Thinking Foundry</h1>
   <p class="sub">Structured thinking. From confusion to clarity.</p>
@@ -344,6 +348,13 @@ var savedEmail = localStorage.getItem('tf_email');
 if (deviceToken && savedEmail) {
   document.getElementById('pinSection').style.display = 'block';
   document.getElementById('emailSection').style.display = 'none';
+}
+
+function showToast(msg, isErr) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(function() { t.className = 'toast'; }, 3500);
 }
 
 function showEmail() {
@@ -395,7 +406,7 @@ async function verifyPin() {
   if (data.valid) {
     window.location.href = '/session/new?email=' + encodeURIComponent(data.email || savedEmail || '');
   } else {
-    alert(data.message);
+    showToast(data.message || 'Verification failed', true);
   }
 }
 </script>
@@ -421,8 +432,11 @@ input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36
 .btn{width:100%;padding:14px;border:none;border-radius:10px;background:#292524;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',system-ui;transition:all 0.2s}
 .btn:hover{background:#44403c}
 .email{color:#292524;font-weight:600}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;opacity:0;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);z-index:100;pointer-events:none;background:#b91c1c;color:#fff}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 </style></head>
 <body>
+<div class="toast" id="toast"></div>
 <div class="card">
   <h1>Set your PIN</h1>
   <p class="sub">Choose a 4-digit PIN for <span class="email">${email.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</span>. You will use this to quickly access future sessions on this device.</p>
@@ -431,9 +445,15 @@ input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36
   <button class="btn" onclick="setPin()">Set PIN and start session</button>
 </div>
 <script>
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  setTimeout(function() { t.className = 'toast'; }, 3500);
+}
 async function setPin() {
   var pin = document.getElementById('pinInput').value;
-  if (pin.length !== 4 || !/^\\d{4}$/.test(pin)) { alert('PIN must be 4 digits'); return; }
+  if (pin.length !== 4 || !/^\\d{4}$/.test(pin)) { showToast('PIN must be exactly 4 digits'); return; }
 
   var res = await fetch('/auth/set-pin', {
     method: 'POST',
@@ -447,7 +467,7 @@ async function setPin() {
     localStorage.setItem('tf_email', ${JSON.stringify(email)});
     window.location.href = '/session/new?email=' + encodeURIComponent(${JSON.stringify(email)});
   } else {
-    alert(data.message || 'Failed to set PIN');
+    showToast(data.message || 'Failed to set PIN');
   }
 }
 </script>
