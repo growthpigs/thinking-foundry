@@ -308,6 +308,7 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
    STATE
    ════════════════════════════════════════════════════ */
 var TOKEN = window.__TF_TOKEN || '';
+var USER_EMAIL = window.__TF_EMAIL || '';
 var PHASES = [
   {name:'User Stories', short:'Stories'},
   {name:'Mine', short:'Mine'},
@@ -402,6 +403,7 @@ function connectWs(github, docs) {
     ws.send(JSON.stringify({
       type: 'session-setup',
       accessToken: TOKEN,
+      userEmail: USER_EMAIL || null,
       github: github || null,
       documents: docs.length > 0 ? docs : null,
       frameworks: ['stoicism']

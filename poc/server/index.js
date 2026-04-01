@@ -63,10 +63,10 @@ try {
 
     // Session creation route (after PIN verified)
     app.get('/session/new', (req, res) => {
-      // Create a session token and redirect to the session page
+      const userEmail = req.query.email || '';
       const token = require('crypto').randomUUID();
       if (linkAuth) {
-        linkAuth.createLink({ label: 'email-auth-session' }).then(link => {
+        linkAuth.createLink({ label: userEmail || 'email-auth-session', email: userEmail }).then(link => {
           res.redirect('/s/' + link.token);
         });
       } else {

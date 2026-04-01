@@ -239,26 +239,29 @@ class EmailAuth {
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The Thinking Foundry</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',system-ui,sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.card{max-width:400px;width:100%;background:#fff;border:1px solid #e8e5e3;border-radius:16px;padding:40px 36px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.75rem;font-weight:400;margin-bottom:4px}
-.sub{color:#8b8685;font-size:0.875rem;margin-bottom:28px}
-label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:6px}
-input{width:100%;border:1px solid #e8e5e3;padding:12px 14px;border-radius:8px;font-size:1rem;font-family:'DM Sans',system-ui;margin-bottom:16px}
-input:focus{outline:none;border-color:#4f46e5}
-input::placeholder{color:#b5b0ae}
-.btn{width:100%;padding:14px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:'DM Sans',system-ui}
-.btn:hover{background:#4338ca}
-.btn:disabled{background:#d4d4d8;cursor:not-allowed}
-.msg{padding:12px;border-radius:8px;font-size:0.85rem;margin-bottom:16px;display:none}
+body{font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1c1917;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:50vh;background:linear-gradient(180deg,#eae8e4 0%,#f8f7f4 100%);z-index:0}
+.card{position:relative;z-index:1;max-width:420px;width:100%;background:#fff;border:1px solid #e7e5e4;border-radius:20px;padding:40px 36px;box-shadow:0 4px 16px rgba(28,25,23,0.08)}
+h1{font-family:'Instrument Serif',Georgia,serif;font-size:1.65rem;font-weight:400;margin-bottom:4px}
+.sub{color:#57534e;font-size:0.85rem;margin-bottom:28px;line-height:1.5}
+label{display:block;font-size:0.75rem;font-weight:600;margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase}
+input{width:100%;border:1px solid #e7e5e4;padding:12px 14px;border-radius:10px;font-size:1rem;font-family:'Plus Jakarta Sans',system-ui;margin-bottom:16px;background:#f8f7f4;transition:all 0.15s}
+input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36,0.06)}
+input::placeholder{color:#d6d3d1}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;background:#292524;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',system-ui;transition:all 0.2s;letter-spacing:0.01em}
+.btn:hover{background:#44403c;box-shadow:0 1px 3px rgba(28,25,23,0.06)}
+.btn:disabled{background:#d6d3d1;cursor:not-allowed}
+.btn.secondary{background:#fff;color:#1c1917;border:1px solid #e7e5e4}
+.btn.secondary:hover{background:#f5f5f4;border-color:#292524}
+.msg{padding:12px;border-radius:10px;font-size:0.85rem;margin-bottom:16px;display:none}
 .msg.ok{display:block;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
 .msg.err{display:block;background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
 .pin-input{text-align:center;font-size:2rem;letter-spacing:12px;font-weight:600}
-.divider{text-align:center;color:#b5b0ae;font-size:0.8rem;margin:20px 0;position:relative}
-.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e8e5e3}
+.divider{text-align:center;color:#a8a29e;font-size:0.8rem;margin:20px 0;position:relative}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e7e5e4}
 .divider::before{left:0}.divider::after{right:0}
 #pinSection{display:none}
 </style></head>
@@ -272,7 +275,7 @@ input::placeholder{color:#b5b0ae}
     <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*">
     <button class="btn" onclick="verifyPin()">Continue</button>
     <div class="divider">or</div>
-    <button class="btn" style="background:#fff;color:#1a1a1a;border:1px solid #e8e5e3" onclick="showEmail()">Use a different email</button>
+    <button class="btn secondary" onclick="showEmail()">Use a different email</button>
   </div>
 
   <div id="emailSection">
@@ -339,7 +342,7 @@ async function verifyPin() {
   var data = await res.json();
 
   if (data.valid) {
-    window.location.href = '/session/new';
+    window.location.href = '/session/new?email=' + encodeURIComponent(data.email || savedEmail || '');
   } else {
     alert(data.message);
   }
@@ -353,19 +356,20 @@ async function verifyPin() {
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Set PIN - The Thinking Foundry</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',system-ui,sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.card{max-width:400px;width:100%;background:#fff;border:1px solid #e8e5e3;border-radius:16px;padding:40px 36px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.75rem;font-weight:400;margin-bottom:4px}
-.sub{color:#8b8685;font-size:0.875rem;margin-bottom:28px}
-label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:6px}
-input{width:100%;border:1px solid #e8e5e3;padding:12px 14px;border-radius:8px;font-size:2rem;font-family:'DM Sans',system-ui;margin-bottom:16px;text-align:center;letter-spacing:12px;font-weight:600}
-input:focus{outline:none;border-color:#4f46e5}
-.btn{width:100%;padding:14px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:'DM Sans',system-ui}
-.btn:hover{background:#4338ca}
-.email{color:#4f46e5;font-weight:500}
+body{font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1c1917;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:50vh;background:linear-gradient(180deg,#eae8e4 0%,#f8f7f4 100%);z-index:0}
+.card{position:relative;z-index:1;max-width:420px;width:100%;background:#fff;border:1px solid #e7e5e4;border-radius:20px;padding:40px 36px;box-shadow:0 4px 16px rgba(28,25,23,0.08)}
+h1{font-family:'Instrument Serif',Georgia,serif;font-size:1.65rem;font-weight:400;margin-bottom:4px}
+.sub{color:#57534e;font-size:0.85rem;margin-bottom:28px;line-height:1.5}
+label{display:block;font-size:0.75rem;font-weight:600;margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase}
+input{width:100%;border:1px solid #e7e5e4;padding:12px 14px;border-radius:10px;font-size:2rem;font-family:'Plus Jakarta Sans',system-ui;margin-bottom:16px;text-align:center;letter-spacing:12px;font-weight:600;background:#f8f7f4;transition:all 0.15s}
+input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36,0.06)}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;background:#292524;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',system-ui;transition:all 0.2s}
+.btn:hover{background:#44403c}
+.email{color:#292524;font-weight:600}
 </style></head>
 <body>
 <div class="card">
@@ -390,7 +394,7 @@ async function setPin() {
   if (data.success) {
     localStorage.setItem('tf_device_token', data.deviceToken);
     localStorage.setItem('tf_email', '${email}');
-    window.location.href = '/session/new';
+    window.location.href = '/session/new?email=' + encodeURIComponent('${email}');
   } else {
     alert(data.message || 'Failed to set PIN');
   }
@@ -404,14 +408,15 @@ async function setPin() {
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Link Invalid - The Thinking Foundry</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',system-ui,sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.card{max-width:400px;width:100%;background:#fff;border:1px solid #e8e5e3;border-radius:16px;padding:40px 36px;text-align:center}
-h1{font-family:'DM Serif Display',Georgia,serif;font-size:1.5rem;font-weight:400;margin-bottom:8px}
-p{color:#8b8685;font-size:0.875rem}
-a{display:inline-block;margin-top:20px;color:#4f46e5;text-decoration:none;font-weight:500}
+body{font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#f8f7f4;color:#1c1917;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:50vh;background:linear-gradient(180deg,#eae8e4 0%,#f8f7f4 100%);z-index:0}
+.card{position:relative;z-index:1;max-width:420px;width:100%;background:#fff;border:1px solid #e7e5e4;border-radius:20px;padding:40px 36px;text-align:center;box-shadow:0 4px 16px rgba(28,25,23,0.08)}
+h1{font-family:'Instrument Serif',Georgia,serif;font-size:1.5rem;font-weight:400;margin-bottom:8px}
+p{color:#57534e;font-size:0.875rem}
+a{display:inline-block;margin-top:20px;color:#292524;text-decoration:none;font-weight:600}
 </style></head>
 <body>
 <div class="card">

@@ -57,6 +57,7 @@ class LinkAuth {
       used: false,
       sessionId: null,
       label: options.label || null,
+      email: options.email || null,
     });
 
     const url = this.baseUrl
@@ -152,15 +153,22 @@ class LinkAuth {
         `);
       }
 
-      // Serve session page with token injected
+      // Serve session page with token + email injected
       const fs = require('fs');
-      const sessionHtml = fs.readFileSync(
+      const meta = this.tokens.get(token);
+      const userEmail = meta?.email || '';
+      let sessionHtml = fs.readFileSync(
         require('path').join(staticDir, 'session.html'), 'utf-8'
       );
-      res.send(sessionHtml.replace(
+      sessionHtml = sessionHtml.replace(
         "window.__TF_TOKEN || ''",
         "'" + token + "'"
-      ));
+      );
+      sessionHtml = sessionHtml.replace(
+        "window.__TF_EMAIL || ''",
+        "'" + userEmail + "'"
+      );
+      res.send(sessionHtml);
     });
 
     // POST /admin/create-link — generate a new session link
