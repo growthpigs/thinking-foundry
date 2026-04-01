@@ -158,18 +158,10 @@ class GeminiLiveManager {
           if (isStandby) {
             // Standby is ready for swap
             console.log(`[GEMINI] Standby connection ready for swap`);
-          } else if (this.reconnectionCount === 0) {
-            // Send initial turn ONLY on first connection to kick-start the conversation
-            // Gemini Live waits for user input — this gets the AI talking immediately
-            // Skip on reconnects/phase transitions to avoid re-introducing
-            ws.send(JSON.stringify({
-              clientContent: {
-                turns: [{ role: 'user', parts: [{ text: '[Session started. Introduce yourself and begin.]' }] }],
-                turnComplete: true,
-              }
-            }));
-            console.log(`[GEMINI] Sent initial kick for phase ${this.phase}`);
           }
+          // NOTE: Do NOT send clientContent text turns in AUDIO-only mode.
+          // Gemini Live rejects text input with error 1007 when responseModalities is ['AUDIO'].
+          // The AI starts speaking from the system instruction alone.
           return;
         }
 
