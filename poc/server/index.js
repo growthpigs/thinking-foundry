@@ -855,7 +855,10 @@ wss.on('connection', (clientWs, req) => {
         break;
 
       case 'add-context':
-        // Mid-session text or document injection — inject into active Gemini session
+        // Mid-session text/document context — store for next Gemini reconnection
+        // NOTE: Cannot inject text directly into AUDIO-only Gemini Live sessions
+        // (causes error 1007). Instead, add to context manager so it's included
+        // in the next phase transition or reconnection's system prompt.
         if (Array.isArray(msg.documents) && msg.documents.length > 0) {
           const contextParts = msg.documents
             .filter(d => d && d.content)
@@ -865,21 +868,21 @@ wss.on('connection', (clientWs, req) => {
             ? contextParts.substring(0, 9997) + '...'
             : contextParts;
 
-          if (gemini && gemini.activeWs && gemini.activeWs.readyState === 1) {
-            gemini.activeWs.send(JSON.stringify({
-              clientContent: {
-                turns: [{
-                  role: 'user',
-                  parts: [{ text: truncated }]
-                }],
-                turnComplete: true,
-              }
-            }));
-            console.log(`[WS] Injected mid-session context: ${msg.documents.length} doc(s), ${truncated.length} chars`);
-          } else {
-            console.warn('[WS] Cannot inject context — Gemini not connected');
-            sendToClient('error', { message: 'AI not connected. Try again in a moment.' });
+          // Add to context manager (picked up on next reconnect/phase change)
+          context.addUtterance('user', truncated);
+          console.log(`[WS] Stored mid-session context: ${msg.documents.length} doc(s), ${truncated.length} chars (applied on next reconnect)`);
+
+          // Persist to Supabase
+          if (supabaseBuffer) {
+            supabaseBuffer.writeUtterance(session.currentPhase, 'user', truncated)
+              .catch(err => console.error('[SUPABASE] Context write error:', err.message));
           }
+
+          sendToClient('outline_item', {
+            speaker: 'system',
+            text: 'Context received. The AI will incorporate this in its next response.',
+            phase: session.currentPhase
+          });
         }
         break;
 
