@@ -542,11 +542,11 @@ wss.on('connection', (clientWs, req) => {
             if (supabaseBuffer) {
               const sess = await supabaseBuffer.getSession();
               const metadata = { ...(sess?.metadata || {}), intent_mode: mode };
-              await supabaseBuffer.supabase
+              const { error: modeErr } = await supabaseBuffer.supabase
                 .from('sessions')
                 .update({ metadata })
-                .eq('id', supabaseBuffer.sessionId)
-                .catch(err => console.error('[SUPABASE] Mode update error:', err.message));
+                .eq('id', supabaseBuffer.sessionId);
+              if (modeErr) console.error('[SUPABASE] Mode update error:', modeErr.message);
             }
           },
           onSqueezeNeeded: async (currentPhase) => {
