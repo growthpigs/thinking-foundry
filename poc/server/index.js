@@ -801,6 +801,32 @@ wss.on('connection', (clientWs, req) => {
         sendToClient('status', { state: 'resumed' });
         break;
 
+      case 'add-context':
+        // Mid-session text or document injection — inject into active Gemini session
+        if (msg.documents && msg.documents.length > 0) {
+          const contextParts = msg.documents.map(d => `[User shared: ${d.name}]\n${d.content}`).join('\n\n');
+          const truncated = contextParts.length > 10000
+            ? contextParts.substring(0, 9997) + '...'
+            : contextParts;
+
+          if (gemini && gemini.activeWs && gemini.activeWs.readyState === 1) {
+            gemini.activeWs.send(JSON.stringify({
+              clientContent: {
+                turns: [{
+                  role: 'user',
+                  parts: [{ text: truncated }]
+                }],
+                turnComplete: true,
+              }
+            }));
+            console.log(`[WS] Injected mid-session context: ${msg.documents.length} doc(s), ${truncated.length} chars`);
+          } else {
+            console.warn('[WS] Cannot inject context — Gemini not connected');
+            sendToClient('error', { message: 'AI not connected. Try again in a moment.' });
+          }
+        }
+        break;
+
       case 'generate_crucible':
         // Article 19: Offered, Not Forced. User chose to generate.
         console.log('[WS] Crucible audio generation requested');

@@ -608,8 +608,9 @@ function sendContext() {
   var input = document.getElementById('contextInput');
   var text = input.value.trim();
   if (!text || !ws) return;
-  ws.send(JSON.stringify({ type: 'session-setup', documents: [{ name: 'pasted-context', content: text }] }));
-  addBullet('user', text.length > 80 ? text.substring(0, 77) + '...' : text, phase);
+  ws.send(JSON.stringify({ type: 'add-context', documents: [{ name: 'pasted-text', content: text }] }));
+  var preview = text.length > 120 ? text.substring(0, 117) + '...' : text;
+  addBullet('user', preview, phase);
   input.value = '';
 }
 
@@ -619,7 +620,7 @@ function uploadMidSession(input) {
     (function(file) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        ws.send(JSON.stringify({ type: 'session-setup', documents: [{ name: file.name, content: e.target.result }] }));
+        ws.send(JSON.stringify({ type: 'add-context', documents: [{ name: file.name, content: e.target.result }] }));
         addBullet('user', 'Uploaded: ' + file.name, phase);
       };
       reader.readAsText(file);
