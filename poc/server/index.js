@@ -82,7 +82,7 @@ try {
     });
 
     // Admin whitelist management
-    app.post('/admin/invite', (req, res) => {
+    app.post('/admin/invite', async (req, res) => {
       const apiKey = req.headers['x-api-key'];
       if (!linkAuth || !linkAuth.isAdminKey(apiKey)) {
         return res.status(401).json({ error: 'Invalid admin key' });
@@ -91,19 +91,29 @@ try {
       if (!email || !email.includes('@')) {
         return res.json({ success: false, message: 'Invalid email' });
       }
-      emailAuth.addAllowedEmail(email);
-      res.json({ success: true, message: 'User invited: ' + email });
+      try {
+        await emailAuth.addAllowedEmail(email);
+        res.json({ success: true, message: 'User invited: ' + email });
+      } catch (err) {
+        console.error('[AUTH] Invite error:', err.message);
+        res.json({ success: false, message: 'Failed to invite: ' + err.message });
+      }
     });
 
-    app.delete('/admin/invite', (req, res) => {
+    app.delete('/admin/invite', async (req, res) => {
       const apiKey = req.headers['x-api-key'];
       if (!linkAuth || !linkAuth.isAdminKey(apiKey)) {
         return res.status(401).json({ error: 'Invalid admin key' });
       }
       const { email } = req.body || {};
       if (!email) return res.json({ success: false, message: 'No email provided' });
-      emailAuth.removeAllowedEmail(email);
-      res.json({ success: true, message: 'Removed: ' + email });
+      try {
+        await emailAuth.removeAllowedEmail(email);
+        res.json({ success: true, message: 'Removed: ' + email });
+      } catch (err) {
+        console.error('[AUTH] Remove error:', err.message);
+        res.json({ success: false, message: 'Failed to remove: ' + err.message });
+      }
     });
 
     app.get('/admin/whitelist', (req, res) => {
