@@ -349,6 +349,30 @@ for (var i = 0; i < 8; i++) phaseBullets[i] = [];
 })();
 
 /* ── File drop zone ── */
+(function() {
+  var zone = document.getElementById('dropZone');
+  zone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    zone.style.borderColor = 'var(--accent)';
+    zone.style.background = 'var(--accent-surface)';
+  });
+  zone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    zone.style.borderColor = '';
+    zone.style.background = '';
+  });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone.style.borderColor = '';
+    zone.style.background = '';
+    var input = document.getElementById('docsInput');
+    if (e.dataTransfer.files.length > 0) {
+      input.files = e.dataTransfer.files;
+      handleFileSelect(input);
+    }
+  });
+})();
+
 function handleFileSelect(input) {
   var zone = document.getElementById('dropZone');
   if (input.files.length > 0) {
