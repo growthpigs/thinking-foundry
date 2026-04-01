@@ -798,7 +798,20 @@ wss.on('connection', (clientWs, req) => {
           await supabaseBuffer.resumeSession()
             .catch(err => console.error('[SUPABASE] Resume error:', err.message));
         }
-        sendToClient('status', { state: 'resumed' });
+        // Reconnect Gemini if the connection died during pause
+        if (gemini && (!gemini.activeWs || gemini.activeWs.readyState !== 1)) {
+          console.log('[WS] Gemini connection lost during pause — reconnecting');
+          sendToClient('status', { state: 'reconnecting' });
+          try {
+            await gemini.forceReconnect(session.currentPhase, context.getCondensedContext());
+            sendToClient('status', { state: 'connected' });
+          } catch (err) {
+            console.error('[WS] Gemini reconnect failed:', err.message);
+            sendToClient('error', { message: 'Failed to reconnect AI. Try ending and starting a new session.' });
+          }
+        } else {
+          sendToClient('status', { state: 'resumed' });
+        }
         break;
 
       case 'add-context':

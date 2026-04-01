@@ -158,6 +158,16 @@ class GeminiLiveManager {
           if (isStandby) {
             // Standby is ready for swap
             console.log(`[GEMINI] Standby connection ready for swap`);
+          } else {
+            // Send initial turn to make the AI start speaking immediately
+            // Gemini Live waits for user input — this kick-starts the conversation
+            ws.send(JSON.stringify({
+              clientContent: {
+                turns: [{ role: 'user', parts: [{ text: '[Session started. Introduce yourself and begin Phase ' + this.phase + '.]' }] }],
+                turnComplete: true,
+              }
+            }));
+            console.log(`[GEMINI] Sent initial kick for phase ${this.phase}`);
           }
           return;
         }

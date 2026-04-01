@@ -575,27 +575,80 @@ function updatePhase(newPhase) {
   }
 }
 
-/* ── Drawer ── */
+/* ── Drawer — condensed summary view ── */
+function condenseBullets(bullets) {
+  // Separate AI insights from user contributions
+  var aiPoints = [];
+  var userPoints = [];
+  var seen = {};
+
+  bullets.forEach(function(b) {
+    // Deduplicate by first 40 chars
+    var key = b.text.substring(0, 40).toLowerCase();
+    if (seen[key]) return;
+    seen[key] = true;
+
+    // Skip system messages and very short noise
+    if (b.speaker === 'system' || b.text.length < 15) return;
+
+    if (b.speaker === 'ai') aiPoints.push(b.text);
+    else userPoints.push(b.text);
+  });
+
+  return { aiPoints: aiPoints, userPoints: userPoints };
+}
+
 function openDrawer(p) {
   var bullets = phaseBullets[p] || [];
   document.getElementById('drawerNum').textContent = p + 1;
   document.getElementById('drawerNum').className = 'phase-num' + (p < phase ? ' completed' : '');
   document.getElementById('drawerTitle').textContent = PHASES[p].name;
-  document.getElementById('drawerStatus').textContent = p < phase ? 'Completed' : (p === phase ? 'In progress' : 'Upcoming');
+
+  var statusText = p < phase ? 'Completed' : (p === phase ? 'In progress' : 'Upcoming');
+  if (bullets.length > 0) statusText += ' -- ' + bullets.length + ' insights';
+  document.getElementById('drawerStatus').textContent = statusText;
 
   var body = document.getElementById('drawerBody');
   body.innerHTML = '';
+
   if (bullets.length === 0) {
     body.innerHTML = '<div class="empty">No insights captured yet for this phase.</div>';
   } else {
-    bullets.forEach(function(b) {
-      var el = document.createElement('div');
-      el.className = 'bullet';
-      el.innerHTML = '<div class="indicator ' + b.speaker + '"></div>' +
-        '<div class="content"><div class="text">' + escapeHtml(b.text) + '</div></div>';
-      body.appendChild(el);
-    });
+    var condensed = condenseBullets(bullets);
+
+    // AI key insights section
+    if (condensed.aiPoints.length > 0) {
+      var aiHeader = document.createElement('div');
+      aiHeader.style.cssText = 'font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;';
+      aiHeader.textContent = 'Key Insights';
+      body.appendChild(aiHeader);
+
+      condensed.aiPoints.forEach(function(text) {
+        var el = document.createElement('div');
+        el.className = 'bullet';
+        el.innerHTML = '<div class="indicator ai"></div>' +
+          '<div class="content"><div class="text">' + escapeHtml(text) + '</div></div>';
+        body.appendChild(el);
+      });
+    }
+
+    // User contributions section
+    if (condensed.userPoints.length > 0) {
+      var userHeader = document.createElement('div');
+      userHeader.style.cssText = 'font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin:16px 0 8px;';
+      userHeader.textContent = 'Your Input';
+      body.appendChild(userHeader);
+
+      condensed.userPoints.forEach(function(text) {
+        var el = document.createElement('div');
+        el.className = 'bullet';
+        el.innerHTML = '<div class="indicator user"></div>' +
+          '<div class="content"><div class="text">' + escapeHtml(text) + '</div></div>';
+        body.appendChild(el);
+      });
+    }
   }
+
   document.getElementById('drawerOverlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
 }
