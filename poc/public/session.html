@@ -381,7 +381,17 @@ function handleFileSelect(input) {
   if (input.files.length > 0) {
     selectedFiles = input.files;
     zone.className = 'drop-zone has-files';
-    zone.textContent = input.files.length + ' file' + (input.files.length > 1 ? 's' : '') + ' selected';
+    // Keep the hidden file input alive — only update the visible text
+    var label = zone.querySelector('.drop-label');
+    if (!label) {
+      label = document.createElement('span');
+      label.className = 'drop-label';
+      zone.appendChild(label);
+    }
+    label.textContent = input.files.length + ' file' + (input.files.length > 1 ? 's' : '') + ' selected. Click to change.';
+    // Hide the icon if present
+    var icon = zone.querySelector('.icon');
+    if (icon) icon.style.display = 'none';
   }
 }
 

@@ -190,55 +190,93 @@ class LinkAuth {
       });
     });
 
-    // GET /admin — simple admin page to create session links
+    // GET /admin — admin page: create session links + invite emails
     app.get('/admin', (req, res) => {
       res.send(`<!DOCTYPE html>
 <html><head><title>Thinking Foundry — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: system-ui; background: #0a0a0f; color: #e4e4e7; margin: 0; padding: 40px; }
-  h1 { font-size: 1.5rem; margin-bottom: 8px; }
-  p.sub { color: #71717a; font-size: 0.875rem; margin-bottom: 32px; }
-  form { display: flex; gap: 12px; margin-bottom: 24px; }
-  input { background: #111118; border: 1px solid #2a2a34; color: #e4e4e7; padding: 12px 16px; border-radius: 8px; font-size: 1rem; flex: 1; }
-  input::placeholder { color: #52525b; }
-  button { background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 600; }
-  button:hover { background: #4f46e5; }
-  #result { display: none; background: #111118; border: 1px solid #22c55e; border-radius: 8px; padding: 16px; margin-top: 16px; }
-  #result a { color: #6366f1; word-break: break-all; }
-  #result .copy { background: #1a1a24; border: 1px solid #2a2a34; color: #e4e4e7; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; display: inline-block; font-size: 0.875rem; }
-  #links { margin-top: 32px; }
-  #links table { width: 100%; border-collapse: collapse; }
-  #links th, #links td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #1a1a24; font-size: 0.875rem; }
-  #links th { color: #71717a; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-  .used { color: #71717a; }
-  .active { color: #22c55e; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#f8f7f4;color:#1c1917;padding:40px;max-width:640px;margin:0 auto}
+  h1{font-family:'Instrument Serif',Georgia,serif;font-size:1.65rem;font-weight:400;margin-bottom:4px}
+  p.sub{color:#57534e;font-size:0.85rem;margin-bottom:32px}
+  .section{background:#fff;border:1px solid #e7e5e4;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(28,25,23,0.04)}
+  .section h2{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:#57534e;margin-bottom:12px}
+  form{display:flex;gap:8px}
+  input{border:1px solid #e7e5e4;padding:10px 14px;border-radius:10px;font-size:0.85rem;flex:1;font-family:'Plus Jakarta Sans',system-ui;background:#f8f7f4;color:#1c1917}
+  input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36,0.06)}
+  input::placeholder{color:#d6d3d1}
+  button{background:#292524;color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:0.85rem;cursor:pointer;font-weight:600;font-family:'Plus Jakarta Sans',system-ui;white-space:nowrap}
+  button:hover{background:#44403c}
+  #result{display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;margin-top:12px;font-size:0.85rem}
+  #result a{color:#292524;word-break:break-all;font-weight:500}
+  .copy{background:#fff;border:1px solid #e7e5e4;color:#1c1917;padding:6px 14px;border-radius:8px;cursor:pointer;margin-top:8px;display:inline-block;font-size:0.78rem}
+  #inviteResult{display:none;padding:10px;border-radius:8px;margin-top:10px;font-size:0.82rem}
+  #inviteResult.ok{display:block;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+  #inviteResult.err{display:block;background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #f5f5f4;font-size:0.82rem}
+  th{color:#a8a29e;text-transform:uppercase;font-size:0.68rem;letter-spacing:0.05em;font-weight:600}
+  .used{color:#a8a29e}.active{color:#15803d}
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:600}
+  .tag.ok{background:#f0fdf4;color:#15803d}.tag.spent{background:#f5f5f4;color:#a8a29e}
 </style></head>
 <body>
-  <h1>The Thinking Foundry — Admin</h1>
-  <p class="sub">Create session links for your users</p>
+  <h1>The Thinking Foundry</h1>
+  <p class="sub">Admin -- manage users and session links</p>
 
-  <form id="createForm">
-    <input type="text" id="nameInput" placeholder="Person's name (for your records)" required />
-    <button type="submit">Create Link</button>
-  </form>
-
-  <div id="result">
-    <p style="margin:0 0 8px 0; font-size:0.875rem; color:#71717a;">Session link created for <strong id="resultName"></strong>:</p>
-    <a id="resultLink" href="#" target="_blank"></a>
-    <br/>
-    <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('resultLink').href); this.textContent='Copied!'">Copy link</button>
+  <div class="section">
+    <h2>Invite User</h2>
+    <form id="inviteForm">
+      <input type="email" id="inviteEmail" placeholder="user@company.com" required />
+      <button type="submit">Invite</button>
+    </form>
+    <div id="inviteResult"></div>
+    <div id="whitelist" style="margin-top:12px"></div>
   </div>
 
-  <div id="links">
-    <h3 style="font-size:1rem; color:#a1a1aa;">Active Links</h3>
-    <table><thead><tr><th>Name</th><th>Status</th><th>Created</th></tr></thead><tbody id="linksBody"></tbody></table>
+  <div class="section">
+    <h2>Create Session Link</h2>
+    <form id="createForm">
+      <input type="text" id="nameInput" placeholder="Label (person's name)" required />
+      <button type="submit">Create Link</button>
+    </form>
+    <div id="result">
+      <p style="margin:0 0 6px 0;color:#57534e;">Link for <strong id="resultName"></strong>:</p>
+      <a id="resultLink" href="#" target="_blank"></a><br/>
+      <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('resultLink').href);this.textContent='Copied!'">Copy link</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Active Links</h2>
+    <table><thead><tr><th>Label</th><th>Status</th><th>Created</th></tr></thead><tbody id="linksBody"></tbody></table>
   </div>
 
   <script>
     const API_KEY = new URLSearchParams(window.location.search).get('key') || localStorage.getItem('tf_admin_key') || prompt('Admin API key:');
     if (API_KEY) localStorage.setItem('tf_admin_key', API_KEY);
-    if (!API_KEY) document.body.innerHTML = '<h1>API key required</h1><p>Add ?key=YOUR_KEY to the URL</p>';
+    if (!API_KEY) document.body.innerHTML = '<h1 style="font-family:Instrument Serif,serif">API key required</h1><p style="color:#57534e;margin-top:8px">Enter the admin key when prompted, or add ?key=YOUR_KEY to the URL.</p>';
 
+    // Invite user
+    document.getElementById('inviteForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('inviteEmail').value.trim();
+      const r = document.getElementById('inviteResult');
+      const res = await fetch('/admin/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      r.textContent = data.success ? 'Invited: ' + email : (data.message || data.error || 'Failed');
+      r.className = data.success ? 'ok' : 'err';
+      r.style.display = 'block';
+      document.getElementById('inviteEmail').value = '';
+      loadWhitelist();
+    });
+
+    // Create link
     document.getElementById('createForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('nameInput').value;
@@ -256,21 +294,29 @@ class LinkAuth {
         document.getElementById('resultLink').textContent = fullUrl;
         document.getElementById('nameInput').value = '';
         loadLinks();
-      } else {
-        alert('Error: ' + (data.error || 'Unknown'));
       }
     });
+
+    async function loadWhitelist() {
+      const res = await fetch('/admin/whitelist?key=' + API_KEY);
+      const data = await res.json();
+      const el = document.getElementById('whitelist');
+      if (data.emails && data.emails.length > 0) {
+        el.innerHTML = '<p style="font-size:0.75rem;color:#a8a29e;margin-bottom:4px">Whitelisted (' + data.emails.length + '):</p>' +
+          data.emails.map(e => '<span style="display:inline-block;padding:3px 10px;margin:2px 4px 2px 0;background:#f8f7f4;border:1px solid #e7e5e4;border-radius:6px;font-size:0.78rem">' + e + '</span>').join('');
+      }
+    }
 
     async function loadLinks() {
       const res = await fetch('/admin/links?key=' + API_KEY);
       const data = await res.json();
       if (data.ok) {
         document.getElementById('linksBody').innerHTML = data.links.map(l =>
-          '<tr><td>' + (l.label || '—') + '</td><td class="' + (l.used ? 'used' : 'active') + '">' + (l.used ? 'Used' : 'Active') + '</td><td>' + new Date(l.createdAt).toLocaleString() + '</td></tr>'
+          '<tr><td>' + (l.label || '---') + '</td><td><span class="tag ' + (l.used ? 'spent' : 'ok') + '">' + (l.used ? 'Used' : 'Active') + '</span></td><td>' + new Date(l.createdAt).toLocaleString() + '</td></tr>'
         ).join('');
       }
     }
-    if (API_KEY) loadLinks();
+    if (API_KEY) { loadLinks(); loadWhitelist(); }
   </script>
 </body></html>`);
     });
