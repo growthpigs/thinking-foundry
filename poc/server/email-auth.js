@@ -12,6 +12,16 @@
 
 const crypto = require('crypto');
 
+/** Escape HTML special characters for safe injection into templates */
+function escapeHtml(text) {
+  return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+const PIN_LENGTH = 4;
+const MAGIC_LINK_EXPIRY_MS = 15 * 60 * 1000;     // 15 minutes
+const SESSION_NONCE_EXPIRY_MS = 60 * 1000;        // 60 seconds
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;        // 5 minutes
+
 class EmailAuth {
   constructor({ resendApiKey, baseUrl } = {}) {
     this.resendApiKey = resendApiKey !== undefined ? resendApiKey : process.env.RESEND_API_KEY;
@@ -39,7 +49,7 @@ class EmailAuth {
       for (const [nonce, entry] of this.sessionNonces) {
         if (now > entry.expiresAt) this.sessionNonces.delete(nonce);
       }
-    }, 5 * 60 * 1000);
+    }, CLEANUP_INTERVAL_MS);
 
     // Supabase for persistent whitelist
     this.supabase = null;
@@ -129,7 +139,7 @@ class EmailAuth {
    */
   createSessionNonce(email) {
     const nonce = crypto.randomUUID();
-    this.sessionNonces.set(nonce, { email: email.toLowerCase(), expiresAt: Date.now() + 60 * 1000 });
+    this.sessionNonces.set(nonce, { email: email.toLowerCase(), expiresAt: Date.now() + SESSION_NONCE_EXPIRY_MS });
     return nonce;
   }
 
@@ -177,7 +187,7 @@ class EmailAuth {
     }
 
     const token = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + MAGIC_LINK_EXPIRY_MS).toISOString();
 
     // Persist magic link to Supabase (survives deploys)
     if (this.supabase) {
@@ -273,7 +283,7 @@ class EmailAuth {
    * @returns {{ success: boolean, deviceToken?: string, message?: string }}
    */
   async setPin(email, pin, magicToken) {
-    if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    if (!pin || pin.length !== PIN_LENGTH || !/^\d{4}$/.test(pin)) {
       return { success: false, message: 'PIN must be exactly 4 digits' };
     }
 
@@ -549,7 +559,7 @@ input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36
 <div class="toast" id="toast"></div>
 <div class="card">
   <h1>Set your PIN</h1>
-  <p class="sub">Choose a 4-digit PIN for <span class="email">${email.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</span>. You will use this to quickly access future sessions on this device.</p>
+  <p class="sub">Choose a 4-digit PIN for <span class="email">${escapeHtml(email)}</span>. You will use this to quickly access future sessions on this device.</p>
   <label>4-digit PIN</label>
   <input type="password" id="pinInput" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*" autofocus>
   <button class="btn" onclick="setPin()">Set PIN and start session</button>
@@ -602,7 +612,7 @@ a{display:inline-block;margin-top:20px;color:#292524;text-decoration:none;font-w
 <body>
 <div class="card">
   <h1>Link Invalid</h1>
-  <p>${reason.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+  <p>${escapeHtml(reason)}</p>
   <a href="/">Request a new link</a>
 </div>
 </body></html>`;

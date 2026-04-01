@@ -11,6 +11,10 @@
  *   4. Token marked as used after WebSocket connects
  */
 
+const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000;           // 24 hours
+const TOKEN_CLEANUP_CUTOFF_MS = 25 * 60 * 60 * 1000;   // 25 hours
+const TOKEN_CLEANUP_INTERVAL_MS = 30 * 60 * 1000;       // 30 minutes
+
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -40,13 +44,13 @@ class LinkAuth {
 
     // Clean up old tokens every 30 minutes (prevent memory leak)
     setInterval(() => {
-      const cutoff = Date.now() - 25 * 60 * 60 * 1000; // 25 hours
+      const cutoff = Date.now() - TOKEN_CLEANUP_CUTOFF_MS; // 25 hours
       for (const [token, meta] of this.tokens) {
         if (new Date(meta.createdAt).getTime() < cutoff) {
           this.tokens.delete(token);
         }
       }
-    }, 30 * 60 * 1000);
+    }, TOKEN_CLEANUP_INTERVAL_MS);
   }
 
   /**
@@ -98,7 +102,7 @@ class LinkAuth {
 
     // Check expiry (24 hours)
     const age = Date.now() - new Date(meta.createdAt).getTime();
-    if (age > 24 * 60 * 60 * 1000) {
+    if (age > TOKEN_EXPIRY_MS) {
       return { valid: false, reason: 'Token expired (24h)' };
     }
 

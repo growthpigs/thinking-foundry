@@ -309,6 +309,18 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
    ════════════════════════════════════════════════════ */
 var TOKEN = window.__TF_TOKEN || '';
 var USER_EMAIL = window.__TF_EMAIL || '';
+
+// ── Audio constants ──
+var PLAYBACK_SAMPLE_RATE = 24000;
+var MIC_SAMPLE_RATE = 16000;
+var AUDIO_BUFFER_SIZE = 4096;
+var PCM_MAX = 32768.0;
+
+// ── UI constants ──
+var DRAWER_SWIPE_THRESHOLD = 80;
+var DEDUPE_KEY_LENGTH = 40;
+var MIN_DISPLAY_BULLET = 15;
+var CONTEXT_PREVIEW_MAX = 120;
 var PHASES = [
   {name:'User Stories', short:'Stories'},
   {name:'Mine', short:'Mine'},
@@ -604,12 +616,12 @@ function condenseBullets(bullets) {
 
   bullets.forEach(function(b) {
     // Deduplicate by first 40 chars
-    var key = b.text.substring(0, 40).toLowerCase();
+    var key = b.text.substring(0, DEDUPE_KEY_LENGTH).toLowerCase();
     if (seen[key]) return;
     seen[key] = true;
 
     // Skip system messages and very short noise
-    if (b.speaker === 'system' || b.text.length < 15) return;
+    if (b.speaker === 'system' || b.text.length < MIN_DISPLAY_BULLET) return;
 
     if (b.speaker === 'ai') aiPoints.push(b.text);
     else userPoints.push(b.text);
@@ -697,7 +709,7 @@ function closeDrawer() {
   handle.addEventListener('pointerup', function() {
     dragging = false;
     drawer.style.transition = '';
-    if (currentY > 80) { closeDrawer(); }
+    if (currentY > DRAWER_SWIPE_THRESHOLD) { closeDrawer(); }
     else { drawer.style.transform = ''; }
   });
 })();
@@ -708,7 +720,7 @@ function sendContext() {
   var text = input.value.trim();
   if (!text || !ws || ws.readyState !== 1) return;
   ws.send(JSON.stringify({ type: 'add-context', documents: [{ name: 'pasted-text', content: text }] }));
-  var preview = text.length > 120 ? text.substring(0, 117) + '...' : text;
+  var preview = text.length > CONTEXT_PREVIEW_MAX ? text.substring(0, CONTEXT_PREVIEW_MAX - 3) + '...' : text;
   addBullet('user', preview, phase);
   input.value = '';
 }
@@ -737,7 +749,7 @@ function queueAudio(b64) {
 }
 
 function ensurePlaybackCtx() {
-  if (!playCtx) playCtx = new AudioContext({ sampleRate: 24000 });
+  if (!playCtx) playCtx = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE });
   // Chrome suspends AudioContext if created without user gesture — resume it
   if (playCtx.state === 'suspended') playCtx.resume();
   return playCtx;
@@ -753,7 +765,7 @@ function drainAudio() {
     for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
     var samples = new Int16Array(bytes.buffer);
     var f32 = new Float32Array(samples.length);
-    for (var j = 0; j < samples.length; j++) f32[j] = samples[j] / 32768.0;
+    for (var j = 0; j < samples.length; j++) f32[j] = samples[j] / PCM_MAX;
     var buf = ctx.createBuffer(1, f32.length, 24000);
     buf.getChannelData(0).set(f32);
     var src = ctx.createBufferSource();
@@ -769,12 +781,12 @@ function drainAudio() {
    ════════════════════════════════════════════════════ */
 function startMic() {
   navigator.mediaDevices.getUserMedia({
-    audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+    audio: { sampleRate: MIC_SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true }
   }).then(function(s) {
     micStream = s;
-    micCtx = new AudioContext({ sampleRate: 16000 });
+    micCtx = new AudioContext({ sampleRate: MIC_SAMPLE_RATE });
     var source = micCtx.createMediaStreamSource(micStream);
-    processor = micCtx.createScriptProcessor(4096, 1, 1);
+    processor = micCtx.createScriptProcessor(AUDIO_BUFFER_SIZE, 1, 1);
     processor.onaudioprocess = function(e) {
       if (paused || !ws || ws.readyState !== 1) return;
       // While AI is speaking: send silence to keep Gemini connection alive

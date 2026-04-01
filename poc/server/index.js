@@ -10,9 +10,17 @@ const { exportToGitHub } = require('./github-export');
 const { DriveManager } = require('./drive-manager');
 const { ContextLoader } = require('../context/loader');
 const { GitHubConnector } = require('../context/github-connector');
-// DriveConnector removed — Drive context reading no longer used (Drive is output-only now)
 const { SupabaseBuffer } = require('./supabase-buffer');
 const { GitHubPersistence } = require('./github-persistence');
+
+// ── Condensation thresholds (bullet point generation) ──
+const MIN_AI_TEXT_LENGTH = 30;
+const MIN_BULLET_COMBINE_LENGTH = 40;
+const MAX_BULLET_LENGTH = 80;
+const MIN_USER_TEXT_LENGTH = 10;
+const MIN_USER_BULLET_COMBINE = 30;
+const SUBSTANTIAL_BUFFER_THRESHOLD = 50;
+const MAX_CONTEXT_INJECTION_LENGTH = 10000;
 const { PhaseTransitionHandler } = require('./phase-transition');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
@@ -202,20 +210,20 @@ wss.on('connection', (clientWs, req) => {
   function flushAiTurnBuffer() {
     const text = aiTurnBuffer.trim();
     aiTurnBuffer = '';
-    if (text.length < 30) return; // skip noise ("Interesting." / "Go on.")
+    if (text.length < MIN_AI_TEXT_LENGTH) return; // skip noise ("Interesting." / "Go on.")
 
     // Take FIRST sentence — prompts enforce insight-first, question-last
     const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
     let bullet = sentences[0] || text;
 
     // If first sentence is very short, concatenate first two
-    if (bullet.length < 40 && sentences.length > 1) {
+    if (bullet.length < MIN_BULLET_COMBINE_LENGTH && sentences.length > 1) {
       bullet = sentences[0] + ' ' + sentences[1];
     }
 
     // Cap at ~80 chars
-    if (bullet.length > 80) {
-      bullet = bullet.substring(0, 77) + '...';
+    if (bullet.length > MAX_BULLET_LENGTH) {
+      bullet = bullet.substring(0, MAX_BULLET_LENGTH - 3) + '...';
     }
 
     sendToClient('outline_item', { speaker: 'ai', text: bullet, phase: session.currentPhase });
@@ -244,13 +252,13 @@ wss.on('connection', (clientWs, req) => {
     clearTimeout(userFlushTimer);
     var text = userTurnBuffer.trim();
     userTurnBuffer = '';
-    if (text.length < 10) return; // skip noise
+    if (text.length < MIN_USER_TEXT_LENGTH) return; // skip noise
 
     // Take first sentence if long, or full text if short
     var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.trim().length > 0; });
     var bullet = sentences[0] || text;
-    if (bullet.length < 30 && sentences.length > 1) bullet = sentences[0] + ' ' + sentences[1];
-    if (bullet.length > 80) bullet = bullet.substring(0, 77) + '...';
+    if (bullet.length < MIN_USER_BULLET_COMBINE && sentences.length > 1) bullet = sentences[0] + ' ' + sentences[1];
+    if (bullet.length > MAX_BULLET_LENGTH) bullet = bullet.substring(0, MAX_BULLET_LENGTH - 3) + '...';
 
     sendToClient('outline_item', { speaker: 'user', text: bullet, phase: session.currentPhase });
 
@@ -424,7 +432,7 @@ wss.on('connection', (clientWs, req) => {
       onInterrupted: () => {
         console.log('[GEMINI] Barge-in detected — clearing client playback');
         // Flush partial buffer if substantial, otherwise discard
-        if (aiTurnBuffer.trim().length > 50) {
+        if (aiTurnBuffer.trim().length > SUBSTANTIAL_BUFFER_THRESHOLD) {
           flushAiTurnBuffer();
         } else {
           aiTurnBuffer = '';
@@ -815,7 +823,7 @@ wss.on('connection', (clientWs, req) => {
             .filter(d => d && d.content)
             .map(d => `[User shared: ${d.name || 'document'}]\n${d.content}`)
             .join('\n\n');
-          const truncated = contextParts.length > 10000
+          const truncated = contextParts.length > MAX_CONTEXT_INJECTION_LENGTH
             ? contextParts.substring(0, 9997) + '...'
             : contextParts;
 
