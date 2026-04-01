@@ -255,22 +255,14 @@ class LinkAuth {
 
   <div class="toast" id="toast"></div>
 
-  <div class="section">
-    <h2>Create Session Link</h2>
-    <form id="createForm">
-      <input type="text" id="nameInput" placeholder="Label (person's name)" required />
-      <button type="submit">Create Link</button>
-    </form>
-    <div id="result">
-      <p style="margin:0 0 6px 0;color:#57534e;">Link for <strong id="resultName"></strong>:</p>
-      <a id="resultLink" href="#" target="_blank"></a><br/>
-      <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('resultLink').href);this.textContent='Copied!'">Copy link</button>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Active Links</h2>
-    <table><thead><tr><th>Label</th><th>Status</th><th>Created</th></tr></thead><tbody id="linksBody"></tbody></table>
+  <div class="section" style="background:var(--bg,#f8f7f4);border-style:dashed">
+    <h2>How It Works</h2>
+    <ol style="font-size:0.82rem;color:#57534e;line-height:1.7;padding-left:18px">
+      <li>Invite a user's email above</li>
+      <li>Send them the app URL: <strong style="user-select:all">https://thinking-foundry-production.up.railway.app</strong></li>
+      <li>They enter their email, receive a magic link, set a PIN</li>
+      <li>On return visits, they just enter their PIN</li>
+    </ol>
   </div>
 
   <script>
@@ -299,27 +291,6 @@ class LinkAuth {
       }
       document.getElementById('inviteEmail').value = '';
       loadWhitelist();
-    });
-
-    // Create link
-    document.getElementById('createForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('nameInput').value;
-      const res = await fetch('/admin/create-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
-        body: JSON.stringify({ label: name })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        const fullUrl = data.url.startsWith('http') ? data.url : window.location.origin + data.url;
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('resultName').textContent = name;
-        document.getElementById('resultLink').href = fullUrl;
-        document.getElementById('resultLink').textContent = fullUrl;
-        document.getElementById('nameInput').value = '';
-        loadLinks();
-      }
     });
 
     // Toast notification
@@ -382,16 +353,7 @@ class LinkAuth {
       }
     }
 
-    async function loadLinks() {
-      const res = await fetch('/admin/links?key=' + API_KEY);
-      const data = await res.json();
-      if (data.ok) {
-        document.getElementById('linksBody').innerHTML = data.links.map(l =>
-          '<tr><td>' + (l.label || '---') + '</td><td><span class="tag ' + (l.used ? 'spent' : 'ok') + '">' + (l.used ? 'Used' : 'Active') + '</span></td><td>' + new Date(l.createdAt).toLocaleString() + '</td></tr>'
-        ).join('');
-      }
-    }
-    if (API_KEY) { loadLinks(); loadWhitelist(); }
+    if (API_KEY) { loadWhitelist(); }
   </script>
 </body></html>`);
     });
