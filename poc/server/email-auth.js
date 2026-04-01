@@ -78,10 +78,10 @@ class EmailAuth {
 
     // Persist to Supabase
     if (this.supabase) {
-      await this.supabase
+      const { error } = await this.supabase
         .from('allowed_emails')
-        .upsert({ email: normalized }, { onConflict: 'email' })
-        .catch(err => console.warn('[AUTH] Failed to persist email to DB:', err.message));
+        .upsert({ email: normalized }, { onConflict: 'email' });
+      if (error) console.warn('[AUTH] Failed to persist email to DB:', error.message);
     }
   }
 
@@ -94,11 +94,11 @@ class EmailAuth {
     this.allowedEmails.delete(normalized);
 
     if (this.supabase) {
-      await this.supabase
+      const { error } = await this.supabase
         .from('allowed_emails')
         .delete()
-        .eq('email', normalized)
-        .catch(err => console.warn('[AUTH] Failed to remove email from DB:', err.message));
+        .eq('email', normalized);
+      if (error) console.warn('[AUTH] Failed to remove email from DB:', error.message);
     }
   }
 
