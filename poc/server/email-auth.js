@@ -47,15 +47,25 @@ class EmailAuth {
     try {
       const { data, error } = await this.supabase
         .from('allowed_emails')
-        .select('email');
+        .select('email, pin_hash, device_token');
       if (error) {
         // Table might not exist yet — that's fine, env var whitelist still works
         console.log('[AUTH] allowed_emails table not found — using env var whitelist only');
         return;
       }
       if (data) {
-        data.forEach(row => this.allowedEmails.add(row.email.toLowerCase()));
-        console.log(`[AUTH] Loaded ${data.length} emails from Supabase whitelist`);
+        data.forEach(row => {
+          this.allowedEmails.add(row.email.toLowerCase());
+          // Warm in-memory caches for PIN + device token
+          if (row.pin_hash) {
+            this.users.set(row.email.toLowerCase(), { pinHash: row.pin_hash });
+          }
+          if (row.device_token) {
+            this.deviceTokens.set(row.device_token, row.email.toLowerCase());
+          }
+        });
+        const withPin = data.filter(r => r.pin_hash).length;
+        console.log(`[AUTH] Loaded ${data.length} emails from Supabase (${withPin} with PINs)`);
       }
     } catch (err) {
       console.warn('[AUTH] Failed to load whitelist from DB:', err.message);
@@ -122,9 +132,16 @@ class EmailAuth {
     }
 
     const token = crypto.randomUUID();
-    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    this.magicLinks.set(token, { email: email.toLowerCase(), expiresAt });
+    // Persist magic link to Supabase (survives deploys)
+    if (this.supabase) {
+      const { error } = await this.supabase.from('auth_magic_links')
+        .upsert({ token, email: email.toLowerCase(), expires_at: expiresAt });
+      if (error) console.warn('[AUTH] Failed to persist magic link:', error.message);
+    }
+    // Also keep in memory as fast cache
+    this.magicLinks.set(token, { email: email.toLowerCase(), expiresAt: new Date(expiresAt).getTime() });
 
     const link = this.baseUrl
       ? `${this.baseUrl}/auth/verify/${token}`
@@ -177,14 +194,29 @@ class EmailAuth {
    * @param {string} token
    * @returns {{ valid: boolean, email?: string, reason?: string }}
    */
-  verifyMagicLink(token) {
-    const entry = this.magicLinks.get(token);
+  async verifyMagicLink(token) {
+    // Check in-memory first (fast path)
+    let entry = this.magicLinks.get(token);
+
+    // Fall back to Supabase (survives deploys)
+    if (!entry && this.supabase) {
+      const { data } = await this.supabase.from('auth_magic_links')
+        .select('email, expires_at')
+        .eq('token', token)
+        .single();
+      if (data) {
+        entry = { email: data.email, expiresAt: new Date(data.expires_at).getTime() };
+      }
+    }
+
     if (!entry) return { valid: false, reason: 'Link not found or already used' };
     if (Date.now() > entry.expiresAt) {
       this.magicLinks.delete(token);
+      if (this.supabase) {
+        await this.supabase.from('auth_magic_links').delete().eq('token', token);
+      }
       return { valid: false, reason: 'Link expired' };
     }
-    // Don't delete yet — consumed after PIN is set
     return { valid: true, email: entry.email };
   }
 
@@ -203,15 +235,27 @@ class EmailAuth {
     // Hash the PIN
     const pinHash = crypto.createHash('sha256').update(pin + email).digest('hex');
     const deviceToken = crypto.randomUUID();
+    const normalized = email.toLowerCase();
 
-    // Store user (in-memory for MVP)
-    this.users.set(email.toLowerCase(), { pinHash, createdAt: new Date().toISOString() });
+    // Persist to Supabase (pin_hash + device_token on allowed_emails row)
+    if (this.supabase) {
+      const { error } = await this.supabase.from('allowed_emails')
+        .update({ pin_hash: pinHash, device_token: deviceToken })
+        .eq('email', normalized);
+      if (error) console.warn('[AUTH] Failed to persist PIN:', error.message);
+    }
 
-    // Store device token
-    this.deviceTokens.set(deviceToken, email.toLowerCase());
+    // Also keep in memory as fast cache
+    this.users.set(normalized, { pinHash, createdAt: new Date().toISOString() });
+    this.deviceTokens.set(deviceToken, normalized);
 
     // Consume magic link
-    if (magicToken) this.magicLinks.delete(magicToken);
+    if (magicToken) {
+      this.magicLinks.delete(magicToken);
+      if (this.supabase) {
+        await this.supabase.from('auth_magic_links').delete().eq('token', magicToken);
+      }
+    }
 
     console.log(`[AUTH] PIN set for ${email}, device token created`);
     return { success: true, deviceToken };
@@ -224,16 +268,35 @@ class EmailAuth {
    * @returns {{ valid: boolean, email?: string, message?: string }}
    */
   async verifyPin(deviceToken, pin) {
-    // Look up device (in-memory)
-    const email = this.deviceTokens.get(deviceToken);
-    if (!email) return { valid: false, message: 'Device not recognized. Please use your email link.' };
+    // Check in-memory first (fast path)
+    let email = this.deviceTokens.get(deviceToken);
+    let storedPinHash = null;
 
-    // Look up user + verify PIN
-    const user = this.users.get(email);
-    if (!user) return { valid: false, message: 'User not found' };
+    if (email) {
+      const user = this.users.get(email);
+      storedPinHash = user?.pinHash;
+    }
+
+    // Fall back to Supabase (survives deploys)
+    if (!email && this.supabase) {
+      const { data } = await this.supabase.from('allowed_emails')
+        .select('email, pin_hash')
+        .eq('device_token', deviceToken)
+        .single();
+      if (data) {
+        email = data.email;
+        storedPinHash = data.pin_hash;
+        // Warm the in-memory cache
+        this.deviceTokens.set(deviceToken, email);
+        this.users.set(email, { pinHash: storedPinHash });
+      }
+    }
+
+    if (!email) return { valid: false, message: 'Device not recognized. Please use your email link.' };
+    if (!storedPinHash) return { valid: false, message: 'No PIN set. Please use your email link.' };
 
     const pinHash = crypto.createHash('sha256').update(pin + email).digest('hex');
-    if (pinHash !== user.pinHash) {
+    if (pinHash !== storedPinHash) {
       return { valid: false, message: 'Wrong PIN' };
     }
 
@@ -258,8 +321,8 @@ class EmailAuth {
     });
 
     // Verify magic link → show PIN setup
-    app.get('/auth/verify/:token', (req, res) => {
-      const result = this.verifyMagicLink(req.params.token);
+    app.get('/auth/verify/:token', async (req, res) => {
+      const result = await this.verifyMagicLink(req.params.token);
       if (!result.valid) {
         return res.status(403).send(this._renderError(result.reason));
       }
