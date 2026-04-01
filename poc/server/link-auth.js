@@ -297,13 +297,30 @@ class LinkAuth {
       }
     });
 
+    async function removeEmail(email) {
+      if (!confirm('Remove ' + email + ' from the whitelist? They will no longer be able to start sessions.')) return;
+      await fetch('/admin/invite', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+        body: JSON.stringify({ email })
+      });
+      loadWhitelist();
+    }
+
     async function loadWhitelist() {
       const res = await fetch('/admin/whitelist?key=' + API_KEY);
       const data = await res.json();
       const el = document.getElementById('whitelist');
       if (data.emails && data.emails.length > 0) {
-        el.innerHTML = '<p style="font-size:0.75rem;color:#a8a29e;margin-bottom:4px">Whitelisted (' + data.emails.length + '):</p>' +
-          data.emails.map(e => '<span style="display:inline-block;padding:3px 10px;margin:2px 4px 2px 0;background:#f8f7f4;border:1px solid #e7e5e4;border-radius:6px;font-size:0.78rem">' + e + '</span>').join('');
+        el.innerHTML = '<p style="font-size:0.75rem;color:#a8a29e;margin-bottom:6px">Whitelisted (' + data.emails.length + '):</p>' +
+          data.emails.map(e =>
+            '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 12px;margin:2px 4px 2px 0;background:#f8f7f4;border:1px solid #e7e5e4;border-radius:8px;font-size:0.78rem">' +
+              e +
+              '<button onclick="removeEmail(\\'' + e.replace(/'/g,"\\\\'") + '\\')" style="background:none;border:none;cursor:pointer;color:#a8a29e;font-size:1rem;line-height:1;padding:0 2px" title="Remove">&times;</button>' +
+            '</span>'
+          ).join('');
+      } else {
+        el.innerHTML = '<p style="font-size:0.78rem;color:#a8a29e">No users whitelisted yet. Invite someone above.</p>';
       }
     }
 

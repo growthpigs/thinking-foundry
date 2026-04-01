@@ -95,6 +95,17 @@ try {
       res.json({ success: true, message: 'User invited: ' + email });
     });
 
+    app.delete('/admin/invite', (req, res) => {
+      const apiKey = req.headers['x-api-key'];
+      if (!linkAuth || !linkAuth.isAdminKey(apiKey)) {
+        return res.status(401).json({ error: 'Invalid admin key' });
+      }
+      const { email } = req.body || {};
+      if (!email) return res.json({ success: false, message: 'No email provided' });
+      emailAuth.removeAllowedEmail(email);
+      res.json({ success: true, message: 'Removed: ' + email });
+    });
+
     app.get('/admin/whitelist', (req, res) => {
       const apiKey = req.headers['x-api-key'] || req.query.key;
       if (!linkAuth || !linkAuth.isAdminKey(apiKey)) {
