@@ -63,7 +63,7 @@ try {
 
     // Session creation route (after PIN verified)
     // Protected: only accepts requests with a valid email that's in the whitelist
-    app.get('/session/new', (req, res) => {
+    app.get('/session/new', async (req, res) => {
       const userEmail = (req.query.email || '').toLowerCase().trim();
 
       // Verify the email is whitelisted — prevents direct URL access bypass
@@ -72,9 +72,8 @@ try {
       }
 
       if (linkAuth) {
-        linkAuth.createLink({ label: userEmail, email: userEmail }).then(link => {
-          res.redirect('/s/' + link.token);
-        });
+        const link = await linkAuth.createLink({ label: userEmail, email: userEmail });
+        res.redirect('/s/' + link.token);
       } else {
         const token = require('crypto').randomUUID();
         res.redirect('/s/' + token);
@@ -467,11 +466,6 @@ wss.on('connection', (clientWs, req) => {
       },
 
       onAudio: (audioBase64) => {
-        if (!this._audioLogCount) this._audioLogCount = 0;
-        if (this._audioLogCount < 3) {
-          console.log(`[AUDIO] Sending audio chunk to client (${audioBase64.length} chars b64)`);
-          this._audioLogCount++;
-        }
         sendToClient('audio', { data: audioBase64 });
       },
 

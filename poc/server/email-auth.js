@@ -29,6 +29,9 @@ class EmailAuth {
       process.env.ALLOWED_EMAILS.split(',').forEach(e => this.allowedEmails.add(e.trim().toLowerCase()));
     }
 
+    // Clean up expired magic links every 5 minutes
+    setInterval(() => this._cleanupExpiredLinks(), 5 * 60 * 1000);
+
     // Supabase for persistent whitelist
     this.supabase = null;
     if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
@@ -109,6 +112,19 @@ class EmailAuth {
         .delete()
         .eq('email', normalized);
       if (error) console.warn('[AUTH] Failed to remove email from DB:', error.message);
+    }
+  }
+
+  /**
+   * Clean up expired magic links from memory.
+   * Called periodically to prevent memory leaks.
+   */
+  _cleanupExpiredLinks() {
+    const now = Date.now();
+    for (const [token, entry] of this.magicLinks) {
+      if (now > entry.expiresAt) {
+        this.magicLinks.delete(token);
+      }
     }
   }
 
