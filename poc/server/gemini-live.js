@@ -301,7 +301,7 @@ class GeminiLiveManager {
         console.log('[RECONNECT] Standby connection open, waiting for setup phase...');
       });
 
-      this.standbyWs.on('error', (err) => {
+      this.standbyWs.once('error', (err) => {
         console.error('[RECONNECT] Standby connection failed:', err.message);
         // If standby fails, try again in 30 seconds
         const retryTimer = setTimeout(() => {
@@ -416,18 +416,22 @@ class GeminiLiveManager {
         this.sendSetup(this.activeWs, phase, contextSummary);
         this.scheduleReconnection();
 
-        // Close old
+        // Close old — clear isSwapping when it actually closes
         if (oldWs && oldWs.readyState === WebSocket.OPEN) {
+          oldWs.once('close', () => {
+            this.isSwapping = false;
+            this.onReconnected();
+          });
           oldWs.close(1000, 'Phase change');
+        } else {
+          this.isSwapping = false;
+          this.onReconnected();
         }
-
-        this.isSwapping = false;
-        this.onReconnected();
         resolve();
       });
 
       this.activeWs.on('error', (err) => {
-        this.isSwapping = false;
+        // Don't clear isSwapping — old ws close event handles it
         this.onError(err);
         resolve();
       });

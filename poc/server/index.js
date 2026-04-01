@@ -436,6 +436,7 @@ wss.on('connection', (clientWs, req) => {
       onTurnComplete: () => {
         // AI finished speaking — flush accumulated text as condensed bullet
         flushAiTurnBuffer();
+        sendToClient('turn_complete', {});
       },
 
       onTranscript: (role, text) => {

@@ -487,6 +487,11 @@ function connectWs(github, docs) {
       if (msg.type === 'interrupted') {
         audioQueue = [];
         isPlaying = false;
+        setAiState('listening');
+      }
+
+      if (msg.type === 'turn_complete') {
+        if (!isPlaying) setAiState('listening');
       }
 
       if (msg.type === 'drive_status') {
@@ -756,7 +761,7 @@ function drainAudio() {
     src.connect(ctx.destination);
     src.onended = function() { drainAudio(); };
     src.start();
-  } catch(err) { console.error('[AUDIO]', err.message); drainAudio(); }
+  } catch(err) { console.error('[AUDIO]', err.message); setTimeout(drainAudio, 0); }
 }
 
 /* ════════════════════════════════════════════════════
@@ -794,7 +799,7 @@ function startMic() {
    ════════════════════════════════════════════════════ */
 function togglePause() {
   paused = !paused;
-  if (ws) ws.send(JSON.stringify({ type: paused ? 'pause' : 'resume' }));
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: paused ? 'pause' : 'resume' }));
   var btn = document.getElementById('pauseBtn');
   btn.textContent = paused ? 'Resume' : 'Pause';
   btn.className = 'ctrl-btn pause' + (paused ? ' active' : '');
