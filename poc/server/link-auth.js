@@ -227,7 +227,8 @@ class LinkAuth {
   </div>
 
   <script>
-    const API_KEY = new URLSearchParams(window.location.search).get('key') || prompt('Admin API key:');
+    const API_KEY = new URLSearchParams(window.location.search).get('key') || localStorage.getItem('tf_admin_key') || prompt('Admin API key:');
+    if (API_KEY) localStorage.setItem('tf_admin_key', API_KEY);
     if (!API_KEY) document.body.innerHTML = '<h1>API key required</h1><p>Add ?key=YOUR_KEY to the URL</p>';
 
     document.getElementById('createForm')?.addEventListener('submit', async (e) => {
