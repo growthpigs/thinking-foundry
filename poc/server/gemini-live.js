@@ -176,9 +176,10 @@ class GeminiLiveManager {
         // Server content (audio + text)
         if (msg.serverContent) {
           const parts = msg.serverContent.modelTurn?.parts || [];
+          if (parts.length > 0 && !parts[0].inlineData) {
+            console.log(`[GEMINI][${label}] Got ${parts.length} parts but NO inlineData. Keys:`, parts.map(p => Object.keys(p)));
+          }
           for (const part of parts) {
-            // In AUDIO-only mode, text comes via outputTranscription, not modelTurn.parts
-            // Only forward audio data from parts to avoid duplicate transcript
             if (part.inlineData) {
               if (!isStandby || this.isSwapping) {
                 this.onAudio(part.inlineData.data);

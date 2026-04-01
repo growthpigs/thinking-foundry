@@ -467,6 +467,11 @@ wss.on('connection', (clientWs, req) => {
       },
 
       onAudio: (audioBase64) => {
+        if (!this._audioLogCount) this._audioLogCount = 0;
+        if (this._audioLogCount < 3) {
+          console.log(`[AUDIO] Sending audio chunk to client (${audioBase64.length} chars b64)`);
+          this._audioLogCount++;
+        }
         sendToClient('audio', { data: audioBase64 });
       },
 
@@ -620,9 +625,17 @@ wss.on('connection', (clientWs, req) => {
               await gemini.forceReconnect(toPhase, context.getCondensedContext());
             }
 
-            // Forward sync to Google Drive — write phase output into its subfolder
-            if (driveManager && driveManager.sessionFolderId) {
+            // Forward sync to Google Drive — create folders on first transition, then write
+            if (driveManager) {
               try {
+                // Lazy-create session folders on first phase transition
+                if (!driveManager.sessionFolderId) {
+                  const driveResult = await driveManager.createSessionWithPhases(
+                    driveManager._sessionLabel, driveManager._userEmail
+                  );
+                  console.log(`[DRIVE] Session folder created on first transition: ${driveResult.sessionFolderUrl}`);
+                  sendToClient('drive_status', { connected: true, folderUrl: driveResult.sessionFolderUrl });
+                }
                 const result = await driveManager.writePhaseDoc(fromPhase, carryForwardText, {
                   confidence: meta.confidence,
                   squeezeNotes: meta.squeezeNotes
@@ -672,17 +685,16 @@ wss.on('connection', (clientWs, req) => {
           githubPersistence = null;
         }
 
-        // Initialize Google Drive — always create session folder if SA is configured
+        // Initialize Google Drive — init only, create folders on first phase transition
         if (DriveManager.isConfigured()) {
           try {
             driveManager = new DriveManager();
             await driveManager.init();
-            const sessionLabel = msg.label || 'Thinking Session';
-            // userEmail comes from auth (link token or email auth)
-            const userEmail = msg.userEmail || null;
-            const driveResult = await driveManager.createSessionWithPhases(sessionLabel, userEmail);
-            console.log(`[DRIVE] Session folder created: ${driveResult.sessionFolderUrl}`);
-            sendToClient('drive_status', { connected: true, folderUrl: driveResult.sessionFolderUrl });
+            // Store email for later folder sharing (created on first phase transition)
+            driveManager._sessionLabel = msg.label || 'Thinking Session';
+            driveManager._userEmail = msg.userEmail || null;
+            console.log('[DRIVE] Initialized (folders created on first phase transition)');
+            sendToClient('drive_status', { connected: true });
           } catch (err) {
             console.warn('[DRIVE] Init failed (continuing without):', err.message);
             driveManager = null;
