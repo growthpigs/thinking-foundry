@@ -147,7 +147,7 @@ class LinkAuth {
           .box{text-align:center;max-width:400px;}.reason{color:#f87171;margin:1em 0;}</style></head>
           <body><div class="box">
             <h1>Link Invalid</h1>
-            <p class="reason">${result.reason}</p>
+            <p class="reason">${(result.reason||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
             <p>Please request a new link from your session host.</p>
           </div></body></html>
         `);
@@ -162,11 +162,11 @@ class LinkAuth {
       );
       sessionHtml = sessionHtml.replace(
         "window.__TF_TOKEN || ''",
-        "'" + token + "'"
+        JSON.stringify(token)
       );
       sessionHtml = sessionHtml.replace(
         "window.__TF_EMAIL || ''",
-        "'" + userEmail + "'"
+        JSON.stringify(userEmail)
       );
       res.send(sessionHtml);
     });

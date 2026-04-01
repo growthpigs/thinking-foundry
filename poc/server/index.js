@@ -62,14 +62,21 @@ try {
     emailAuth.registerRoutes(app);
 
     // Session creation route (after PIN verified)
+    // Protected: only accepts requests with a valid email that's in the whitelist
     app.get('/session/new', (req, res) => {
-      const userEmail = req.query.email || '';
-      const token = require('crypto').randomUUID();
+      const userEmail = (req.query.email || '').toLowerCase().trim();
+
+      // Verify the email is whitelisted — prevents direct URL access bypass
+      if (!userEmail || !emailAuth.allowedEmails.has(userEmail)) {
+        return res.status(403).send('Unauthorized. Please log in via the homepage.');
+      }
+
       if (linkAuth) {
-        linkAuth.createLink({ label: userEmail || 'email-auth-session', email: userEmail }).then(link => {
+        linkAuth.createLink({ label: userEmail, email: userEmail }).then(link => {
           res.redirect('/s/' + link.token);
         });
       } else {
+        const token = require('crypto').randomUUID();
         res.redirect('/s/' + token);
       }
     });
@@ -136,7 +143,7 @@ app.post('/api/drive/setup', async (req, res) => {
   try {
     const { sessionName, userEmail, phaseOutputs } = req.body;
     const drive = new DriveManager();
-    const result = await drive.createSessionFolder(sessionName, userEmail, phaseOutputs);
+    const result = await drive.createSessionWithPhases(sessionName, userEmail);
     res.json({ ok: true, folderId: result.folderId, folderUrl: result.folderUrl });
   } catch (err) {
     console.error('[DRIVE] Error:', err.message);
@@ -816,8 +823,11 @@ wss.on('connection', (clientWs, req) => {
 
       case 'add-context':
         // Mid-session text or document injection — inject into active Gemini session
-        if (msg.documents && msg.documents.length > 0) {
-          const contextParts = msg.documents.map(d => `[User shared: ${d.name}]\n${d.content}`).join('\n\n');
+        if (Array.isArray(msg.documents) && msg.documents.length > 0) {
+          const contextParts = msg.documents
+            .filter(d => d && d.content)
+            .map(d => `[User shared: ${d.name || 'document'}]\n${d.content}`)
+            .join('\n\n');
           const truncated = contextParts.length > 10000
             ? contextParts.substring(0, 9997) + '...'
             : contextParts;

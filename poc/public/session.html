@@ -373,12 +373,15 @@ for (var i = 0; i < 8; i++) phaseBullets[i] = [];
   });
 })();
 
+// Store files at module level so innerHTML rebuild doesn't lose them
+var selectedFiles = null;
+
 function handleFileSelect(input) {
   var zone = document.getElementById('dropZone');
   if (input.files.length > 0) {
+    selectedFiles = input.files;
     zone.className = 'drop-zone has-files';
-    zone.innerHTML = '<input type="file" id="docsInput" multiple accept=".txt,.md,.pdf,.doc,.docx" onchange="handleFileSelect(this)">' +
-      input.files.length + ' file' + (input.files.length > 1 ? 's' : '') + ' selected';
+    zone.textContent = input.files.length + ' file' + (input.files.length > 1 ? 's' : '') + ' selected';
   }
 }
 
@@ -389,7 +392,7 @@ function startSession() {
   var github = document.getElementById('githubInput').value.trim();
   var fileInput = document.getElementById('docsInput');
   var docs = [];
-  var files = fileInput.files;
+  var files = selectedFiles || fileInput.files;
 
   document.getElementById('setup').style.display = 'none';
   document.getElementById('session').style.display = 'flex';
@@ -686,7 +689,7 @@ function closeDrawer() {
 function sendContext() {
   var input = document.getElementById('contextInput');
   var text = input.value.trim();
-  if (!text || !ws) return;
+  if (!text || !ws || ws.readyState !== 1) return;
   ws.send(JSON.stringify({ type: 'add-context', documents: [{ name: 'pasted-text', content: text }] }));
   var preview = text.length > 120 ? text.substring(0, 117) + '...' : text;
   addBullet('user', preview, phase);
@@ -694,6 +697,7 @@ function sendContext() {
 }
 
 function uploadMidSession(input) {
+  if (!ws || ws.readyState !== 1) return;
   var files = input.files;
   for (var i = 0; i < files.length; i++) {
     (function(file) {

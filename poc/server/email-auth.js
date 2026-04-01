@@ -425,7 +425,7 @@ input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36
 <body>
 <div class="card">
   <h1>Set your PIN</h1>
-  <p class="sub">Choose a 4-digit PIN for <span class="email">${email}</span>. You will use this to quickly access future sessions on this device.</p>
+  <p class="sub">Choose a 4-digit PIN for <span class="email">${email.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</span>. You will use this to quickly access future sessions on this device.</p>
   <label>4-digit PIN</label>
   <input type="password" id="pinInput" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*" autofocus>
   <button class="btn" onclick="setPin()">Set PIN and start session</button>
@@ -438,14 +438,14 @@ async function setPin() {
   var res = await fetch('/auth/set-pin', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: '${email}', pin: pin, magicToken: '${magicToken}' })
+    body: JSON.stringify({ email: ${JSON.stringify(email)}, pin: pin, magicToken: ${JSON.stringify(magicToken)} })
   });
   var data = await res.json();
 
   if (data.success) {
     localStorage.setItem('tf_device_token', data.deviceToken);
-    localStorage.setItem('tf_email', '${email}');
-    window.location.href = '/session/new?email=' + encodeURIComponent('${email}');
+    localStorage.setItem('tf_email', ${JSON.stringify(email)});
+    window.location.href = '/session/new?email=' + encodeURIComponent(${JSON.stringify(email)});
   } else {
     alert(data.message || 'Failed to set PIN');
   }
@@ -472,7 +472,7 @@ a{display:inline-block;margin-top:20px;color:#292524;text-decoration:none;font-w
 <body>
 <div class="card">
   <h1>Link Invalid</h1>
-  <p>${reason}</p>
+  <p>${reason.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
   <a href="/">Request a new link</a>
 </div>
 </body></html>`;
