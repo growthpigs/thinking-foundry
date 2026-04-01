@@ -22,11 +22,43 @@ class EmailAuth {
     this.users = new Map(); // email → { pinHash, createdAt }
     this.deviceTokens = new Map(); // deviceToken → email
 
-    // Email whitelist — only these emails can request magic links
-    // Managed via admin page (/admin) or ALLOWED_EMAILS env var
+    // Email whitelist — only pre-approved emails can request magic links
+    // Loaded from: ALLOWED_EMAILS env var + Supabase (persisted across deploys)
     this.allowedEmails = new Set();
     if (process.env.ALLOWED_EMAILS) {
       process.env.ALLOWED_EMAILS.split(',').forEach(e => this.allowedEmails.add(e.trim().toLowerCase()));
+    }
+
+    // Supabase for persistent whitelist
+    this.supabase = null;
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+      const { createClient } = require('@supabase/supabase-js');
+      this.supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+      this._loadWhitelistFromDb();
+    }
+  }
+
+  /**
+   * Load whitelist from Supabase on startup.
+   * Non-blocking — merges with env var whitelist.
+   */
+  async _loadWhitelistFromDb() {
+    if (!this.supabase) return;
+    try {
+      const { data, error } = await this.supabase
+        .from('allowed_emails')
+        .select('email');
+      if (error) {
+        // Table might not exist yet — that's fine, env var whitelist still works
+        console.log('[AUTH] allowed_emails table not found — using env var whitelist only');
+        return;
+      }
+      if (data) {
+        data.forEach(row => this.allowedEmails.add(row.email.toLowerCase()));
+        console.log(`[AUTH] Loaded ${data.length} emails from Supabase whitelist`);
+      }
+    } catch (err) {
+      console.warn('[AUTH] Failed to load whitelist from DB:', err.message);
     }
   }
 
@@ -39,17 +71,35 @@ class EmailAuth {
    * Add an email to the whitelist.
    * @param {string} email
    */
-  addAllowedEmail(email) {
-    this.allowedEmails.add(email.toLowerCase().trim());
-    console.log(`[AUTH] Added to whitelist: ${email}`);
+  async addAllowedEmail(email) {
+    const normalized = email.toLowerCase().trim();
+    this.allowedEmails.add(normalized);
+    console.log(`[AUTH] Added to whitelist: ${normalized}`);
+
+    // Persist to Supabase
+    if (this.supabase) {
+      await this.supabase
+        .from('allowed_emails')
+        .upsert({ email: normalized }, { onConflict: 'email' })
+        .catch(err => console.warn('[AUTH] Failed to persist email to DB:', err.message));
+    }
   }
 
   /**
    * Remove an email from the whitelist.
    * @param {string} email
    */
-  removeAllowedEmail(email) {
-    this.allowedEmails.delete(email.toLowerCase().trim());
+  async removeAllowedEmail(email) {
+    const normalized = email.toLowerCase().trim();
+    this.allowedEmails.delete(normalized);
+
+    if (this.supabase) {
+      await this.supabase
+        .from('allowed_emails')
+        .delete()
+        .eq('email', normalized)
+        .catch(err => console.warn('[AUTH] Failed to remove email from DB:', err.message));
+    }
   }
 
   /**
@@ -65,8 +115,9 @@ class EmailAuth {
       return { sent: false, message: 'Invalid email address' };
     }
 
-    // Whitelist check — only pre-approved emails can use the system
-    if (this.allowedEmails.size > 0 && !this.allowedEmails.has(email.toLowerCase())) {
+    // Whitelist check — ONLY pre-approved emails can use the system
+    // Empty whitelist = nobody gets in (secure by default)
+    if (!this.allowedEmails.has(email.toLowerCase())) {
       return { sent: false, message: 'This email is not registered. Please contact your session host.' };
     }
 
