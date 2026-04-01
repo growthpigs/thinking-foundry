@@ -29,8 +29,17 @@ class EmailAuth {
       process.env.ALLOWED_EMAILS.split(',').forEach(e => this.allowedEmails.add(e.trim().toLowerCase()));
     }
 
-    // Clean up expired magic links every 5 minutes
-    setInterval(() => this._cleanupExpiredLinks(), 5 * 60 * 1000);
+    // Session nonces — short-lived tokens proving PIN was verified
+    this.sessionNonces = new Map(); // nonce → { email, expiresAt }
+
+    // Clean up expired magic links + nonces every 5 minutes
+    setInterval(() => {
+      this._cleanupExpiredLinks();
+      const now = Date.now();
+      for (const [nonce, entry] of this.sessionNonces) {
+        if (now > entry.expiresAt) this.sessionNonces.delete(nonce);
+      }
+    }, 5 * 60 * 1000);
 
     // Supabase for persistent whitelist
     this.supabase = null;
@@ -113,6 +122,26 @@ class EmailAuth {
         .eq('email', normalized);
       if (error) console.warn('[AUTH] Failed to remove email from DB:', error.message);
     }
+  }
+
+  /**
+   * Create a session nonce — proves PIN was verified. Expires in 60 seconds.
+   */
+  createSessionNonce(email) {
+    const nonce = crypto.randomUUID();
+    this.sessionNonces.set(nonce, { email: email.toLowerCase(), expiresAt: Date.now() + 60 * 1000 });
+    return nonce;
+  }
+
+  /**
+   * Verify and consume a session nonce. Returns email if valid, null if not.
+   */
+  verifySessionNonce(nonce) {
+    const entry = this.sessionNonces.get(nonce);
+    if (!entry) return null;
+    this.sessionNonces.delete(nonce); // one-time use
+    if (Date.now() > entry.expiresAt) return null;
+    return entry.email;
   }
 
   /**
@@ -273,8 +302,9 @@ class EmailAuth {
       }
     }
 
+    const sessionNonce = this.createSessionNonce(email);
     console.log(`[AUTH] PIN set for ${email}, device token created`);
-    return { success: true, deviceToken };
+    return { success: true, deviceToken, sessionNonce };
   }
 
   /**
@@ -316,7 +346,8 @@ class EmailAuth {
       return { valid: false, message: 'Wrong PIN' };
     }
 
-    return { valid: true, email };
+    const sessionNonce = this.createSessionNonce(email);
+    return { valid: true, email, sessionNonce };
   }
 
   /**
@@ -483,7 +514,7 @@ async function verifyPin() {
   var data = await res.json();
 
   if (data.valid) {
-    window.location.href = '/session/new?email=' + encodeURIComponent(data.email || savedEmail || '');
+    window.location.href = '/session/new?email=' + encodeURIComponent(data.email || savedEmail || '') + '&nonce=' + encodeURIComponent(data.sessionNonce);
   } else {
     showToast(data.message || 'Verification failed', true);
   }
@@ -544,7 +575,7 @@ async function setPin() {
   if (data.success) {
     localStorage.setItem('tf_device_token', data.deviceToken);
     localStorage.setItem('tf_email', ${JSON.stringify(email)});
-    window.location.href = '/session/new?email=' + encodeURIComponent(${JSON.stringify(email)});
+    window.location.href = '/session/new?email=' + encodeURIComponent(${JSON.stringify(email)}) + '&nonce=' + encodeURIComponent(data.sessionNonce);
   } else {
     showToast(data.message || 'Failed to set PIN');
   }

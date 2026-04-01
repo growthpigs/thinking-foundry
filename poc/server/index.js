@@ -64,11 +64,13 @@ try {
     // Session creation route (after PIN verified)
     // Protected: only accepts requests with a valid email that's in the whitelist
     app.get('/session/new', async (req, res) => {
+      const nonce = req.query.nonce || '';
       const userEmail = (req.query.email || '').toLowerCase().trim();
 
-      // Verify the email is whitelisted — prevents direct URL access bypass
-      if (!userEmail || !emailAuth.allowedEmails.has(userEmail)) {
-        return res.status(403).send('Unauthorized. Please log in via the homepage.');
+      // Verify session nonce — proves PIN was verified (prevents direct URL bypass)
+      const verifiedEmail = emailAuth.verifySessionNonce(nonce);
+      if (!verifiedEmail || verifiedEmail !== userEmail) {
+        return res.status(403).send('Session expired or unauthorized. Please log in via the homepage.');
       }
 
       if (linkAuth) {
@@ -519,8 +521,14 @@ wss.on('connection', (clientWs, req) => {
       return;
     }
 
+    try {
     switch (msg.type) {
       case 'session-setup':
+        // Guard against double-setup (client reconnect, duplicate messages)
+        if (gemini) {
+          console.warn('[WS] Ignoring duplicate session-setup (already initialized)');
+          break;
+        }
         // New setup flow: fetch external context + uploaded docs, then start Gemini
         console.log('[WS] Session setup received:', {
           github: msg.github || '(none)',
@@ -941,11 +949,16 @@ wss.on('connection', (clientWs, req) => {
       default:
         console.log('[WS] Unknown message type:', msg.type);
     }
+    } catch (err) {
+      console.error('[WS] Message handler error:', err.message, err.stack?.split('\n')[1]);
+      sendToClient('error', { message: 'Internal error: ' + err.message });
+    }
   });
 
   clientWs.on('close', async () => {
     console.log('[WS] Client disconnected');
     if (flushInterval) clearInterval(flushInterval);
+    clearTimeout(userFlushTimer);
     if (sttPipeline) {
       sttPipeline.stopStream().catch(() => {});
     }

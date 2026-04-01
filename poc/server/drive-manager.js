@@ -96,7 +96,7 @@ class DriveManager {
       spaces: 'drive'
     });
 
-    if (res.data.files.length > 0) {
+    if (res.data.files && res.data.files.length > 0) {
       return res.data.files[0].id;
     }
 

@@ -37,6 +37,16 @@ class LinkAuth {
     // In-memory token store (for MVP — Supabase is the real store via sessions table)
     // Tokens map to { createdAt, used, sessionId }
     this.tokens = new Map();
+
+    // Clean up old tokens every 30 minutes (prevent memory leak)
+    setInterval(() => {
+      const cutoff = Date.now() - 25 * 60 * 60 * 1000; // 25 hours
+      for (const [token, meta] of this.tokens) {
+        if (new Date(meta.createdAt).getTime() < cutoff) {
+          this.tokens.delete(token);
+        }
+      }
+    }, 30 * 60 * 1000);
   }
 
   /**
