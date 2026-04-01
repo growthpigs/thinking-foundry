@@ -220,6 +220,17 @@ class LinkAuth {
   .used{color:#a8a29e}.active{color:#15803d}
   .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:600}
   .tag.ok{background:#f0fdf4;color:#15803d}.tag.spent{background:#f5f5f4;color:#a8a29e}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:5px 6px 5px 12px;margin:3px 4px 3px 0;background:#f8f7f4;border:1px solid #e7e5e4;border-radius:8px;font-size:0.8rem;line-height:1}
+  .chip .rm{background:none;border:none;cursor:pointer;color:#a8a29e;font-size:0.85rem;line-height:1;padding:2px 4px;border-radius:4px;display:flex;align-items:center;justify-content:center}
+  .chip .rm:hover{background:#fef2f2;color:#b91c1c}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#292524;color:#fff;padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;opacity:0;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);z-index:100;pointer-events:none}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .toast.warn{background:#b91c1c}
+  .confirm-bar{display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;margin-top:10px;font-size:0.82rem;color:#991b1b;align-items:center;gap:8px}
+  .confirm-bar.show{display:flex}
+  .confirm-bar button{font-size:0.78rem;padding:6px 14px;border-radius:8px}
+  .confirm-bar .cancel{background:#fff;color:#1c1917;border:1px solid #e7e5e4}
+  .confirm-bar .danger{background:#b91c1c;color:#fff;border:none}
 </style></head>
 <body>
   <h1>The Thinking Foundry</h1>
@@ -233,7 +244,16 @@ class LinkAuth {
     </form>
     <div id="inviteResult"></div>
     <div id="whitelist" style="margin-top:12px"></div>
+    <div class="confirm-bar" id="confirmBar">
+      <span id="confirmText"></span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        <button class="cancel" onclick="cancelRemove()">Cancel</button>
+        <button class="danger" onclick="confirmRemove()">Remove</button>
+      </span>
+    </div>
   </div>
+
+  <div class="toast" id="toast"></div>
 
   <div class="section">
     <h2>Create Session Link</h2>
@@ -269,9 +289,14 @@ class LinkAuth {
         body: JSON.stringify({ email })
       });
       const data = await res.json();
-      r.textContent = data.success ? 'Invited: ' + email : (data.message || data.error || 'Failed');
-      r.className = data.success ? 'ok' : 'err';
-      r.style.display = 'block';
+      if (data.success) {
+        showToast('Invited ' + email);
+        r.style.display = 'none';
+      } else {
+        r.textContent = data.message || data.error || 'Failed';
+        r.className = 'err';
+        r.style.display = 'block';
+      }
       document.getElementById('inviteEmail').value = '';
       loadWhitelist();
     });
@@ -297,28 +322,61 @@ class LinkAuth {
       }
     });
 
-    async function removeEmail(email) {
-      if (!confirm('Remove ' + email + ' from the whitelist? They will no longer be able to start sessions.')) return;
-      await fetch('/admin/invite', {
+    // Toast notification
+    function showToast(msg, warn) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (warn ? ' warn' : '');
+      setTimeout(function() { t.className = 'toast'; }, 3000);
+    }
+
+    // Remove flow: inline confirm bar (no browser dialogs)
+    var pendingRemoveEmail = null;
+
+    function removeEmail(email) {
+      pendingRemoveEmail = email;
+      document.getElementById('confirmText').textContent = 'Remove ' + email + '?';
+      document.getElementById('confirmBar').className = 'confirm-bar show';
+    }
+
+    function cancelRemove() {
+      pendingRemoveEmail = null;
+      document.getElementById('confirmBar').className = 'confirm-bar';
+    }
+
+    async function confirmRemove() {
+      if (!pendingRemoveEmail) return;
+      var email = pendingRemoveEmail;
+      pendingRemoveEmail = null;
+      document.getElementById('confirmBar').className = 'confirm-bar';
+
+      var res = await fetch('/admin/invite', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: email })
       });
+      var data = await res.json();
+      if (data.success) {
+        showToast('Removed ' + email, true);
+      } else {
+        showToast('Failed to remove: ' + (data.message || 'unknown error'), true);
+      }
       loadWhitelist();
     }
 
     async function loadWhitelist() {
-      const res = await fetch('/admin/whitelist?key=' + API_KEY);
-      const data = await res.json();
-      const el = document.getElementById('whitelist');
+      var res = await fetch('/admin/whitelist?key=' + API_KEY);
+      var data = await res.json();
+      var el = document.getElementById('whitelist');
       if (data.emails && data.emails.length > 0) {
-        el.innerHTML = '<p style="font-size:0.75rem;color:#a8a29e;margin-bottom:6px">Whitelisted (' + data.emails.length + '):</p>' +
-          data.emails.map(e =>
-            '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 12px;margin:2px 4px 2px 0;background:#f8f7f4;border:1px solid #e7e5e4;border-radius:8px;font-size:0.78rem">' +
-              e +
-              '<button onclick="removeEmail(\\'' + e.replace(/'/g,"\\\\'") + '\\')" style="background:none;border:none;cursor:pointer;color:#a8a29e;font-size:1rem;line-height:1;padding:0 2px" title="Remove">&times;</button>' +
-            '</span>'
-          ).join('');
+        el.innerHTML = '<p style="font-size:0.75rem;color:#a8a29e;margin-bottom:6px">Whitelisted (' + data.emails.length + '):</p><div>' +
+          data.emails.map(function(e) {
+            return '<span class="chip">' + e + '<button class="rm" data-email="' + e + '" title="Remove">&times;</button></span>';
+          }).join('') + '</div>';
+        // Attach click handlers via delegation (avoids quote escaping issues)
+        el.querySelectorAll('.rm').forEach(function(btn) {
+          btn.onclick = function() { removeEmail(this.getAttribute('data-email')); };
+        });
       } else {
         el.innerHTML = '<p style="font-size:0.78rem;color:#a8a29e">No users whitelisted yet. Invite someone above.</p>';
       }
