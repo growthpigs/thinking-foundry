@@ -777,8 +777,14 @@ function startMic() {
     processor = micCtx.createScriptProcessor(4096, 1, 1);
     processor.onaudioprocess = function(e) {
       if (paused || !ws || ws.readyState !== 1) return;
-      // Mute mic while AI is speaking to prevent echo-triggered barge-in
-      if (isPlaying) return;
+      // While AI is speaking: send silence to keep Gemini connection alive
+      // (Gemini times out if no audio input for ~30s)
+      // but don't send real mic audio to prevent echo barge-in
+      if (isPlaying) {
+        var silence = new Int16Array(e.inputBuffer.length);
+        ws.send(silence.buffer);
+        return;
+      }
       var f32 = e.inputBuffer.getChannelData(0);
       var i16 = new Int16Array(f32.length);
       for (var i = 0; i < f32.length; i++) {
