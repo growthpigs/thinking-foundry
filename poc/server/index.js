@@ -10,7 +10,7 @@ const { exportToGitHub } = require('./github-export');
 const { DriveManager } = require('./drive-manager');
 const { ContextLoader } = require('../context/loader');
 const { GitHubConnector } = require('../context/github-connector');
-const { DriveConnector } = require('../context/drive-connector');
+// DriveConnector removed — Drive context reading no longer used (Drive is output-only now)
 const { SupabaseBuffer } = require('./supabase-buffer');
 const { GitHubPersistence } = require('./github-persistence');
 const { PhaseTransitionHandler } = require('./phase-transition');
@@ -161,17 +161,8 @@ app.post('/api/export', async (req, res) => {
   }
 });
 
-app.post('/api/drive/setup', async (req, res) => {
-  try {
-    const { sessionName, userEmail, phaseOutputs } = req.body;
-    const drive = new DriveManager();
-    const result = await drive.createSessionWithPhases(sessionName, userEmail);
-    res.json({ ok: true, folderId: result.folderId, folderUrl: result.folderUrl });
-  } catch (err) {
-    console.error('[DRIVE] Error:', err.message);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+// Legacy /api/drive/setup removed — Drive folders are now created
+// automatically on first phase transition via the WebSocket session flow.
 
 // ─── WebSocket (audio + control) ───
 
@@ -274,7 +265,7 @@ wss.on('connection', (clientWs, req) => {
 
   // Stores session-level external context fetched during setup
   let sessionGithubContext = '';
-  let sessionDriveContext = '';
+  let sessionDocContext = '';
   let sessionFrameworks = [];
 
   /**
@@ -296,34 +287,13 @@ wss.on('connection', (clientWs, req) => {
   }
 
   /**
-   * Parse a Google Drive URL into a file/folder ID.
-   * Handles various Drive URL formats.
-   */
-  function parseDriveUrl(url) {
-    if (!url) return null;
-    try {
-      const parsed = new URL(url);
-      // Format: /drive/folders/ID or /file/d/ID or /document/d/ID
-      const folderMatch = parsed.pathname.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-      if (folderMatch) return { type: 'folder', id: folderMatch[1] };
-
-      const fileMatch = parsed.pathname.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (fileMatch) return { type: 'file', id: fileMatch[1] };
-    } catch {
-      // not a valid URL
-    }
-    return null;
-  }
-
   /**
-   * Fetch external context from GitHub and/or Drive based on setup config.
+   * Fetch external context from GitHub based on setup config.
    */
   async function fetchExternalContext(config) {
-    const { github, drive, frameworks } = config;
+    const { github, frameworks } = config;
     let githubContext = '';
-    let driveContext = '';
 
-    // Fetch GitHub context
     if (github) {
       const parsed = parseGitHubUrl(github);
       if (parsed) {
@@ -339,28 +309,7 @@ wss.on('connection', (clientWs, req) => {
       }
     }
 
-    // Fetch Drive context
-    if (drive) {
-      const parsed = parseDriveUrl(drive);
-      if (parsed) {
-        try {
-          const driveConn = new DriveConnector();
-          if (parsed.type === 'folder') {
-            driveContext = await driveConn.fetchFolderContext(parsed.id);
-          } else {
-            const content = await driveConn.fetchDocContent(parsed.id);
-            driveContext = content || '';
-          }
-          console.log(`[SETUP] Drive context fetched: ${driveContext.length} chars`);
-        } catch (err) {
-          console.warn(`[SETUP] Drive fetch failed (continuing without):`, err.message);
-        }
-      } else {
-        console.warn(`[SETUP] Could not parse Drive URL: ${drive}`);
-      }
-    }
-
-    return { githubContext, driveContext, frameworks: frameworks || [] };
+    return { githubContext, frameworks: frameworks || [] };
   }
 
   /**
@@ -422,7 +371,7 @@ wss.on('connection', (clientWs, req) => {
       frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
       fullContent: false,
       githubContext: sessionGithubContext || undefined,
-      driveContext: sessionDriveContext || undefined
+      driveContext: sessionDocContext || undefined
     });
 
     gemini = new GeminiLiveManager({
@@ -618,7 +567,7 @@ wss.on('connection', (clientWs, req) => {
                 frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
                 fullContent: false,
                 githubContext: sessionGithubContext || undefined,
-                driveContext: sessionDriveContext || undefined,
+                driveContext: sessionDocContext || undefined,
               });
               // Inject carry-forward into knowledge context
               if (prevCarryForward) {
@@ -757,7 +706,6 @@ wss.on('connection', (clientWs, req) => {
         try {
           const external = await fetchExternalContext({
             github: msg.github,
-            drive: null,
             frameworks: msg.frameworks
           });
           sessionGithubContext = external.githubContext;
@@ -773,8 +721,8 @@ wss.on('connection', (clientWs, req) => {
               docSections.push(`\n--- ${doc.name} ---`);
               docSections.push(truncated);
             }
-            sessionDriveContext = docSections.join('\n');
-            console.log(`[SETUP] Document context: ${sessionDriveContext.length} chars from ${msg.documents.length} files`);
+            sessionDocContext = docSections.join('\n');
+            console.log(`[SETUP] Document context: ${sessionDocContext.length} chars from ${msg.documents.length} files`);
           }
         } catch (err) {
           console.warn('[SETUP] External context fetch error (continuing):', err.message);
@@ -815,7 +763,7 @@ wss.on('connection', (clientWs, req) => {
               frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
               fullContent: false,
               githubContext: sessionGithubContext || undefined,
-              driveContext: sessionDriveContext || undefined
+              driveContext: sessionDocContext || undefined
             });
             gemini.knowledgeContext = phaseKnowledge;
             await gemini.forceReconnect(msg.phase, context.getCondensedContext());
