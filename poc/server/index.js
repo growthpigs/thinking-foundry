@@ -250,13 +250,12 @@ wss.on('connection', (clientWs, req) => {
 
   function flushUserTurnBuffer() {
     clearTimeout(userFlushTimer);
-    var text = userTurnBuffer.trim();
+    const text = userTurnBuffer.trim();
     userTurnBuffer = '';
-    if (text.length < MIN_USER_TEXT_LENGTH) return; // skip noise
+    if (text.length < MIN_USER_TEXT_LENGTH) return;
 
-    // Take first sentence if long, or full text if short
-    var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.trim().length > 0; });
-    var bullet = sentences[0] || text;
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    let bullet = sentences[0] || text;
     if (bullet.length < MIN_USER_BULLET_COMBINE && sentences.length > 1) bullet = sentences[0] + ' ' + sentences[1];
     if (bullet.length > MAX_BULLET_LENGTH) bullet = bullet.substring(0, MAX_BULLET_LENGTH - 3) + '...';
 
@@ -839,7 +838,7 @@ wss.on('connection', (clientWs, req) => {
 
           sendToClient('outline_item', {
             speaker: 'system',
-            text: 'Context received. The AI will incorporate this in its next response.',
+            text: 'Context saved. It will be included at the next phase transition.',
             phase: session.currentPhase
           });
         }

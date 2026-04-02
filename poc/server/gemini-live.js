@@ -204,7 +204,7 @@ class GeminiLiveManager {
         if (msg.toolCall && this.frameworkFetcher) {
           const calls = msg.toolCall.functionCalls || [];
           for (const fc of calls) {
-            console.log(`[GEMINI][${label}] Tool call: ${fc.name}(${JSON.stringify(fc.args)})`);
+            console.log(`[GEMINI][${label}] Tool call: ${fc.name}`);
             this.frameworkFetcher.handleFunctionCall({ name: fc.name, args: fc.args })
               .then(result => {
                 // Send function response back to Gemini
