@@ -349,7 +349,7 @@ for (var i = 0; i < 8; i++) phaseBullets[i] = [];
     }
     var dot = document.createElement('div');
     dot.className = 'phase-dot' + (i === 0 ? ' current' : '');
-    dot.textContent = i + 1;
+    dot.textContent = i;
     dot.setAttribute('data-phase', i);
     dot.onclick = function() { openDrawer(parseInt(this.getAttribute('data-phase'))); };
     var label = document.createElement('span');
@@ -564,7 +564,7 @@ function addBullet(speaker, text, p) {
 
   el.innerHTML = '<div class="indicator ' + speaker + '"></div>' +
     '<div class="content"><div class="text">' + escapeHtml(text) + '</div>' +
-    '<div class="meta">' + timeStr + ' -- Phase ' + (phaseNum + 1) + ': ' + PHASES[phaseNum].name + '</div></div>';
+    '<div class="meta">' + timeStr + ' -- Phase ' + phaseNum + ': ' + PHASES[phaseNum].name + '</div></div>';
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
 }
@@ -580,7 +580,7 @@ function updatePhase(newPhase) {
   phase = newPhase;
 
   // Update top bar
-  document.getElementById('phaseNum').textContent = phase + 1;
+  document.getElementById('phaseNum').textContent = phase;
   document.getElementById('phaseName').textContent = PHASES[phase].name;
 
   // Update phase dots
@@ -602,7 +602,7 @@ function updatePhase(newPhase) {
     var container = document.getElementById('insights');
     var sep = document.createElement('div');
     sep.className = 'phase-sep';
-    sep.textContent = 'Phase ' + (phase + 1) + ': ' + PHASES[phase].name;
+    sep.textContent = 'Phase ' + phase + ': ' + PHASES[phase].name;
     container.appendChild(sep);
   }
 }
@@ -632,7 +632,7 @@ function condenseBullets(bullets) {
 
 function openDrawer(p) {
   var bullets = phaseBullets[p] || [];
-  document.getElementById('drawerNum').textContent = p + 1;
+  document.getElementById('drawerNum').textContent = p;
   document.getElementById('drawerNum').className = 'phase-num' + (p < phase ? ' completed' : '');
   document.getElementById('drawerTitle').textContent = PHASES[p].name;
 
@@ -645,10 +645,17 @@ function openDrawer(p) {
 
   if (bullets.length === 0) {
     body.innerHTML = '<div class="empty">No insights captured yet for this phase.</div>';
+  } else if (p === phase) {
+    // Current phase — show "in progress" message, not raw bullets
+    body.innerHTML = '<div style="text-align:center;padding:24px 16px">' +
+      '<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px">Phase in progress</div>' +
+      '<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5">' +
+      bullets.length + ' insight' + (bullets.length > 1 ? 's' : '') + ' captured so far.<br>' +
+      'A structured summary will appear here once the phase completes.</div></div>';
   } else {
+    // Completed or future phase — show condensed summary
     var condensed = condenseBullets(bullets);
 
-    // AI key insights section
     if (condensed.aiPoints.length > 0) {
       var aiHeader = document.createElement('div');
       aiHeader.style.cssText = 'font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;';
@@ -664,7 +671,6 @@ function openDrawer(p) {
       });
     }
 
-    // User contributions section
     if (condensed.userPoints.length > 0) {
       var userHeader = document.createElement('div');
       userHeader.style.cssText = 'font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin:16px 0 8px;';

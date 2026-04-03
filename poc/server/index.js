@@ -210,11 +210,19 @@ wss.on('connection', (clientWs, req) => {
   function flushAiTurnBuffer() {
     const text = aiTurnBuffer.trim();
     aiTurnBuffer = '';
-    if (text.length < MIN_AI_TEXT_LENGTH) return; // skip noise ("Interesting." / "Go on.")
+    if (text.length < MIN_AI_TEXT_LENGTH) return;
+
+    // Strip internal signals before creating bullet
+    const cleaned = text
+      .replace(/\[MODE:\w+\]/gi, '')
+      .replace(/\[PHASE_COMPLETE\]/gi, '')
+      .replace(/\[SYSTEM\][^\n]*/gi, '')
+      .trim();
+    if (cleaned.length < MIN_AI_TEXT_LENGTH) return;
 
     // Take FIRST sentence — prompts enforce insight-first, question-last
-    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-    let bullet = sentences[0] || text;
+    const sentences = cleaned.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    let bullet = sentences[0] || cleaned;
 
     // If first sentence is very short, concatenate first two
     if (bullet.length < MIN_BULLET_COMBINE_LENGTH && sentences.length > 1) {
@@ -509,20 +517,10 @@ wss.on('connection', (clientWs, req) => {
             }
           },
           onSqueezeNeeded: async (currentPhase) => {
-            // Inject The Squeeze prompt into Gemini (Article 9 — active, not passive)
-            if (gemini && gemini.activeWs && gemini.activeWs.readyState === 1) {
-              const squeezePrompt = {
-                clientContent: {
-                  turns: [{
-                    role: 'user',
-                    parts: [{ text: '[SYSTEM] Before we advance — what did we assume in this phase? What did we miss? Give me your confidence score from 1 to 10.' }]
-                  }],
-                  turnComplete: true,
-                }
-              };
-              gemini.activeWs.send(JSON.stringify(squeezePrompt));
-              console.log(`[SQUEEZE] Injected squeeze prompt for phase ${currentPhase}`);
-            }
+            // NOTE: Cannot inject text prompts into Gemini AUDIO-only mode (error 1007).
+            // The AI handles squeeze naturally via the system prompt which tells it to
+            // state confidence before transitioning. We just log and let it proceed.
+            console.log(`[SQUEEZE] Phase ${currentPhase} squeeze needed — AI handles via system prompt`);
           },
           onTransition: async (fromPhase, toPhase, meta) => {
             console.log(`[PHASE] AI-driven transition: ${fromPhase} → ${toPhase} (confidence: ${meta.confidence || 'N/A'})`);
