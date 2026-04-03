@@ -170,23 +170,11 @@ class PhaseTransitionHandler {
     const now = Date.now();
     if (now - this.lastTransitionAt < this.debounceMs) return null;
 
-    // If we already have a confidence score, use it directly
-    if (this.pendingSqueeze?.confidence != null) {
-      return this._fireTransition(currentPhase, targetPhase, this.pendingSqueeze.confidence);
-    }
-
-    // No confidence yet — ACTIVELY request The Squeeze (Article 9)
-    console.log(`[PHASE] Transition detected → requesting Squeeze before advancing to phase ${targetPhase}`);
-    this.awaitingSqueeze = true;
-    this.squeezeTargetPhase = targetPhase;
-    this.squeezeRetries = 0;
-
-    if (this.onSqueezeNeeded) {
-      Promise.resolve(this.onSqueezeNeeded(currentPhase))
-        .catch(err => console.error('[PHASE] Squeeze injection error:', err.message));
-    }
-
-    return { transition: false, squeezePending: true, targetPhase };
+    // Use confidence if the AI already stated it, otherwise advance without
+    // NOTE: Squeeze injection disabled — Gemini AUDIO-only mode rejects text clientContent.
+    // The AI's system prompt tells it to state confidence before transitioning.
+    const transitionConfidence = this.pendingSqueeze?.confidence ?? confidence ?? null;
+    return this._fireTransition(currentPhase, targetPhase, transitionConfidence);
   }
 
   /**

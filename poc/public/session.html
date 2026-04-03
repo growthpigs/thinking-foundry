@@ -645,14 +645,14 @@ function openDrawer(p) {
 
   if (bullets.length === 0) {
     body.innerHTML = '<div class="empty">No insights captured yet for this phase.</div>';
-  } else if (p === phase) {
-    // Current phase — show "in progress" message, not raw bullets
-    body.innerHTML = '<div style="text-align:center;padding:24px 16px">' +
-      '<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px">Phase in progress</div>' +
-      '<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5">' +
-      bullets.length + ' insight' + (bullets.length > 1 ? 's' : '') + ' captured so far.<br>' +
-      'A structured summary will appear here once the phase completes.</div></div>';
   } else {
+    // Show phase status header
+    if (p === phase) {
+      var progressNote = document.createElement('div');
+      progressNote.style.cssText = 'font-size:0.75rem;color:var(--ai-accent);background:var(--ai-surface);padding:8px 12px;border-radius:8px;margin-bottom:12px;text-align:center';
+      progressNote.textContent = 'Phase in progress -- ' + bullets.length + ' insights so far';
+      body.appendChild(progressNote);
+    }
     // Completed or future phase — show condensed summary
     var condensed = condenseBullets(bullets);
 
