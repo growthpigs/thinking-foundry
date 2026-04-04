@@ -35,7 +35,7 @@ class ResearchDispatcher {
   constructor(supabaseUrl, supabaseKey, geminiKey) {
     this.supabase = createClient(supabaseUrl, supabaseKey);
     this.gemini = new GoogleGenerativeAI(geminiKey);
-    this.embeddingModel = this.gemini.getGenerativeModel({ model: 'embedding-001' });
+    this.embeddingModel = this.gemini.getGenerativeModel({ model: 'gemini-embedding-001' });
 
     // Cache for embedding queries (avoid duplicate API calls)
     this.embeddingCache = new Map();
@@ -51,7 +51,10 @@ class ResearchDispatcher {
     }
 
     try {
-      const result = await this.embeddingModel.embedContent(text);
+      const result = await this.embeddingModel.embedContent({
+        content: { parts: [{ text }] },
+        outputDimensionality: 768,
+      });
       const embedding = result.embedding.values;
       this.embeddingCache.set(text, embedding);
       return embedding;
