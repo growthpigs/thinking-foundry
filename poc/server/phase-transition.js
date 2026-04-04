@@ -1,13 +1,14 @@
 /**
- * PhaseTransitionHandler — Detects AI-driven phase transitions and orchestrates them.
+ * PhaseTransitionHandler — Detects AI-driven phase transitions.
  *
- * Implements Articles 9-10 of the Constitution:
- * - Article 9: The Squeeze between phases (confidence check)
- * - Article 10: AI decides phase transitions (not user, not timer)
+ * The AI signals transitions in its natural language responses (e.g.,
+ * "I have what I need for Phase 0" or "Let's move to Mine").
+ * This module detects those signals, extracts optional confidence
+ * scores, and fires the onTransition callback.
  *
- * The AI signals transitions in its natural language responses. This module
- * detects those signals, extracts carry-forward data, and coordinates the
- * Supabase + GitHub persistence layers during the transition.
+ * NOTE: Squeeze injection (text prompts into Gemini) is disabled because
+ * Gemini Live AUDIO-only mode rejects clientContent text turns (error 1007).
+ * Confidence is extracted passively if the AI states it voluntarily.
  */
 
 const { PHASE_NAMES } = require('./supabase-buffer');
@@ -63,12 +64,12 @@ class PhaseTransitionHandler {
   /**
    * @param {object} options
    * @param {function} options.onTransition - Called when a transition is detected: (fromPhase, toPhase, meta)
-   * @param {number} [options.minConfidence=6] - Minimum confidence to allow transition (Article 9)
+   * @param {function} [options.onModeDetected] - Called when intent mode detected (explore/research/commit)
+   * @param {number} [options.minConfidence=6] - Minimum confidence for voluntary confidence check
    */
-  constructor({ onTransition, onSqueezeNeeded, onModeDetected, minConfidence = 6 } = {}) {
+  constructor({ onTransition, onModeDetected, minConfidence = 6 } = {}) {
     this.onTransition = onTransition;
-    this.onSqueezeNeeded = onSqueezeNeeded; // Called to inject squeeze prompt into Gemini
-    this.onModeDetected = onModeDetected; // Called when intent mode detected from AI
+    this.onModeDetected = onModeDetected;
     this.minConfidence = minConfidence;
     this.intentMode = null; // 'explore' | 'research' | 'commit'
 

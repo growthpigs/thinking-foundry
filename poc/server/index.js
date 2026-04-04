@@ -516,20 +516,14 @@ wss.on('connection', (clientWs, req) => {
               if (modeErr) console.error('[SUPABASE] Mode update error:', modeErr.message);
             }
           },
-          onSqueezeNeeded: async (currentPhase) => {
-            // NOTE: Cannot inject text prompts into Gemini AUDIO-only mode (error 1007).
-            // The AI handles squeeze naturally via the system prompt which tells it to
-            // state confidence before transitioning. We just log and let it proceed.
-            console.log(`[SQUEEZE] Phase ${currentPhase} squeeze needed — AI handles via system prompt`);
-          },
           onTransition: async (fromPhase, toPhase, meta) => {
             console.log(`[PHASE] AI-driven transition: ${fromPhase} → ${toPhase} (confidence: ${meta.confidence || 'N/A'})`);
 
             // Orchestrate the full transition
             session.setPhase(toPhase);
 
-            // Build carry-forward text from squeeze notes or synthesize from recent context
-            const carryForwardText = meta.squeezeNotes
+            // Build carry-forward text from AI's detected context
+            const carryForwardText = meta.detectedFrom
               || context.getCondensedContext()
               || 'No carry-forward generated for this phase.';
 
@@ -537,7 +531,7 @@ wss.on('connection', (clientWs, req) => {
               await flushToGitHub();
               // Save carry-forward to Supabase (Article 8)
               await supabaseBuffer.saveCarryForward(
-                fromPhase, carryForwardText, meta.confidence, meta.squeezeNotes || null,
+                fromPhase, carryForwardText, meta.confidence, null,
                 githubPersistence?.phaseIssues.get(fromPhase)?.url || null
               ).catch(err => console.error('[SUPABASE] Carry-forward error:', err.message));
               await supabaseBuffer.updatePhase(toPhase);
@@ -548,7 +542,7 @@ wss.on('connection', (clientWs, req) => {
               if (oldIssue) {
                 // Add carry-forward to the closing issue (Article 8)
                 await githubPersistence.addCarryForward(
-                  oldIssue.number, carryForwardText, meta.confidence, meta.squeezeNotes
+                  oldIssue.number, carryForwardText, meta.confidence, null
                 ).catch(err => console.error('[GITHUB] Carry-forward error:', err.message));
                 await githubPersistence.closePhaseIssue(oldIssue.number)
                   .catch(err => console.error('[GITHUB] Close error:', err.message));
@@ -594,8 +588,7 @@ wss.on('connection', (clientWs, req) => {
                   sendToClient('drive_status', { connected: true, folderUrl: driveResult.sessionFolderUrl });
                 }
                 const result = await driveManager.writePhaseDoc(fromPhase, carryForwardText, {
-                  confidence: meta.confidence,
-                  squeezeNotes: meta.squeezeNotes
+                  confidence: meta.confidence
                 });
                 if (result) {
                   const { PHASE_NAMES } = require('./drive-manager');
