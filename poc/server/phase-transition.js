@@ -80,14 +80,8 @@ class PhaseTransitionHandler {
     this.lastTransitionAt = 0;
     this.debounceMs = 5000; // 5 seconds
 
-    // Track extracted Squeeze data
+    // Track extracted confidence data (if the AI states it voluntarily)
     this.pendingSqueeze = null;
-
-    // Active Squeeze state (Article 9 — mandatory, not passive)
-    this.awaitingSqueeze = false;
-    this.squeezeTargetPhase = null;
-    this.squeezeRetries = 0;
-    this.maxSqueezeRetries = 2;
   }
 
   /**
@@ -127,41 +121,6 @@ class PhaseTransitionHandler {
       this.pendingSqueeze = { confidence, text: combined };
     }
 
-    // If we're waiting for The Squeeze response, check for confidence
-    if (this.awaitingSqueeze) {
-      if (confidence !== null) {
-        // Got the confidence — now decide whether to advance
-        this.awaitingSqueeze = false;
-        this.squeezeRetries = 0;
-
-        if (confidence < this.minConfidence) {
-          console.log(`[PHASE] Squeeze: confidence ${confidence} < ${this.minConfidence} — looping back`);
-          this.squeezeTargetPhase = null;
-          return {
-            transition: false,
-            blocked: true,
-            reason: `Confidence ${confidence}/10 is below minimum ${this.minConfidence}/10. Phase must loop back.`,
-            confidence,
-          };
-        }
-
-        // Confidence sufficient — fire transition
-        return this._fireTransition(currentPhase, this.squeezeTargetPhase, confidence);
-      }
-
-      // No confidence in this utterance — retry if under limit
-      this.squeezeRetries++;
-      if (this.squeezeRetries >= this.maxSqueezeRetries) {
-        console.log(`[PHASE] Squeeze: no confidence after ${this.squeezeRetries} retries — advancing without score`);
-        this.awaitingSqueeze = false;
-        this.squeezeRetries = 0;
-        return this._fireTransition(currentPhase, this.squeezeTargetPhase, null);
-      }
-
-      // Still waiting for confidence response
-      return null;
-    }
-
     // Check for transition signal
     const targetPhase = this._detectTransition(combined, currentPhase);
     if (targetPhase === null) return null;
@@ -191,7 +150,6 @@ class PhaseTransitionHandler {
     // Clear buffers
     this.recentAiText = [];
     this.pendingSqueeze = null;
-    this.squeezeTargetPhase = null;
 
     // Notify (catch async errors to prevent unhandled rejections)
     if (this.onTransition) {
