@@ -1,5 +1,7 @@
 # NotebookLM Python Client (teng-lin/notebooklm-py) — Complete Usage Guide
 
+⚠️ **FOR CRUCIBLE RUNS:** See **[CRUCIBLE-INSTRUCTIONS.md](./CRUCIBLE-INSTRUCTIONS.md)** for the definitive SOP on running adversarial debates. This prevents the common mistakes of thin sources, bias, and pre-loaded conclusions.
+
 ## Overview
 
 **notebooklm-py** is a Python async client for automating Google NotebookLM using undocumented RPC APIs. It allows you to programmatically:

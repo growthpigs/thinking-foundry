@@ -82,7 +82,7 @@ Before any final recommendation, the Crucible phase must challenge it. What brea
 At session end, offer to generate a Crucible audio debate. Strongly suggest it. But don't require it. The audio gives third-person perspective — invaluable for high-stakes decisions.
 
 **Article 20: Use teng-lin/notebooklm-py. Never CIC.**
-All NotebookLM operations use the Teng API wrapper. Never Claude in Chrome. Never manual browser automation. This is a hard technical constraint.
+All NotebookLM operations use the Teng API wrapper. Never Claude in Chrome. Never manual browser automation. This is a hard technical constraint. **See GitHub Issue [#32 — Crucible Instructions SOP](https://github.com/growthpigs/thinking-foundry/issues/32) for the definitive guide on running real adversarial debates.**
 
 ---
 

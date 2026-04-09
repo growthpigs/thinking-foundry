@@ -12,6 +12,46 @@
 
 ---
 
+## 🎙️ CRUCIBLE INSTRUCTIONS (GitHub Source of Truth)
+
+**See:** [GitHub Issue #32 — Crucible Instructions SOP](https://github.com/growthpigs/thinking-foundry/issues/32)
+
+Definitive guide for running real adversarial debates with NotebookLM (not markdown summaries or biased simulations).
+
+**Key Rules:**
+- Upload FULL documents uncut (not 400-word summaries)
+- Run 5-7 neutral chat queries first (text modality)
+- Generate audio debate with neutral instructions (audio modality)
+- Let content drive the debate, don't assign host positions
+- **After any FSD edit, re-upload the new body to the NotebookLM notebook as a fresh source before running another Crucible** — otherwise the hosts debate the stale version (GIGO). Crucible v1 → v2 hit this exact failure on 2026-04-09.
+
+See GitHub issue #32 and related #33 for complete SOP.
+
+---
+
+## 🎯 ACTIVE FEATURE: Convergence (formerly Cross-Market Signal Loop)
+
+**Issue:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — STEALTH BUILD, do NOT push to alpha-war-room
+**Status:** Crucible v2 cleared (9.0/10), ready for Scrum Master pipe (foundry-pipe-02)
+**Crucible v2 findings:** `docs/04-technical/CRUCIBLE-V2-FINDINGS.md`
+**Latency spike:** [thinking-foundry#34](https://github.com/growthpigs/thinking-foundry/issues/34) — Day 0 gate before build
+
+**One-line:** Convergence is an anti-oracle reasoning engine that reads from a bench of signal sources (FEC, FCC, OpenSecrets, Regulations.gov, Polymarket, Kalshi, NewsAPI, NOAA, FRED, etc. + per-tenant private data) and surfaces cross-domain confluence with full provenance. Never collapses to a predictive number.
+
+**Design Principle 0:** Information > No Information. The product exposes the stack; it does not predict.
+
+**Key architectural decisions (Crucible-ratified):**
+- Dedicated Convergence page in 4-item top nav: Intelligence / SWOT / Convergence / Workspace
+- Multi-source mandate (FR-0.1): proactive items need ≥2 sources; reactive single-source returns surface as "Single Signal" cards with explicit warning
+- Any bench source can trigger (FR-4.2): not just Polymarket/Kalshi divergence
+- Reactive mode (FR-15): user-initiated "is this a good idea?" with full bench fan-out, <30s SLA
+- Chat gating: Convergence NOT auto-run on every chat message — inline confirm button only on decision-statement classification
+- DB-driven 15-min sliding window (FR-4.1): no in-memory state, survives worker restarts
+- Parallel toast component (FR-7 hard replace): `ConvergenceNotificationToast.tsx`, zero touches to existing SWOT toast
+- Source-count display, NOT 0–100 strength score (FR-10): "3 sources agree, 1 contradicts" — never a scalar that could be misread as probability
+
+---
+
 ## STATUS LINE FORMAT (MANDATORY)
 
 Every reply at task completion must include this footer:
