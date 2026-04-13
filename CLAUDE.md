@@ -32,23 +32,28 @@ See GitHub issue #32 and related #33 for complete SOP.
 ## 🎯 ACTIVE FEATURE: Convergence (formerly Cross-Market Signal Loop)
 
 **Issue:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — STEALTH BUILD, do NOT push to alpha-war-room
-**Status:** Crucible v2 cleared (9.0/10), ready for Scrum Master pipe (foundry-pipe-02)
+**Status:** CTO Ratification complete (2026-04-13). Ready for Scrum Master pipe (foundry-pipe-02).
+**Master Index:** [thinking-foundry#49](https://github.com/growthpigs/thinking-foundry/issues/49) — 100 issues, zero orphans
+**Blueprint:** [thinking-foundry#96](https://github.com/growthpigs/thinking-foundry/issues/96) — corrected service targets, model routing, latency fan-out
 **Crucible v2 findings:** `docs/04-technical/CRUCIBLE-V2-FINDINGS.md`
-**Latency spike:** [thinking-foundry#34](https://github.com/growthpigs/thinking-foundry/issues/34) — Day 0 gate before build
 
 **One-line:** Convergence is an anti-oracle reasoning engine that reads from a bench of signal sources (FEC, FCC, OpenSecrets, Regulations.gov, Polymarket, Kalshi, NewsAPI, NOAA, FRED, etc. + per-tenant private data) and surfaces cross-domain confluence with full provenance. Never collapses to a predictive number.
 
 **Design Principle 0:** Information > No Information. The product exposes the stack; it does not predict.
 
-**Key architectural decisions (Crucible-ratified):**
+**Key architectural decisions (Crucible-ratified + CTO Ratification 2026-04-13):**
 - Dedicated Convergence page in 4-item top nav: Intelligence / SWOT / Convergence / Workspace
-- Multi-source mandate (FR-0.1): proactive items need ≥2 sources; reactive single-source returns surface as "Single Signal" cards with explicit warning
-- Any bench source can trigger (FR-4.2): not just Polymarket/Kalshi divergence
-- Reactive mode (FR-15): user-initiated "is this a good idea?" with full bench fan-out, <30s SLA
+- Multi-source mandate: proactive items need ≥2 sources; reactive single-source surfaces as "Single Signal" cards with explicit warning
+- Any bench source can trigger: not just Polymarket/Kalshi divergence
+- Reactive mode (#94 Chief of Staff): user-initiated "is this a good idea?" with full bench fan-out, <30s SLA
 - Chat gating: Convergence NOT auto-run on every chat message — inline confirm button only on decision-statement classification
-- DB-driven 15-min sliding window (FR-4.1): no in-memory state, survives worker restarts
-- Parallel toast component (FR-7 hard replace): `ConvergenceNotificationToast.tsx`, zero touches to existing SWOT toast
-- Source-count display, NOT 0–100 strength score (FR-10): "3 sources agree, 1 contradicts" — never a scalar that could be misread as probability
+- DB-driven 15-min sliding window: no in-memory state, survives worker restarts
+- Source-count display, NOT 0–100 strength score: "3 sources agree, 1 contradicts" — never a scalar that could be misread as probability
+- **Data Minister is deterministic** (#97): structured retrieval, not LLM. Haiku for formatting only.
+- **Model routing** (#96 addendum): Haiku for Data+Markets, Sonnet for Knowledge+Narrative+News, Opus for Synthesis Gate only
+- **Latency per-minister** (#75): Markets/News <5s, Knowledge <15s, Data <30s cached. Full fan-out 3-5 min.
+- **Service targets** (ratified): Knowledge → geminiFileSearchService (NOT knowledgeBaseService), Chat hook → enhancedPerplexityChatService.ts (NOT chatPipeline.ts)
+- **API red flags**: Mentionlytics has NO public API (Narrative needs replacement), OpenSecrets sunset (use FEC API), NewsAPI $449/mo production
 
 ---
 
