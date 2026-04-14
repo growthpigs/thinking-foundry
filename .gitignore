@@ -2,3 +2,6 @@
 node_modules/
 .DS_Store
 .railway/
+
+# CRUCIBLE audio debates (large MP3s — local only)
+.foundry/crucible-v5-audio/
