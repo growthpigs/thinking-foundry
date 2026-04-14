@@ -189,6 +189,20 @@ Conversation: c7b78568-0052-421c-9a76-e467f02a611f (turn 1)
 
 ---
 
+## B-01 Audio Debates
+
+### Debate 1: 5-Minister Parallel Fan-Out vs Sequential Triage
+**Prompt:** Debate whether the 5-minister parallel fan-out is the right architecture, or whether a sequential triage approach (run one minister first, decide which others to invoke) would be cheaper and faster without sacrificing the anti-oracle value proposition.
+**NotebookLM Title:** "The $5,000 AI That Refuses Answers"
+**File:** `.foundry/crucible-v5-audio/The $5,000 AI That Refuses Answers.mp3` (28.2MB)
+**Status:** ✅ downloaded (2026-04-14 12:33)
+
+### Debate 2: MVB Threshold Safety Gate
+**Prompt:** Debate whether the Minimum Viable Briefing threshold (3 of 5 ministers, at least one quantitative) is the right safety gate, or whether it creates false confidence when the wrong 3 ministers respond.
+**NotebookLM Title:** "The Minimum Viable Briefing Threshold"
+**File:** `.foundry/crucible-v5-audio/The Minimum Viable Briefing Threshold.mp3` (37.6MB)
+**Status:** ✅ downloaded (2026-04-14 12:33)
+
 ## B-02 UX 2026-04-14
 
 **Notebook ID:** e17b4159-1d5f-495a-990a-bcb622007fcb
@@ -382,6 +396,20 @@ Conversation: e3065f17-d6a9-4543-805d-0ee1de2c2109 (turn 1)
 
 ---
 
+## B-02 Audio Debates
+
+### Debate 1: Chief of Staff — Necessary or Identity-Destroying?
+**Prompt:** Debate whether Convergence needs the Chief of Staff feature to be commercially viable, or whether the anti-oracle stance is so differentiated that adding a recommendation layer destroys the product's identity.
+**NotebookLM Title:** "The AI that refuses to decide"
+**File:** `.foundry/crucible-v5-audio/The AI that refuses to decide.mp3` (47.7MB)
+**Status:** ✅ downloaded (2026-04-14 12:51)
+
+### Debate 2: Can UX Fix the 3-5 Minute Wait?
+**Prompt:** Debate whether the 3-5 minute wait time can be made acceptable through UX design (progress animation, partial result streaming, suggestion pills while waiting), or whether it is a fundamental adoption killer that UX cannot fix.
+**NotebookLM Title:** "Why premium AI takes five minutes"
+**File:** `.foundry/crucible-v5-audio/Why premium AI takes five minutes.mp3` (39.1MB)
+**Status:** ✅ downloaded (2026-04-14 12:51)
+
 ## B-03 Data-APIs 2026-04-14
 
 **Notebook ID:** ae756ff0-4517-461e-b4af-d15fd7422b5d
@@ -535,6 +563,20 @@ profit margin of 97% or higher [5, 6].
 Conversation: e83b0abd-7978-4c89-b27e-3a54bf169ea5 (turn 1)
 
 ---
+
+## B-03 Audio Debates
+
+### Debate 1: Bench-of-Sources vs Correlated Noise
+**Prompt:** Debate whether the bench-of-sources model creates genuine cross-domain confluence signal or just aggregates correlated noise — specifically for political/regulatory intelligence where Polymarket, FEC, and news data all react to the same events.
+**NotebookLM Title:** "Beating echo chambers with temporal gaps"
+**File:** `.foundry/crucible-v5-audio/Beating echo chambers with temporal gaps.mp3` (37.2MB)
+**Status:** ✅ downloaded (2026-04-14 13:10)
+
+### Debate 2: Haiku Provenance vs Deterministic Data Layer
+**Prompt:** Debate whether Haiku 4.5 can reliably format structured FEC/SEC/Kalshi data with less than 0.01% provenance error, or whether the minister architecture requires a deterministic, non-LLM data layer for all structured sources.
+**NotebookLM Title:** "Why elite engineers are stripping out AI"
+**File:** `.foundry/crucible-v5-audio/Why elite engineers are stripping out AI.mp3` (40.4MB)
+**Status:** ✅ downloaded (2026-04-14 13:10)
 
 ## B-04 Operations 2026-04-14
 
@@ -725,6 +767,20 @@ CRUD (Create, Read, Update, Delete) operations [9].
 Conversation: 87800f7c-c590-425e-aae2-19c19ed4b3d7 (turn 1)
 
 ---
+
+## B-04 Audio Debates
+
+### Debate 1: Launch with Manual Entity Resolution?
+**Prompt:** Debate whether Convergence should launch with manual entity resolution as a known scaling bottleneck, or whether it is operationally irresponsible to build a product whose core value proposition requires a labor-intensive process with no clear automation path.
+**NotebookLM Title:** "The Ferrari Doctrine of AI Engineering"
+**File:** `.foundry/crucible-v5-audio/The Ferrari Doctrine of AI Engineering.mp3` (41.1MB)
+**Status:** ✅ downloaded (2026-04-14 13:29)
+
+### Debate 2: Observability — Production-Blocking or Nice-to-Have?
+**Prompt:** Debate whether the observability and circuit-breaker requirements (minister health metrics, API failure alerts, data freshness SLAs) are production-blocking requirements or nice-to-haves that can ship post-MVP.
+**NotebookLM Title:** "The manual labor behind Project Convergence"
+**File:** `.foundry/crucible-v5-audio/The manual labor behind Project Convergence (2).mp3` (34.6MB)
+**Status:** ✅ downloaded (2026-04-14 13:29)
 
 ## Finding Extraction Template
 

@@ -154,15 +154,25 @@ Conversation: 818501b0-b317-44f6-a22a-1523a6ede883 (turn 1)
 
 **Prompt:** Debate whether the Convergence CRUCIBLE V5 process has resolved enough of the critical architectural failures to justify moving into the PLAN phase, or whether another design iteration is required. One side argues the 4 A-tier constraints plus B-tier findings give a buildable path. The other argues entity resolution and latency remain existential threats that cannot be planned around.
 
+**NotebookLM Title:** "Engineering the anti-oracle project Convergence"
+**File:** `.foundry/crucible-v5-audio/Engineering the anti-oracle project Convergence.mp3` (36.3MB)
+**Status:** ✅ downloaded (2026-04-14 13:52)
 
 ### Debate 2
 
 **Prompt:** Debate what the first 90 days of building Convergence looks like — specifically whether to start with SPIKE-3 (Haiku provenance test) and SPIKE-5 (FEC API verification) before any feature work, or whether to build the minister fan-out skeleton first and validate data quality in parallel.
 
+**NotebookLM Title:** "The Five Thousand Dollar Anti-Oracle"
+**File:** `.foundry/crucible-v5-audio/The Five Thousand Dollar Anti-Oracle.mp3` (40.6MB)
+**Status:** ✅ downloaded (2026-04-14 13:52)
 
 ### Debate 3
 
 **Prompt:** Debate whether the Chief of Staff escape hatch (the anti-oracle compromise) makes Convergence more commercially viable or dilutes its core value proposition to the point where it loses its category creation advantage.
+
+**NotebookLM Title:** "The Secret Human Labor Behind Convergence"
+**File:** `.foundry/crucible-v5-audio/The Secret Human Labor Behind Convergence.mp3` (43.1MB)
+**Status:** ✅ downloaded (2026-04-14 13:52)
 
 
 ---
