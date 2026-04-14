@@ -62,7 +62,7 @@ The product follows The Foundry's 8-phase methodology:
 
 1. **Start Here** — Read PHASE-0-USER-STORIES.md
 2. **Understand the Foundation** — Read CLAUDE.md for project context
-3. **See the FSD** — Check docs/04-technical/ARCHITECTURE.md for technical details
+3. **See the FSD** — Check docs/04-technical/FSD.md for technical details
 4. **Track Progress** — Follow issues in the Foundry milestone
 
 ## Status

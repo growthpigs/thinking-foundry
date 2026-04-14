@@ -46,11 +46,12 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 
 ## 🎯 ACTIVE FEATURE: Convergence (formerly Cross-Market Signal Loop)
 
-**Issue:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — STEALTH BUILD, do NOT push to alpha-war-room
-**Status:** CTO Ratification complete (2026-04-13). Ready for Scrum Master pipe (foundry-pipe-02).
-**Master Index:** [thinking-foundry#49](https://github.com/growthpigs/thinking-foundry/issues/49) — 100 issues, zero orphans
+**Issue:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — STEALTH BUILD, feature-flagged in alpha-war-room (not stealth worktree)
+**Status:** PLAN phase. V5 CRUCIBLE complete — GO verdict (#128). Epic 0 gates next (#125, #123, #124, #129).
+**PLAN Master Index:** [thinking-foundry#130](https://github.com/growthpigs/thinking-foundry/issues/130) — 7 epics, 27 stories (#131–#158), milestones 8–14
 **Blueprint:** [thinking-foundry#96](https://github.com/growthpigs/thinking-foundry/issues/96) — corrected service targets, model routing, latency fan-out
-**Crucible v2 findings:** `docs/04-technical/CRUCIBLE-V2-FINDINGS.md`
+**V5 CRUCIBLE Verdict:** [thinking-foundry#128](https://github.com/growthpigs/thinking-foundry/issues/128) — GO with 4 binding conditions. Entity ops is last unresolved FAIL (#129 = PLAN BLOCKER).
+**V5 A-Tier Findings:** [thinking-foundry#127](https://github.com/growthpigs/thinking-foundry/issues/127)
 
 **One-line:** Convergence is an anti-oracle reasoning engine that reads from a bench of signal sources (FEC, FCC, OpenSecrets, Regulations.gov, Polymarket, Kalshi, NewsAPI, NOAA, FRED, etc. + per-tenant private data) and surfaces cross-domain confluence with full provenance. Never collapses to a predictive number.
 
@@ -60,7 +61,7 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 - Dedicated Convergence page in 4-item top nav: Intelligence / SWOT / Convergence / Workspace
 - Multi-source mandate: proactive items need ≥2 sources; reactive single-source surfaces as "Single Signal" cards with explicit warning
 - Any bench source can trigger: not just Polymarket/Kalshi divergence
-- Reactive mode (#94 Chief of Staff): user-initiated "is this a good idea?" with full bench fan-out, <30s SLA
+- Reactive mode (#110 Chief of Staff): user-initiated "is this a good idea?" with full bench fan-out, <30s SLA
 - Chat gating: Convergence NOT auto-run on every chat message — inline confirm button only on decision-statement classification
 - DB-driven 15-min sliding window: no in-memory state, survives worker restarts
 - Source-count display, NOT 0–100 strength score: "3 sources agree, 1 contradicts" — never a scalar that could be misread as probability
