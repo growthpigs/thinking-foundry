@@ -12,20 +12,35 @@
 
 ---
 
-## 🎙️ CRUCIBLE INSTRUCTIONS (GitHub Source of Truth)
+## 🎙️ CRUCIBLE v2 — Adversarial Debate Protocol (GitHub Source of Truth)
 
-**See:** [GitHub Issue #32 — Crucible Instructions SOP](https://github.com/growthpigs/thinking-foundry/issues/32)
+**SOP:** [GitHub Issue #32 — CRUCIBLE Instructions SOP v2](https://github.com/growthpigs/thinking-foundry/issues/32)
 
-Definitive guide for running real adversarial debates with NotebookLM (not markdown summaries or biased simulations).
+Real adversarial debates via NotebookLM. Not markdown summaries. Not biased simulations.
 
-**Key Rules:**
-- Upload FULL documents uncut (not 400-word summaries)
-- Run 5-7 neutral chat queries first (text modality)
-- Generate audio debate with neutral instructions (audio modality)
-- Let content drive the debate, don't assign host positions
-- **After any FSD edit, re-upload the new body to the NotebookLM notebook as a fresh source before running another Crucible** — otherwise the hosts debate the stale version (GIGO). Crucible v1 → v2 hit this exact failure on 2026-04-09.
+**Funnel Model (A → B → C → D):**
+- **A-tier:** Broad viability (1 notebook, 3-4 debates) — "Should we build this at all?"
+- **B-tier:** Domain deep-dives (2-4 notebooks, 5-6 debates each) — Architecture, UX, Data, Operations
+- **C-tier:** Surgical (optional, within B notebooks) — specific contradictions or red flags
+- **D-tier:** Final synthesis (1 notebook, 3-4 debates) — cross-domain findings, go/no-go
 
-See GitHub issue #32 and related #33 for complete SOP.
+**8 Immutable Rules:**
+1. Each GitHub issue = its own NotebookLM source (verbatim, full body). NEVER bundle into summary files.
+2. Both text queries AND audio debates MANDATORY per subject (text first for specifics, audio for synthesis).
+3. Multiple audio debates per notebook, each scoped to a specific argument.
+4. 20% of sources must be external/adversarial ("hostile witnesses" — competitor analyses, critical research).
+5. Minimum 20 total debates across all tiers.
+6. After any FSD edit, re-upload the new body as a fresh source before re-running (GIGO rule).
+7. Every notebook gets a source manifest (audit trail of what was loaded and why).
+8. Naming convention: `{Tier}-{Sequence} {Project} {Date}` — e.g., `B-01 Convergence 2026-04-14`.
+
+**Pre-CRUCIBLE Consolidation (5 min):** Quick scan of all issues for contradictions from iterative design. Fix stale issues before entering the "court."
+
+**Compute Model:** Sonnet for orchestration, Haiku for mechanical prep. NotebookLM = free (Google infra). Never use Opus in CRUCIBLE pipeline.
+
+**This is AI development — calibrate accordingly.** Read 100 issues = 5 min. Consolidation scan = 5 min. Source preparation = 10 min. Full CRUCIBLE run (all tiers) = ~2-3 hours AI time. Never estimate in human sprint time.
+
+See GitHub issue #32 for complete SOP, source manifest template, and finding extraction format.
 
 ---
 
