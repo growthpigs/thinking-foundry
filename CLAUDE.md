@@ -263,20 +263,7 @@ thinking-foundry/
 ### Deployment
 - Push to main → Railway auto-deploys
 - URL: thinking-foundry-production.up.railway.app
-- Environment variables (Railway — 10 total):
-  - GEMINI_API_KEY — Google AI Studio key for Gemini Live
-  - SUPABASE_URL — Supabase project URL
-  - SUPABASE_KEY — Supabase service role key
-  - GITHUB_TOKEN — Fine-grained PAT for thinking-foundry-vault
-  - GITHUB_OWNER — growthpigs
-  - GITHUB_REPO — thinking-foundry-vault
-  - DEEPGRAM_API_KEY — Deepgram key for user STT
-  - ADMIN_API_KEY — Link auth admin key
-  - GOOGLE_SERVICE_ACCOUNT — Google Drive service account path
-  - NOTEBOOKLM_AUTH_B64 — Base64-encoded NotebookLM auth
-- Environment variables (Vercel — 2):
-  - VITE_WS_URL=wss://thinking-foundry-production.up.railway.app
-  - VITE_API_URL=https://thinking-foundry-production.up.railway.app
+- See **ENVIRONMENT VARIABLES** section above for all 12 vars (Railway + Vercel)
 
 ### What Goes Where
 - Phase prompts → poc/prompts/
@@ -324,20 +311,6 @@ thinking-foundry/
 - ❌ CRUCIBLE_SERVICE_URL (Python service on separate Railway instance)
 - ❌ NOTEBOOKLM_AUTH_B64 (run `notebooklm login`, base64 encode storage_state.json)
 - ❌ UX redesign polish (see [#20](https://github.com/growthpigs/thinking-foundry/issues/20))
-
-### What Was Built (2026-03-30 to 2026-03-31, 36 commits)
-| Component | File | Purpose |
-|---|---|---|
-| SupabaseBuffer | poc/server/supabase-buffer.js | Real-time session persistence (<50ms) |
-| GitHubPersistence | poc/server/github-persistence.js | ONE issue per phase in vault |
-| PhaseTransitionHandler | poc/server/phase-transition.js | AI-driven transitions + active Squeeze |
-| FrameworkFetcher | poc/server/framework-fetcher.js | JIT tool-use via pgvector (78 chunks) |
-| SttPipeline | poc/server/stt-pipeline.js | Deepgram WebSocket for user speech |
-| LinkAuth | poc/server/link-auth.js | Click link, start session, admin page |
-| CrucibleAudio | poc/server/crucible-audio.js | NotebookLM debate audio bridge |
-| DriveManager | poc/server/drive-manager.js | Google Drive folder/doc creation |
-| Session UI | poc/public/session.html | Editorial notebook design, bullet points, phase drawer |
-| React Frontend | frontend/ | Vercel-deployed alternative (to be updated with new design) |
 
 ---
 
