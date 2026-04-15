@@ -47,7 +47,7 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 ## 🎯 ACTIVE FEATURE: Convergence (formerly Cross-Market Signal Loop)
 
 **Issue:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — STEALTH BUILD, feature-flagged in alpha-war-room (not stealth worktree)
-**Status:** PLAN phase. V5 CRUCIBLE complete — GO verdict (#128). Epic 0 gates next (#125, #123, #124, #129).
+**Status:** PLAN phase. V5 CRUCIBLE complete — GO verdict (#128). Epic 0 gates next (#125, #123, #129). [#124 SPIKE-6 GDELT moved to Epic 2 — no longer blocking; Narrative Minister uses existing Mentionlytics V2 integration]
 **PLAN Master Index:** [thinking-foundry#130](https://github.com/growthpigs/thinking-foundry/issues/130) — 7 epics, 27 stories (#131–#158), milestones 8–14
 **Blueprint:** [thinking-foundry#96](https://github.com/growthpigs/thinking-foundry/issues/96) — corrected service targets, model routing, latency fan-out
 **V5 CRUCIBLE Verdict:** [thinking-foundry#128](https://github.com/growthpigs/thinking-foundry/issues/128) — GO with 4 binding conditions. Entity ops is last unresolved FAIL (#129 = PLAN BLOCKER).
