@@ -46,12 +46,15 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 
 ## 🎯 ACTIVE FEATURE: Convergence (formerly Cross-Market Signal Loop)
 
-**Issue:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — STEALTH BUILD, feature-flagged in alpha-war-room (not stealth worktree)
-**Status:** PLAN phase. V5 CRUCIBLE complete — GO verdict (#128). Epic 0 gates next (#125, #123, #129). [#124 SPIKE-6 GDELT moved to Epic 2 — no longer blocking; Narrative Minister uses existing Mentionlytics V2 integration]
-**PLAN Master Index:** [thinking-foundry#130](https://github.com/growthpigs/thinking-foundry/issues/130) — 7 epics, 27 stories (#131–#158), milestones 8–14
+**FSD:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — planning stays in thinking-foundry
+**Code Repo:** [growthpigs/convergence](https://github.com/growthpigs/convergence) (private) — Roderic's personal tool, may integrate with War Room later
+**Pre-POC:** `pre-poc` branch, worktree at `_PAI/operations/convergence-pre-poc/` — MCP server testing 4 ministers against live APIs
+**Status:** PLAN phase COMPLETE. Epic 0 gates ALL CLOSED (#166). Pre-POC MCP server next. [#124 SPIKE-6 GDELT moved to Epic 2]
+**PLAN Master Index:** [thinking-foundry#130](https://github.com/growthpigs/thinking-foundry/issues/130) — 6 epics, 26 stories (#131–#158 minus #134 closed), milestones 8–14
 **Blueprint:** [thinking-foundry#96](https://github.com/growthpigs/thinking-foundry/issues/96) — corrected service targets, model routing, latency fan-out
-**V5 CRUCIBLE Verdict:** [thinking-foundry#128](https://github.com/growthpigs/thinking-foundry/issues/128) — GO with 4 binding conditions. Entity ops is last unresolved FAIL (#129 = PLAN BLOCKER).
+**V5 CRUCIBLE Verdict:** [thinking-foundry#128](https://github.com/growthpigs/thinking-foundry/issues/128) — GO with 4 binding conditions.
 **V5 A-Tier Findings:** [thinking-foundry#127](https://github.com/growthpigs/thinking-foundry/issues/127)
+**Pre-Build Checklist:** [thinking-foundry#166](https://github.com/growthpigs/thinking-foundry/issues/166) — 7/7 gates closed ✅
 
 **One-line:** Convergence is an anti-oracle reasoning engine that reads from a bench of signal sources (FEC, FCC, OpenSecrets, Regulations.gov, Polymarket, Kalshi, NewsAPI, NOAA, FRED, etc. + per-tenant private data) and surfaces cross-domain confluence with full provenance. Never collapses to a predictive number.
 
@@ -69,7 +72,7 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 - **Model routing** (#96 addendum): Haiku for Data+Markets, Sonnet for Knowledge+Narrative+News, Opus for Synthesis Gate only
 - **Latency per-minister** (#75): Markets/News <5s, Knowledge <15s, Data <30s cached. Full fan-out 3-5 min.
 - **Service targets** (ratified): Knowledge → geminiFileSearchService (NOT knowledgeBaseService), Chat hook → enhancedPerplexityChatService.ts (NOT chatPipeline.ts)
-- **API red flags**: Mentionlytics has NO public API (Narrative needs replacement), OpenSecrets sunset (use FEC API), NewsAPI $449/mo production
+- **API status (verified 2026-04-16)**: FEC API confirmed (SPIKE-5), Polymarket Events API works via tag_slug (SPIKE-7), Kalshi demo API public, NewsAPI free tier works locally. Mentionlytics V2 JWT token rotation prevents sharing with pre-POC (Narrative Minister dropped from pre-POC). FEC DEMO_KEY = 10 req/hr (register free key at api.data.gov for production).
 
 ---
 
@@ -238,6 +241,15 @@ thinking-foundry/
 ---
 
 ## BUILD RULES
+
+### Gemini Model Policy (MANDATORY)
+- **Gemini 3.x ONLY** — never use Gemini 2.5 or below. This applies to ALL Gemini integrations.
+- Fast/cheap: `gemini-3.1-flash-lite-preview`
+- Standard: `gemini-3.1-flash-preview` or `gemini-3-flash-preview`
+- Quality: `gemini-3.1-pro-preview` or `gemini-3-pro-preview`
+- Live voice: `gemini-3.1-flash-live-preview`
+- Image: `gemini-3-pro-image-preview`
+- **⚠️ GEMINI_API_KEY is Roderic's personal key** — must be swapped for Think Big org key before production
 
 ### Gemini Live API Rules
 - **responseModalities MUST be ['AUDIO'] only** — ['AUDIO', 'TEXT'] crashes with error 1011
