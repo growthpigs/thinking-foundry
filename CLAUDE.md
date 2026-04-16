@@ -48,13 +48,14 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 
 **FSD:** [thinking-foundry#31](https://github.com/growthpigs/thinking-foundry/issues/31) — planning stays in thinking-foundry
 **Code Repo:** [growthpigs/convergence](https://github.com/growthpigs/convergence) (private) — Roderic's personal tool, may integrate with War Room later
-**Pre-POC:** `pre-poc` branch, worktree at `_PAI/operations/convergence-pre-poc/` — MCP server testing 4 ministers against live APIs
-**Status:** PLAN phase COMPLETE. Epic 0 gates ALL CLOSED (#166). Pre-POC MCP server next. [#124 SPIKE-6 GDELT moved to Epic 2]
-**PLAN Master Index:** [thinking-foundry#130](https://github.com/growthpigs/thinking-foundry/issues/130) — 6 epics, 26 stories (#131–#158 minus #134 closed), milestones 8–14
+**Pre-POC:** `pre-poc` branch, worktree at `_PAI/operations/convergence-pre-poc/` — 5-minister MCP server, VALIDATED 2026-04-16
+**Status:** Pre-POC COMPLETE ✅. All 5 ministers live (Data, Markets, News, Knowledge, Narrative/Perplexity). Build phase next.
+**Master Index:** [convergence#37](https://github.com/growthpigs/convergence/issues/37) — 6 epics, 33 stories (convergence#3–#36), milestones 1–7
 **Blueprint:** [thinking-foundry#96](https://github.com/growthpigs/thinking-foundry/issues/96) — corrected service targets, model routing, latency fan-out
 **V5 CRUCIBLE Verdict:** [thinking-foundry#128](https://github.com/growthpigs/thinking-foundry/issues/128) — GO with 4 binding conditions.
 **V5 A-Tier Findings:** [thinking-foundry#127](https://github.com/growthpigs/thinking-foundry/issues/127)
 **Pre-Build Checklist:** [thinking-foundry#166](https://github.com/growthpigs/thinking-foundry/issues/166) — 7/7 gates closed ✅
+**Value Proof:** [convergence#2](https://github.com/growthpigs/convergence/issues/2) — what Convergence does that ChatGPT cannot
 
 **One-line:** Convergence is an anti-oracle reasoning engine that reads from a bench of signal sources (FEC, FCC, OpenSecrets, Regulations.gov, Polymarket, Kalshi, NewsAPI, NOAA, FRED, etc. + per-tenant private data) and surfaces cross-domain confluence with full provenance. Never collapses to a predictive number.
 
@@ -72,7 +73,7 @@ See GitHub issue #32 for complete SOP, source manifest template, and finding ext
 - **Model routing** (#96 addendum): Haiku for Data+Markets, Sonnet for Knowledge+Narrative+News, Opus for Synthesis Gate only
 - **Latency per-minister** (#75): Markets/News <5s, Knowledge <15s, Data <30s cached. Full fan-out 3-5 min.
 - **Service targets** (ratified): Knowledge → geminiFileSearchService (NOT knowledgeBaseService), Chat hook → enhancedPerplexityChatService.ts (NOT chatPipeline.ts)
-- **API status (verified 2026-04-16)**: FEC API confirmed (SPIKE-5), Polymarket Events API works via tag_slug (SPIKE-7), Kalshi demo API public, NewsAPI free tier works locally. Mentionlytics V2 JWT token rotation prevents sharing with pre-POC (Narrative Minister dropped from pre-POC). FEC DEMO_KEY = 10 req/hr (register free key at api.data.gov for production).
+- **API status (verified 2026-04-16)**: FEC API confirmed (SPIKE-5), Polymarket Events API works via tag_slug (SPIKE-7), Kalshi demo API public, NewsAPI free tier works locally, Perplexity Sonar live (Narrative Minister — replaces Mentionlytics; JWT rotation race condition). FEC DEMO_KEY = 10 req/hr (register free key at api.data.gov for production).
 
 ---
 
