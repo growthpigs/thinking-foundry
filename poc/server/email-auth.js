@@ -391,7 +391,7 @@ class EmailAuth {
       const { email, pin, magicToken } = req.body || {};
       const result = await this.setPin(email, pin, magicToken);
       if (result.success) {
-        res.json({ success: true, deviceToken: result.deviceToken });
+        res.json({ success: true, deviceToken: result.deviceToken, sessionNonce: result.sessionNonce });
       } else {
         res.json(result);
       }
@@ -447,7 +447,7 @@ input::placeholder{color:#d6d3d1}
 
   <div id="pinSection">
     <label>Enter your PIN</label>
-    <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*">
+    <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')verifyPin()">
     <button class="btn" onclick="verifyPin()">Continue</button>
     <div class="divider">or</div>
     <button class="btn secondary" onclick="showEmail()">Use a different email</button>
@@ -456,7 +456,7 @@ input::placeholder{color:#d6d3d1}
   <div id="emailSection">
     <div id="message" class="msg"></div>
     <label>Email address</label>
-    <input type="email" id="emailInput" placeholder="you@company.com">
+    <input type="email" id="emailInput" placeholder="you@company.com" onkeydown="if(event.key==='Enter')sendLink()">
     <button class="btn" id="sendBtn" onclick="sendLink()">Send magic link</button>
   </div>
 </div>
@@ -561,7 +561,7 @@ input:focus{outline:none;border-color:#292524;box-shadow:0 0 0 3px rgba(41,37,36
   <h1>Set your PIN</h1>
   <p class="sub">Choose a 4-digit PIN for <span class="email">${escapeHtml(email)}</span>. You will use this to quickly access future sessions on this device.</p>
   <label>4-digit PIN</label>
-  <input type="password" id="pinInput" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*" autofocus>
+  <input type="password" id="pinInput" maxlength="4" placeholder="----" inputmode="numeric" pattern="[0-9]*" autofocus onkeydown="if(event.key==='Enter')setPin()">
   <button class="btn" onclick="setPin()">Set PIN and start session</button>
 </div>
 <script>
