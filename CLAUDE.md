@@ -219,6 +219,11 @@ thinking-foundry/
 │   │   └── style.css          ← Mobile-first dark theme
 │   ├── prompts/
 │   │   └── phase-{0-7}-*.txt  ← System prompts per phase (CRITICAL)
+│   ├── ai-session/
+│   │   ├── soul-file.md       ← AI identity contract (TF-METH-1: who you are, what you won't do)
+│   │   └── heartbeat-checklist.md ← Deterministic startup sequence (20 steps, read before session)
+│   ├── templates/
+│   │   └── brief-issue-template.md ← BRIEF handoff template to Software Foundry (FR-METH-1)
 │   ├── knowledge/
 │   │   ├── frameworks/        ← Stoicism, IDEO, McKinsey, YC, Lean
 │   │   ├── mentors/           ← Hormozi, Nate B. Jones, IndyDev Dan
