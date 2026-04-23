@@ -1,5 +1,14 @@
 # The Thinking Foundry — Project Context
 
+## ⚠️ GCP RULES
+- Never use `diiiploy-gateway-prod` — dead project, Diiiploy is shut down
+- **Personal GCP project:** `roderic-work` (project ID: `roderic-work`) — use this for all personal/cross-project service accounts
+- Google Docs API ✅ enabled in `roderic-work` | Google Drive API ✅ enabled in `roderic-work`
+- Service account for Convergence Drive output: `convergence-drive@roderic-work.iam.gserviceaccount.com`
+- No GCP API billing — Roderic pays €139/month Google Ultra, no additional API fees
+- Service accounts for Drive OAuth auth are acceptable (non-billable)
+- Note: `roderic-work` will need to be linked to actual War Room GCP project later
+
 **Type:** Voice-first SaaS product
 **Status:** MVP — backend complete, UI redesign deployed, needs live voice test
 **Repo:** growthpigs/thinking-foundry
