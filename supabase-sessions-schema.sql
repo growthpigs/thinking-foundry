@@ -63,8 +63,14 @@ RETURNS void AS $$
   WHERE id = session_uuid;
 $$ LANGUAGE SQL;
 
--- RLS policies (enable when auth is added post-MVP)
--- For MVP: service role key is used, no RLS needed
--- ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE utterances ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE phase_summaries ENABLE ROW LEVEL SECURITY;
+-- RLS: lock tables to service-role access only (Supabase advisor 2026-05-25).
+-- Backend uses SUPABASE_KEY (service role) which bypasses RLS by design.
+-- Frontend never queries Supabase directly (confirmed: zero `createClient`
+-- calls under frontend/), so denying anon access is safe.
+ALTER TABLE sessions        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE utterances      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE phase_summaries ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON sessions        FROM anon, authenticated;
+REVOKE ALL ON utterances      FROM anon, authenticated;
+REVOKE ALL ON phase_summaries FROM anon, authenticated;
