@@ -1,5 +1,11 @@
 # The Thinking Foundry — Project Context
 
+## 🚨 GitHub PM + SOT
+
+**GitHub is the full PM system and canonical source of truth for this project. Not just an issue tracker.** Durable bugs, tasks, follow-ups, specs, decisions, governance changes, and runbook-worthy findings must land in the correct GitHub repo as issues, issue-body updates, comments, linked milestones, or umbrella records. Local `.md` files support execution and AI continuity; they do not own durable project state.
+
+**Automatic capture rule:** when an AI discovers work that obviously needs to be remembered, tracked, or acted on later, it must create or update the relevant GitHub issue before ending the session. If a fitting milestone or umbrella already exists, attach the issue there too. Do not leave durable project state stranded only in local `.md` files.
+
 ## ⚠️ GCP RULES
 - Never use `diiiploy-gateway-prod` — dead project, Diiiploy is shut down
 - **Personal GCP project:** `roderic-work` (project ID: `roderic-work`) — use this for all personal/cross-project service accounts

@@ -1655,6 +1655,152 @@ This issue depends on **#61 (Session Persistence Infrastructure)** for:
 
 Can proceed in parallel with #61 design, but cannot launch without it.
 
+---
+
+## v4.2 — 2026-04-30 Design Review (Layout Expansions)
+
+**Status:** CANONICAL extension of v4.1 — v4.1 preserved above as prior baseline
+**Trigger:** Live prototype demo + PM coaching session 2026-04-30
+**Filed as:** convergence#53–#68 (15 stories + 2 epics)
+**Prototype:** `_PAI/operations/convergence/prototype/war-room-convergence-shell.html`
+
+### What changed from v4.1
+
+The 3-column structure is preserved. The expansions are **chrome additions, sidebar additions, and modal flows** — not a structural refactor.
+
+```
+┌─[Brand]─────────[Tabs: Intel·SWOT·CONVERGENCE·Workspace]──[🏛 Tenant·Entity ▾][⌘K][User]┐
+├──── COL 1 (22%)──────┬──────────────── COL 2-3 (58%) ──────────────────┬─ COL 4 (20%)─┤
+│ + New Convergence    │ ┌─CONVERGENCE · Cabinet · Turn 3 of 3 [⚖LOCKED]┐│ Cabinet pos  │
+│                      │ │ Chief: "Should we launch Q4?"                ││  KN ▮▮▮ 78   │
+│ RECENT      04       │ │ [✎Edit][+Doc][↪Followup]  [👤👤+][⤴Share]    ││  MK ▮  54    │
+│ ⚫ Q4 launch · 14m… │ │   [⚖Lock][⛶Present]                          ││  NE ▮ 32     │
+│ ⚫ Budget spike      │ │                                                ││  NA ▮ 46     │
+│ ⚫ Pricing N region │ ├ ▼ Turn 3  · just now · 22s · [△vs Turn 2] $0.18┤│  DA ▮▮▮ 91   │
+│                      │ │  Chief: "Got capacity report. Re-run."        ││  PD ▮▮ 70    │
+│ DECISIONS    03      │ │  📚 Knowledge   ⚐ [↑ flipped to delay]       ││              │
+│ ⚪ Pending Jul15·MED │ │  📈 Markets     ⚐ [= unchanged]              ││ 3-KNOB Σ=100 │
+│ ✅ Verified 28Apr    │ │  📰 News        ⚐ [+1 source]                ││ Quant ▮▮  40 │
+│ ❌ Wrong   14Apr     │ │  🎙 Narrative   ⚐ [flipped +1 podcast]       ││ Qual  ▮▮  40 │
+│                      │ │  📊 Data        ⚐ [+15% sufficiency]          ││ Know  ▮   20 │
+│ FAVORITES   02       │ │  🔒 Private Data ⚐ PREMIUM (8 records)        ││              │
+│ ⭐ Q4 product       │ │                                                ││ GLOBAL VIEW  │
+│ ⭐ Budget cycles    │ │  ⚠ Cross-source tension: 3 for delay, 2 neutral││ Cabinet:     │
+│                      │ ├ ▶ Turn 2  · 14m ago · $0.16  [△vs Turn 1]    ┤│ 3 for delay  │
+│                      │ ├ ▶ Turn 1  · 28m ago · $0.14                  ┤│ 2 neutral    │
+│                      │ │ [+ New turn]                                  ││              │
+│                      │ │                                                ││ ⚠ Tension:   │
+│                      │ │                                                ││ Markets vs KN│
+│                      │ │                                                ││ [CONCLUDE →  │
+│                      │ │                                                ││  CAPTURE]    │
+└──────────────────────┴────────────────────────────────────────────────┴──────────────┘
+
+KEYBOARD: ⌘K search · ⌘N new · ⌘Enter run turn · F presenter · J/K nav · ⌘L lock
+          ⌘⇧S share · ⌘D capture decision · ⌘? shortcuts · Esc exit
+```
+
+### Additions vs v4.1
+
+#### Top nav additions
+- **Tenant chip** (right of search) — `🏛 Acme Corp · Q4 Launch · Premium ▾` — clickable dropdown with all accessible tenants/entities (#62)
+- Multi-tenant context visible at all times. Cross-tenant data leakage prevented at dropdown level.
+
+#### Sessions sidebar additions
+- **DECISIONS section** between Recent and Favorites (#54) — captured decisions with status (Pending / Verified / Wrong) + confidence band (Low / Med / High) + re-eval date
+- Empty state with sample briefings (#56) when no decisions / sessions exist for the tenant
+
+#### Briefing header additions
+- **⚖ LOCKED** state indicator (#57) — when audit-locked, shown next to "Turn N of N"
+- **Stakeholder chips** between header buttons and toolbar (#68) — invited collaborators visible
+- **Toolbar buttons** (right side): `⤴ Share`, `⚖ Lock`, `⛶ Present` — adds share read-only, audit lock, and presenter mode triggers
+
+#### Per-turn additions
+- **Compare toggle** `△ Show changes since Turn N-1` (#61) — when enabled, shows delta badges on each minister card
+- **Delta badges on minister findings** — e.g., `↑ flipped to delay`, `= unchanged`, `+15% sufficiency`, `flipped +1 podcast`
+- **NOT included:** cost chip per turn (#59) — closed 2026-04-30; clients on fixed monthly tiers (#39), per-turn cost is admin telemetry not Chief UX
+
+#### Chief of Staff (CoS) panel — top of every turn body (NEW v4.2)
+- Renders at the top of every turn body, between Chief's prompt and minister cards
+- **Synthesis** (3 paragraphs, plain prose): meta-reading of all 6 ministers
+- **Caveat block** (yellow-bordered): explicit "directional only · no probability" + cabinet split
+- **Action buttons:** `↗ Open CoS deep view` (slides side panel) + `↓ Jump to ministers` (smooth scroll)
+- **Side panel CoS deep view contains:**
+  - Synthesis (full, plus re-synthesize banner if Chief overrode weights)
+  - **Cabinet weighting table** — HEAVY / MED / LIGHT badge per minister + 1-line reasoning. **Click any badge to override.**
+  - **Alternative interpretations considered + rejected** with reasoning
+  - **What would change this synthesis** (mind-changers list)
+  - **Blind spots & caveats** (explicit non-claims)
+  - **Cabinet position grid** (delay / neutral / against count)
+- **Chief counter-weighting:** click a HEAVY/MED/LIGHT badge → reveals 3-button picker → select new weight → row marked "overridden" → re-synthesize bar appears at top of panel → click `↻ Re-synthesize` to apply (Chief reweighting tracked in audit log per #57). Reset returns to CoS-default weighting.
+
+#### DEGRADED states (newly demonstrated v4.2)
+- Per-minister DEGRADED visual: opacity 0.55, grayscale, TIMEOUT/CIRCUIT-OPEN/NO-DATA/FILTERED status badge, reason chip, per-card `↻ Re-fetch` button (single-minister, not full fan-out)
+- MVB-fail synthesis-withheld banner (replaces CoS panel when below 3-of-6 + 1-quantitative quorum): "DEGRADED — synthesis withheld until ministers recover"
+- Demo trigger: type `/degraded` or `/timeout` as the Chief prompt → Turn N's News minister times out, MVB still met (5 of 6), CoS surfaces the gap explicitly
+
+#### Minister card additions
+- **6th minister: Private Data** (#60) — green-accented card, distinct from internet ministers, shows tenant-KB-grounded findings. Locked badge visible to non-Premium tier.
+- **⚐ Flag affordance** (#55) — hover-revealed top-right of each card. Menu: stale / biased / re-fetch / dispute. Multi-flag display in Cabinet panel.
+
+#### Dashboard panel additions
+- **Private Data row** in Cabinet Position metrics (between Data and 3-knob)
+- **CONCLUDE → CAPTURE** button replaces direct Conclude (#54) — opens Decision Capture flow
+
+#### New modals
+- **Decision Capture** (#54) — replaces Conclude; captures decision text + confidence band + re-eval date + stakeholders + optional reasoning. Auto-creates DECISIONS sidebar entry.
+- **Stakeholder Invite** (#68) — email or tenant member picker
+- **Audit Lock confirm** (#57) — with SHA-256 hash preview + warning copy
+- **Read-only Share** (#65) — redaction level selector (Client view / Decision-only / Full briefing) + 30-day link expiry + read tracking
+- **Refused Intake** (#67) — when intake gate (#50) classifies query as non-Convergence, shows reframing suggestions + "Run anyway" degraded path
+
+#### Mode switches
+- **Presenter mode** (#64) — body class toggle. Hides sidebar, dashboard, toolbar. Promotes type sizes 1.6× for projection. Esc / `F` / exit button to leave.
+- **Empty state** (#56) — when sessions list is empty, shows 3 sample briefings + "what works as a Convergence query" guide
+
+### DEGRADED states (#66)
+
+When a minister times out / hits circuit-open / returns no_data:
+- Card opacity 0.55 + grayscale 0.7
+- Status badge: TIMEOUT / CIRCUIT-OPEN / NO-DATA / FILTERED
+- Per-card `↻ Re-fetch` button (single-minister, not full fan-out)
+- When MVB threshold not met (3-of-6 + ≥1 quantitative), Cross-Source Tension banner replaced with: "DEGRADED — synthesis withheld until 3 ministers report"
+
+### Acceptance Criteria — v4.2 layer (delta from v4.1)
+
+- [ ] Tenant chip persists across all pages, scoping all queries
+- [ ] DECISIONS section in sidebar between Recent and Favorites
+- [ ] Cost chip + popover on every turn header
+- [ ] Compare toggle on every non-first turn
+- [ ] 6th minister (Private Data) card on every turn
+- [ ] ⚐ Flag affordance hover-revealed on all minister cards
+- [ ] CONCLUDE → CAPTURE flow opens Decision Capture, not direct export
+- [ ] Audit Lock disables all turn / edit affordances + shows hash badge
+- [ ] Stakeholder chips visible in header; click + opens invite modal
+- [ ] Presenter mode hides chrome and bumps type 1.6×
+- [ ] Empty state replaces blank sidebar for first-time tenant
+- [ ] Refused intake fires reframing modal on classifier match (#50)
+- [ ] All keyboard shortcuts functional (⌘K, ⌘N, F, J/K, ⌘L, ⌘D, ⌘⇧S, ⌘?)
+
+### Dependency map
+
+| New issue | Depends on |
+|---|---|
+| #54 Decision Capture | core; precondition for #58 Outcome Loop |
+| #58 EPIC 8 Outcome Loop | #54 |
+| ~~#59 Cost-per-turn~~ | **CLOSED** 2026-04-30 — fixed monthly pricing, not shown to Chief |
+| #60 6th Minister UI | #40 (Private Data backend) |
+| #61 Compare toggle | none — pure UI on existing turn data |
+| #62 Tenant chip | STORY 1.1 (entity store) |
+| #55 Minister flag | none — UI only, persists Chief-private |
+| #56 Empty state | #50 (Intake gate copy reuse) |
+| #57 Audit lock | #61 (session persistence for hash anchor) |
+| #63 Keyboard shortcuts | none |
+| #64 Presenter mode | none |
+| #65 Read-only share | #61 + #57 (token + hash) |
+| #66 DEGRADED state | #20 (DEGRADED logic) |
+| #67 Intake refusal | #50 (classifier) |
+| #68 Stakeholder invite | alpha-war-room#874 (Socket.IO) |
+
 === ISSUE #88 ===
 UX: Fast-Track Conclude — The Inverted Funnel Option
 
