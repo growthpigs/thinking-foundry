@@ -19,7 +19,7 @@ function escapeHtml(text) {
 
 const PIN_LENGTH = 4;
 const MAGIC_LINK_EXPIRY_MS = 15 * 60 * 1000;     // 15 minutes
-const SESSION_NONCE_EXPIRY_MS = 60 * 1000;        // 60 seconds
+const SESSION_NONCE_EXPIRY_MS = 5 * 60 * 1000;    // 5 minutes — survives Railway cold start (#176)
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;        // 5 minutes
 
 class EmailAuth {
