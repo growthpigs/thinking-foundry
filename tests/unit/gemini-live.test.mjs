@@ -103,18 +103,98 @@ describe('GeminiLiveManager — native session resumption', () => {
     expect(active.readyState).toBe(3);
   });
 
-  it('GoAway swaps at the deadline even if setupComplete never arrives', () => {
+  it('GoAway deadline without setupComplete falls back to forceReconnect — never swaps onto a pre-setup connection', () => {
     const active = new FakeWs();
     mgr.activeWs = active;
     mgr.connectionStartTime = Date.now();
     mgr.wireHandlers(active, false);
     mgr.createConnection = () => new FakeWs();
-    mgr.forceReconnect = vi.fn(); // performSwap falls back here if standby isn't OPEN
+    mgr.forceReconnect = vi.fn();
 
     active.emit('message', JSON.stringify({ goAway: { timeLeft: '2s' } }));
     vi.advanceTimersByTime(2000);
-    // Standby was created and is OPEN (FakeWs default), so a real swap happens
-    expect(mgr.activeWs).not.toBe(active);
+    // Standby socket is OPEN but its setup was never acknowledged — swapping
+    // would route audio to a pre-setup connection, so we must NOT swap.
+    expect(mgr.activeWs).toBe(active);
+    expect(mgr.forceReconnect).toHaveBeenCalled();
+  });
+
+  it('audio, barge-in, and GoAway keep working on a PROMOTED connection (stale-flag regression)', () => {
+    const onAudio = vi.fn();
+    const onInterrupted = vi.fn();
+    mgr.onAudio = onAudio;
+    mgr.onInterrupted = onInterrupted;
+
+    // Wire a socket as STANDBY, then promote it the way performSwap does
+    const promoted = new FakeWs();
+    mgr.standbyWs = promoted;
+    mgr.wireHandlers(promoted, true);
+    mgr.activeWs = promoted;
+    mgr.standbyWs = null;
+    mgr.isSwapping = false;
+    mgr.connectionStartTime = Date.now();
+
+    promoted.emit('message', JSON.stringify({ serverContent: { modelTurn: { parts: [{ inlineData: { data: 'QUJD' } }] }, interrupted: true } }));
+    expect(onAudio).toHaveBeenCalledWith('QUJD'); // was dropped by the old !isStandby gating
+    expect(onInterrupted).toHaveBeenCalled();
+
+    mgr.createConnection = () => new FakeWs();
+    promoted.emit('message', JSON.stringify({ goAway: { timeLeft: '8s' } }));
+    expect(mgr.standbyWs).not.toBeNull(); // GoAway handled on promoted socket
+  });
+
+  it('GoAway closes a pre-existing scheduled standby instead of orphaning it', () => {
+    const active = new FakeWs();
+    mgr.activeWs = active;
+    mgr.connectionStartTime = Date.now();
+    mgr.wireHandlers(active, false);
+
+    const scheduledStandby = new FakeWs();
+    mgr.standbyWs = scheduledStandby;
+    mgr.wireHandlers(scheduledStandby, true);
+    mgr.createConnection = () => new FakeWs();
+
+    active.emit('message', JSON.stringify({ goAway: { timeLeft: '8s' } }));
+    expect(scheduledStandby.readyState).toBe(3); // closed, not leaked
+    expect(mgr.standbyWs).not.toBe(scheduledStandby);
+
+    // The orphan's late setupComplete must NOT arm the swap flag
+    scheduledStandby.readyState = 1;
+    scheduledStandby.emit('message', JSON.stringify({ setupComplete: {} }));
+    expect(mgr.standbySetupComplete).toBe(false);
+  });
+
+  it('resumption handles are only accepted from the ACTIVE connection', () => {
+    const active = new FakeWs();
+    const standby = new FakeWs();
+    mgr.activeWs = active;
+    mgr.standbyWs = standby;
+    mgr.wireHandlers(active, false);
+    mgr.wireHandlers(standby, true);
+
+    active.emit('message', JSON.stringify({ sessionResumptionUpdate: { newHandle: 'active-h', resumable: true } }));
+    standby.emit('message', JSON.stringify({ sessionResumptionUpdate: { newHandle: 'standby-h', resumable: true } }));
+    expect(mgr.resumptionHandle).toBe('active-h');
+  });
+
+  it('forceReconnect clears the resumption handle on phase change, keeps it same-phase', async () => {
+    mgr.resumptionHandle = 'h-old';
+    mgr.phase = 1;
+    const fresh = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => fresh.emit('open'), 0); return fresh; };
+
+    const p = mgr.forceReconnect(2, 'ctx'); // phase change
+    await vi.advanceTimersByTimeAsync(10);
+    await p;
+    expect(mgr.resumptionHandle).toBeNull();
+
+    mgr.resumptionHandle = 'h-same';
+    const fresh2 = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => fresh2.emit('open'), 0); return fresh2; };
+    const p2 = mgr.forceReconnect(2, 'ctx'); // same phase (swap-failure fallback)
+    await vi.advanceTimersByTimeAsync(10);
+    await p2;
+    expect(mgr.resumptionHandle).toBe('h-same');
   });
 
   it('close() during a GoAway swap does not throw or fire callbacks', () => {

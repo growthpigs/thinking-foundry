@@ -28,7 +28,10 @@ jobs:
       - name: Server boots + smoke test (local)
         run: |
           PORT=3100 node poc/server/index.js &
-          sleep 3
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3100/health > /dev/null && break
+            sleep 0.5
+          done
           BACKEND_URL=http://localhost:3100 SKIP_FRONTEND=1 node tests/smoke/smoke.mjs
 
   smoke-production:

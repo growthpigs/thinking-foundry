@@ -61,6 +61,25 @@ describe('ContextManager', () => {
     expect(cm.getCondensedContext()).toBe('');
   });
 
+  it('getSessionBullets works for SHORT sessions (below the 10-utterance eviction window)', () => {
+    const cm = new ContextManager();
+    cm.addUtterance('user', 'I want to decide whether to raise money or bootstrap for another year.');
+    cm.addUtterance('assistant', 'What would taking the money let you do that you cannot do now?');
+    const bullets = cm.getSessionBullets(5);
+    expect(bullets.length).toBeGreaterThan(0); // old keyPoints-only path returned []
+    expect(bullets.some((b) => b.includes('raise money'))).toBe(true);
+  });
+
+  it('getSessionBullets combines evicted key points with the live window, capped at n', () => {
+    const cm = new ContextManager();
+    for (let i = 0; i < 14; i++) {
+      cm.addUtterance('user', `A sufficiently long statement about the decision, number ${i}.`);
+    }
+    const bullets = cm.getSessionBullets(5);
+    expect(bullets).toHaveLength(5);
+    expect(bullets[4]).toContain('number 13'); // includes the most recent, un-evicted turns
+  });
+
   it('getFullTranscript formats speakers as User/Foundry', () => {
     const cm = new ContextManager();
     cm.addUtterance('user', 'Hello.');

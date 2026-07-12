@@ -12,14 +12,29 @@
  */
 
 /**
+ * Intent-mode → minimum confidence for advancing a phase (The Squeeze).
+ * Single source of truth for BOTH the tool path and the regex fallback.
+ */
+const MODE_THRESHOLDS = { explore: 5, research: 6, commit: 8 };
+
+/**
+ * After a toolTransition is BLOCKED by the confidence gate, suppress
+ * regex-detected forward transitions for this long — otherwise the AI
+ * narrating "we're not ready for phase 3 yet" (or similar) becomes an
+ * ungated side door seconds after the gate refused.
+ */
+const BLOCKED_SUPPRESSION_MS = 60 * 1000;
+
+/**
  * Patterns the AI uses to signal phase transitions.
  * Matched against AI transcript text (case-insensitive).
  */
 const TRANSITION_PATTERNS = [
   // Direct phase advancement signals
+  // (negative lookbehind: "we're NOT ready for phase 3" must not advance)
   /let'?s move (?:on )?to phase (\d)/i,
   /moving (?:on )?to phase (\d)/i,
-  /ready for phase (\d)/i,
+  /(?<!not )(?<!n't )ready for phase (\d)/i,
   /time for phase (\d)/i,
   /on to phase (\d)/i,
 
@@ -79,6 +94,10 @@ class PhaseTransitionHandler {
     this.lastTransitionAt = 0;
     this.debounceMs = 5000; // 5 seconds
 
+    // Timestamp of the last confidence-gate block — suppresses regex-detected
+    // forward transitions so narration can't sidestep a blocked advance_phase
+    this.lastBlockedAt = 0;
+
     // Track extracted confidence data (if the AI states it voluntarily)
     this.pendingSqueeze = null;
   }
@@ -104,8 +123,7 @@ class PhaseTransitionHandler {
       const modeMatch = combined.match(/\[MODE:(explore|research|commit)\]/i);
       if (modeMatch) {
         this.intentMode = modeMatch[1].toLowerCase();
-        const thresholds = { explore: 5, research: 6, commit: 8 };
-        this.minConfidence = thresholds[this.intentMode] || 6;
+        this.minConfidence = MODE_THRESHOLDS[this.intentMode] || 6;
         console.log(`[PHASE] Intent mode detected: ${this.intentMode} → minConfidence=${this.minConfidence}`);
         if (this.onModeDetected) {
           Promise.resolve(this.onModeDetected(this.intentMode, this.minConfidence))
@@ -132,6 +150,20 @@ class PhaseTransitionHandler {
     // NOTE: Squeeze injection disabled — Gemini AUDIO-only mode rejects text clientContent.
     // The AI's system prompt tells it to state confidence before transitioning.
     const transitionConfidence = this.pendingSqueeze?.confidence ?? confidence ?? null;
+
+    // The regex fallback must respect the same confidence gate as the tool
+    // path — it exists for narrated transitions, not as a side door.
+    if (targetPhase > currentPhase) {
+      if (now - this.lastBlockedAt < BLOCKED_SUPPRESSION_MS) {
+        console.log('[PHASE] Regex transition suppressed — advance_phase was gate-blocked moments ago');
+        return null;
+      }
+      if (transitionConfidence !== null && transitionConfidence < this.minConfidence) {
+        console.log(`[PHASE] Regex transition gated: confidence ${transitionConfidence} < required ${this.minConfidence}`);
+        return null;
+      }
+    }
+
     return this._fireTransition(currentPhase, targetPhase, transitionConfidence);
   }
 
@@ -252,6 +284,7 @@ class PhaseTransitionHandler {
     // The Squeeze — confidence gate, enforced deterministically.
     // Only gate FORWARD movement; going back to revisit a phase is always allowed.
     if (toPhase > currentPhase && confidence < this.minConfidence) {
+      this.lastBlockedAt = Date.now(); // arms regex-fallback suppression too
       return {
         ok: false,
         blocked: true,
@@ -294,12 +327,19 @@ class PhaseTransitionHandler {
    */
   toolSetMode(mode) {
     const normalized = String(mode || '').toLowerCase().trim();
-    const thresholds = { explore: 5, research: 6, commit: 8 };
-    if (!(normalized in thresholds)) {
+    if (!(normalized in MODE_THRESHOLDS)) {
       return { ok: false, message: `Invalid mode: ${mode}. Must be explore, research, or commit.` };
     }
+    // Once a mode is set, the threshold can only RISE — otherwise a blocked
+    // transition could be laundered by downgrading commit → explore.
+    if (this.intentMode && MODE_THRESHOLDS[normalized] < this.minConfidence) {
+      return {
+        ok: false,
+        message: `Intent mode is already ${this.intentMode} (threshold ${this.minConfidence}); it cannot be lowered mid-session. Continue at the current bar.`,
+      };
+    }
     this.intentMode = normalized;
-    this.minConfidence = thresholds[normalized];
+    this.minConfidence = MODE_THRESHOLDS[normalized];
     console.log(`[PHASE] Intent mode set via tool: ${normalized} → minConfidence=${this.minConfidence}`);
     if (this.onModeDetected) {
       Promise.resolve(this.onModeDetected(normalized, this.minConfidence))
@@ -349,4 +389,4 @@ class PhaseTransitionHandler {
   }
 }
 
-module.exports = { PhaseTransitionHandler, PHASE_NAME_TO_NUMBER };
+module.exports = { PhaseTransitionHandler, PHASE_NAME_TO_NUMBER, MODE_THRESHOLDS };

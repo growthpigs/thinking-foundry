@@ -5,3 +5,6 @@ node_modules/
 
 # CRUCIBLE audio debates (large MP3s — local only)
 .foundry/crucible-v5-audio/
+
+# hot.md — session memory cache (session data never belongs in this repo)
+poc/knowledge/hot.md

@@ -177,6 +177,13 @@ class GeminiLiveManager {
    */
   wireHandlers(ws, isStandby = false) {
     const label = isStandby ? 'STANDBY' : 'ACTIVE';
+    // Role is checked LIVE against this.activeWs/this.standbyWs — never the
+    // frozen isStandby closure flag. performSwap promotes a standby by
+    // reassigning references without rewiring handlers, so a closure flag
+    // goes permanently stale after the first swap (audio/GoAway/barge-in
+    // would be gated on the wrong role for the rest of the session).
+    const isActive = () => ws === this.activeWs;
+    const isCurrentStandby = () => ws === this.standbyWs;
 
     ws.on('message', (raw) => {
       try {
@@ -185,8 +192,9 @@ class GeminiLiveManager {
         // Setup complete acknowledgement
         if (msg.setupComplete) {
           console.log(`[GEMINI][${label}] Setup complete`);
-          if (isStandby) {
-            // Standby is ready for swap
+          if (isCurrentStandby()) {
+            // Only the CURRENT standby may arm the swap — an orphaned
+            // standby (superseded by handleGoAway) must not flip the flag.
             this.standbySetupComplete = true;
             console.log(`[GEMINI] Standby connection ready for swap`);
           }
@@ -196,28 +204,25 @@ class GeminiLiveManager {
           return;
         }
 
-        // Server content (audio + text)
+        // Server content (audio + text) — delivered only from the connection
+        // that is active RIGHT NOW (a just-promoted standby qualifies).
         if (msg.serverContent) {
           const parts = msg.serverContent.modelTurn?.parts || [];
           for (const part of parts) {
-            if (part.inlineData) {
-              if (!isStandby || this.isSwapping) {
-                this.onAudio(part.inlineData.data);
-              }
+            if (part.inlineData && isActive()) {
+              this.onAudio(part.inlineData.data);
             }
           }
 
           // AI text comes ONLY from outputAudioTranscription (single authoritative source)
-          if (msg.serverContent.outputTranscription?.text) {
-            if (!isStandby || this.isSwapping) {
-              this.onTranscript('model', msg.serverContent.outputTranscription.text);
-            }
+          if (msg.serverContent.outputTranscription?.text && isActive()) {
+            this.onTranscript('model', msg.serverContent.outputTranscription.text);
           }
 
           // Barge-in: server detected user speech during generation
           if (msg.serverContent.interrupted) {
             console.log(`[GEMINI][${label}] INTERRUPTED (barge-in)`);
-            if (!isStandby) {
+            if (isActive()) {
               this.onInterrupted();
             }
           }
@@ -225,16 +230,18 @@ class GeminiLiveManager {
           // Check for turn completion
           if (msg.serverContent.turnComplete) {
             console.log(`[GEMINI][${label}] Turn complete`);
-            if (!isStandby || this.isSwapping) {
+            if (isActive()) {
               this.onTurnComplete();
             }
           }
         }
 
-        // Native resumption: store the freshest handle for the next (re)connect
+        // Native resumption: store the freshest handle — only from the ACTIVE
+        // connection, so a late update from a dying old lineage (or a
+        // not-yet-promoted standby) can't overwrite the current handle.
         if (msg.sessionResumptionUpdate) {
           const { newHandle, resumable } = msg.sessionResumptionUpdate;
-          if (resumable && newHandle) {
+          if (resumable && newHandle && isActive()) {
             this.resumptionHandle = newHandle;
           }
           return;
@@ -242,7 +249,7 @@ class GeminiLiveManager {
 
         // GoAway: server is about to terminate this connection — swap NOW
         // instead of waiting for the scheduled 14:00 timer.
-        if (msg.goAway && !isStandby) {
+        if (msg.goAway && isActive()) {
           const timeLeftMs = this._parseDuration(msg.goAway.timeLeft);
           console.log(`[GEMINI][${label}] GoAway received (timeLeft: ${msg.goAway.timeLeft || 'unknown'}) — early swap`);
           this.handleGoAway(timeLeftMs);
@@ -255,26 +262,21 @@ class GeminiLiveManager {
           for (const fc of calls) {
             console.log(`[GEMINI][${label}] Tool call: ${fc.name}`);
 
-            // Session control tools (advance_phase, set_intent_mode)
+            // Session control tools (advance_phase, set_intent_mode).
+            // The model BLOCKS waiting for a functionResponse, so every call
+            // must be answered — including handler throws and rejections.
             if (this.onControlCall && this.controlToolNames.has(fc.name)) {
-              Promise.resolve(this.onControlCall({ name: fc.name, args: fc.args }))
+              let resultPromise;
+              try {
+                resultPromise = Promise.resolve(this.onControlCall({ name: fc.name, args: fc.args }));
+              } catch (err) {
+                resultPromise = Promise.resolve({ message: `Control tool error: ${err.message}. Continue the conversation.` });
+              }
+              resultPromise
+                .catch((err) => ({ message: `Control tool error: ${err.message}. Continue the conversation.` }))
                 .then((result) => {
-                  const responseMsg = {
-                    toolResponse: {
-                      functionResponses: [{
-                        id: fc.id,
-                        name: fc.name,
-                        response: { result: result?.message || 'ok' },
-                      }]
-                    }
-                  };
-                  if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(responseMsg));
-                    console.log(`[GEMINI] Control tool response for ${fc.name}: ${result?.message}`);
-                  }
-                })
-                .catch(err => {
-                  console.error(`[GEMINI] Control tool error (${fc.name}):`, err.message);
+                  this._sendToolResponse(ws, fc.id, fc.name, { result: result?.message || 'ok' });
+                  console.log(`[GEMINI] Control tool response for ${fc.name}: ${result?.message}`);
                 });
               continue;
             }
@@ -282,23 +284,12 @@ class GeminiLiveManager {
             if (!this.frameworkFetcher) continue;
             this.frameworkFetcher.handleFunctionCall({ name: fc.name, args: fc.args })
               .then(result => {
-                // Send function response back to Gemini
-                const responseMsg = {
-                  toolResponse: {
-                    functionResponses: [{
-                      id: fc.id,
-                      name: result.name,
-                      response: result.response,
-                    }]
-                  }
-                };
-                if (ws.readyState === WebSocket.OPEN) {
-                  ws.send(JSON.stringify(responseMsg));
-                  console.log(`[GEMINI] Sent tool response for ${fc.name}`);
-                }
+                this._sendToolResponse(ws, fc.id, result.name, result.response);
+                console.log(`[GEMINI] Sent tool response for ${fc.name}`);
               })
               .catch(err => {
                 console.error(`[GEMINI] Tool call error (${fc.name}):`, err.message);
+                this._sendToolResponse(ws, fc.id, fc.name, { error: err.message });
               });
           }
         }
@@ -421,6 +412,24 @@ class GeminiLiveManager {
   }
 
   /**
+   * Send a functionResponse back to Gemini. If the originating socket closed
+   * (e.g. a swap finished while the handler ran), fall back to the current
+   * active connection — an unanswered tool call stalls the model.
+   */
+  _sendToolResponse(ws, id, name, response) {
+    const msg = JSON.stringify({
+      toolResponse: { functionResponses: [{ id, name, response }] }
+    });
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(msg);
+    } else if (this.activeWs && this.activeWs.readyState === WebSocket.OPEN) {
+      this.activeWs.send(msg);
+    } else {
+      console.warn(`[GEMINI] Dropped tool response for ${name} — no open connection`);
+    }
+  }
+
+  /**
    * Parse a protobuf Duration ("10s" string or {seconds, nanos} object) to ms.
    * @returns {number|null}
    */
@@ -445,6 +454,14 @@ class GeminiLiveManager {
     if (this.closed || this.isSwapping) return;
     this.clearReconnectTimers();
     this.onReconnecting();
+
+    // A standby from the scheduled 13:00 prepare step may already exist —
+    // close it before dialing a new one, or it leaks open against Gemini's
+    // connection quota with its handlers still wired.
+    if (this.standbyWs) {
+      try { this.standbyWs.close(1000, 'Superseded by GoAway swap'); } catch { /* already dead */ }
+      this.standbyWs = null;
+    }
 
     this.standbySetupComplete = false;
     this.standbyWs = this.createConnection();
@@ -481,8 +498,11 @@ class GeminiLiveManager {
    * which would trigger onClose() when it shouldn't.
    */
   performSwap() {
-    if (!this.standbyWs || this.standbyWs.readyState !== WebSocket.OPEN) {
-      console.error('[RECONNECT] Cannot swap — standby not ready. Forcing new connection...');
+    // Require both an OPEN socket AND an acknowledged setup — swapping onto
+    // a connection whose BidiGenerateContentSetup hasn't been acked routes
+    // audio into a pre-setup connection, which Gemini rejects.
+    if (!this.standbyWs || this.standbyWs.readyState !== WebSocket.OPEN || !this.standbySetupComplete) {
+      console.error('[RECONNECT] Cannot swap — standby not ready (open+setup). Forcing new connection...');
       this.forceReconnect(this.phase, this.contextSummary);
       return;
     }
@@ -521,6 +541,15 @@ class GeminiLiveManager {
   async forceReconnect(phase, contextSummary) {
     console.log(`[GEMINI] Force reconnect: phase=${phase}`);
     this.clearReconnectTimers();
+
+    // Phase change = a NEW conversation segment with a new system instruction.
+    // Resuming the old phase's server-side session would carry its state into
+    // the new phase, fighting the new prompt — drop the handle. Same-phase
+    // reconnects (swap-failure fallback) keep it: same conversation.
+    if (phase !== this.phase) {
+      this.resumptionHandle = null;
+    }
+
     this.phase = phase;
     this.contextSummary = contextSummary;
 

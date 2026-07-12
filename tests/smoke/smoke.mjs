@@ -73,6 +73,24 @@ async function checkFrontend() {
   } catch {
     return record('frontend page load', false, 'playwright-core not installed (npm install)');
   }
+  // The plain-fetch fallback exists ONLY for environments where the browser
+  // itself can't run or can't reach the network (missing binary, sandbox TLS
+  // interception). Real page failures — timeouts, crashes, blank app — must
+  // stay failures, or the smoke test green-lights a broken deploy.
+  const envBlocked = (msg) =>
+    /ERR_CONNECTION_RESET|ERR_PROXY|ERR_TUNNEL|ERR_CERT|executable doesn't exist|Failed to launch/i.test(msg);
+  const fetchFallback = async (reason) => {
+    try {
+      const res = await fetch(FRONTEND_URL, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+      const html = await res.text();
+      const looksLikeApp = res.ok && html.includes('<div id="root">');
+      record('frontend HTTP (no-browser fallback)', looksLikeApp,
+        `HTTP ${res.status}; browser check unavailable here (${reason}) — run in CI or locally for console/render checks`);
+    } catch (fetchErr) {
+      record('frontend page load', false, `${reason}; fetch fallback also failed: ${fetchErr.message}`);
+    }
+  };
+
   let browser;
   try {
     const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
@@ -80,6 +98,11 @@ async function checkFrontend() {
       executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium',
       ...(proxy ? { proxy: { server: proxy } } : {}),
     });
+  } catch (err) {
+    return fetchFallback(`browser launch failed: ${err.message.split('\n')[0]}`);
+  }
+
+  try {
     const page = await browser.newPage();
     const consoleErrors = [];
     page.on('console', (msg) => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
@@ -94,17 +117,11 @@ async function checkFrontend() {
     record('frontend console clean', consoleErrors.length === 0,
       consoleErrors.length ? consoleErrors.slice(0, 3).join(' | ').slice(0, 300) : '');
   } catch (err) {
-    // Some sandboxed environments block browser TLS but allow plain fetch —
-    // downgrade to an HTTP-only check rather than reporting a false failure.
     const reason = err.message.split('\n')[0];
-    try {
-      const res = await fetch(FRONTEND_URL, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-      const html = await res.text();
-      const looksLikeApp = res.ok && html.includes('<div id="root">');
-      record('frontend HTTP (no-browser fallback)', looksLikeApp,
-        `HTTP ${res.status}; browser check unavailable here (${reason}) — run in CI or locally for console/render checks`);
-    } catch (fetchErr) {
-      record('frontend page load', false, `${reason}; fetch fallback also failed: ${fetchErr.message}`);
+    if (envBlocked(reason)) {
+      await fetchFallback(`browser blocked by environment: ${reason}`);
+    } else {
+      record('frontend page load', false, reason); // real failure — no fallback
     }
   } finally {
     await browser?.close();

@@ -23,6 +23,7 @@ const SUBSTANTIAL_BUFFER_THRESHOLD = 50;
 const MAX_CONTEXT_INJECTION_LENGTH = 10000;
 const { PhaseTransitionHandler } = require('./phase-transition');
 const { SESSION_CONTROL_DECLARATIONS, SESSION_CONTROL_TOOL_NAMES } = require('./session-tools');
+const { HotMemory } = require('./hot-memory');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
 const { LinkAuth } = require('./link-auth');
@@ -441,6 +442,25 @@ wss.on('connection', (clientWs, req) => {
     }
   };
 
+  // hot.md memory (#169): remember key takeaways for the next session.
+  // Called from BOTH the 'stop' case and the disconnect close handler —
+  // guarded so whichever fires first wins.
+  let sessionMemoryWritten = false;
+  const writeSessionMemory = () => {
+    if (sessionMemoryWritten) return;
+    sessionMemoryWritten = true;
+    try {
+      const bullets = context.getSessionBullets(5);
+      new HotMemory().appendSession({
+        endedAt: new Date().toISOString(),
+        phaseReached: session.currentPhase,
+        bullets,
+      });
+    } catch (err) {
+      console.warn('[HOT] Failed to write hot.md:', err.message);
+    }
+  };
+
   const startGemini = async () => {
     // Load knowledge context for current phase, including external context and selected frameworks
     const knowledgeContext = await knowledgeLoader.load({
@@ -650,6 +670,7 @@ wss.on('connection', (clientWs, req) => {
                 fullContent: false,
                 githubContext: sessionGithubContext || undefined,
                 driveContext: sessionDocContext || undefined,
+                includeHotMemory: false, // previous-session bullets matter at session start, not every phase
               });
               // Inject carry-forward into knowledge context
               if (prevCarryForward) {
@@ -950,18 +971,7 @@ wss.on('connection', (clientWs, req) => {
         if (flushInterval) clearInterval(flushInterval);
         await flushToGitHub(); // Final flush
 
-        // hot.md memory: remember key takeaways for the next session (#169)
-        try {
-          const { HotMemory } = require('./hot-memory');
-          const bullets = context.keyPoints.slice(-5).map(kp => kp.text);
-          new HotMemory().appendSession({
-            endedAt: new Date().toISOString(),
-            phaseReached: session.currentPhase,
-            bullets,
-          });
-        } catch (err) {
-          console.warn('[HOT] Failed to write hot.md:', err.message);
-        }
+        writeSessionMemory();
 
         if (githubPersistence) {
           // Close the current phase issue
@@ -1003,6 +1013,10 @@ wss.on('connection', (clientWs, req) => {
     console.log('[WS] Client disconnected');
     if (flushInterval) clearInterval(flushInterval);
     clearTimeout(userFlushTimer);
+
+    // Sessions usually end by disconnect (closed tab, locked phone), not the
+    // stop button — hot.md memory must be written here too (#169)
+    writeSessionMemory();
     if (sttPipeline) {
       sttPipeline.stopStream().catch(() => {});
     }

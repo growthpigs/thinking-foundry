@@ -85,6 +85,62 @@ describe('PhaseTransitionHandler.toolSetMode (set_intent_mode)', () => {
     expect(onModeDetected).toHaveBeenCalledWith('explore', 5);
     expect(handler.toolSetMode('yolo').ok).toBe(false);
   });
+
+  it('rejects threshold downgrades — blocked transitions cannot be laundered via explore mode', () => {
+    const handler = new PhaseTransitionHandler({});
+    handler.toolSetMode('commit');
+    const result = handler.toolSetMode('explore');
+    expect(result.ok).toBe(false);
+    expect(handler.minConfidence).toBe(8);
+    // raising is allowed
+    const handler2 = new PhaseTransitionHandler({});
+    handler2.toolSetMode('explore');
+    expect(handler2.toolSetMode('commit').ok).toBe(true);
+    expect(handler2.minConfidence).toBe(8);
+  });
+});
+
+describe('regex fallback respects the confidence gate (side-door regression)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('"we\'re not ready for phase 3" does NOT fire a transition', () => {
+    const onTransition = vi.fn();
+    const handler = new PhaseTransitionHandler({ onTransition });
+    expect(handler.processAiUtterance("We're not ready for phase 3 until we test pricing.", 2)).toBeNull();
+    expect(onTransition).not.toHaveBeenCalled();
+  });
+
+  it('narrated forward transitions are suppressed right after a gate-blocked advance_phase', () => {
+    const onTransition = vi.fn();
+    const handler = new PhaseTransitionHandler({ onTransition });
+    handler.toolSetMode('commit');
+    expect(handler.toolTransition(2, { to_phase: 3, confidence: 5, carry_forward: 'x' }).blocked).toBe(true);
+
+    // seconds later the AI narrates a transition — must stay suppressed
+    expect(handler.processAiUtterance("Okay, let's move to phase 3.", 2)).toBeNull();
+    expect(onTransition).not.toHaveBeenCalled();
+
+    // after the suppression window it works again
+    vi.advanceTimersByTime(61_000);
+    expect(handler.processAiUtterance("Let's move to phase 3.", 2)).toMatchObject({ toPhase: 3 });
+  });
+
+  it('regex path blocks forward advance when stated confidence is below the gate', () => {
+    const onTransition = vi.fn();
+    const handler = new PhaseTransitionHandler({ onTransition });
+    handler.toolSetMode('commit'); // threshold 8
+    handler.processAiUtterance('My confidence: 6/10 right now.', 1);
+    expect(handler.processAiUtterance("Moving to phase 2.", 1)).toBeNull();
+    expect(onTransition).not.toHaveBeenCalled();
+  });
+
+  it('going backwards is never gated', () => {
+    const handler = new PhaseTransitionHandler({ onTransition: vi.fn() });
+    handler.toolSetMode('commit');
+    handler.toolTransition(4, { to_phase: 5, confidence: 3, carry_forward: 'x' }); // blocked, arms suppression
+    expect(handler.toolTransition(4, { to_phase: 1, confidence: 2, carry_forward: 'revisit' }).ok).toBe(true);
+  });
 });
 
 describe('GeminiLiveManager control-tool routing', () => {
@@ -113,6 +169,24 @@ describe('GeminiLiveManager control-tool routing', () => {
     expect(onControlCall).toHaveBeenCalledWith({ name: 'advance_phase', args: { to_phase: 2, confidence: 9, carry_forward: 'done' } });
     const resp = ws.sent[0].toolResponse.functionResponses[0];
     expect(resp).toMatchObject({ id: 'c1', name: 'advance_phase', response: { result: 'Transition to phase 2 accepted.' } });
+    mgr.close();
+  });
+
+  it('a throwing control handler still gets a functionResponse (model must never stall)', async () => {
+    const onControlCall = vi.fn(() => { throw new Error('phaseHandler exploded'); });
+    const mgr = new GeminiLiveManager({ apiKey: 'k', onControlCall, controlToolNames: SESSION_CONTROL_TOOL_NAMES });
+    const ws = new FakeWs();
+    mgr.activeWs = ws;
+    mgr.wireHandlers(ws, false);
+
+    ws.emit('message', JSON.stringify({
+      toolCall: { functionCalls: [
+        { id: 'c1', name: 'advance_phase', args: {} },
+        { id: 'c2', name: 'set_intent_mode', args: { mode: 'commit' } },
+      ] }
+    }));
+    await vi.waitFor(() => expect(ws.sent.length).toBe(2)); // BOTH calls answered despite the throw
+    expect(ws.sent[0].toolResponse.functionResponses[0].response.result).toMatch(/error/i);
     mgr.close();
   });
 
