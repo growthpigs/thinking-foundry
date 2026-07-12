@@ -11,8 +11,6 @@
  * Confidence is extracted passively if the AI states it voluntarily.
  */
 
-const { PHASE_NAMES } = require('./supabase-buffer');
-
 /**
  * Patterns the AI uses to signal phase transitions.
  * Matched against AI transcript text (case-insensitive).

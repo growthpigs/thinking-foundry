@@ -58,7 +58,7 @@ class GeminiLiveManager {
    */
   getSystemPrompt(phase, contextSummary) {
     const promptFile = path.join(__dirname, '..', 'prompts', `phase-${phase}-${this.getPhaseSlug(phase)}.txt`);
-    let prompt = '';
+    let prompt;
     try {
       prompt = fs.readFileSync(promptFile, 'utf-8');
     } catch {

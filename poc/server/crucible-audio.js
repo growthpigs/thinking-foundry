@@ -166,7 +166,7 @@ class CrucibleAudio {
       return await res.json();
     } catch (err) {
       clearTimeout(timer);
-      if (err.name === 'AbortError') throw new Error('Crucible audio generation timed out (10 min)');
+      if (err.name === 'AbortError') throw new Error('Crucible audio generation timed out (10 min)', { cause: err });
       throw err;
     }
   }

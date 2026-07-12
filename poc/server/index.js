@@ -549,7 +549,7 @@ wss.on('connection', (clientWs, req) => {
 
     try {
     switch (msg.type) {
-      case 'session-setup':
+      case 'session-setup': {
         // Guard against double-setup (client reconnect, duplicate messages)
         if (gemini) {
           console.warn('[WS] Ignoring duplicate session-setup (already initialized)');
@@ -790,6 +790,7 @@ wss.on('connection', (clientWs, req) => {
         // Start Gemini with all context loaded
         await startGemini();
         break;
+      }
 
       case 'start':
         // Legacy start message (backwards compat)

@@ -146,8 +146,6 @@ class LinkAuth {
    * @param {string} staticDir - Path to the public directory
    */
   registerRoutes(app, staticDir) {
-    const path = require('path');
-
     // GET /s/:token — validate token and serve the session UI
     app.get('/s/:token', (req, res) => {
       const { token } = req.params;
