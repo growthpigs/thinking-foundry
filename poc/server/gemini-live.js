@@ -51,6 +51,18 @@ class GeminiLiveManager {
     this.reconnectionCount = 0;
     this.isSwapping = false;
     this.closed = false;
+
+    // Native session resumption (Live API sessionResumption + contextWindowCompression).
+    // The server sends sessionResumptionUpdate handles; passing the latest handle in a
+    // new connection's setup resumes the conversation server-side, so the swap no longer
+    // depends on our condensed-context injection alone. GoAway messages let us swap
+    // BEFORE the server kills the connection instead of guessing at 14:00.
+    // Disable with GEMINI_NATIVE_RESUMPTION=0 if the API misbehaves.
+    this.nativeResumption = opts.nativeResumption !== undefined
+      ? opts.nativeResumption
+      : process.env.GEMINI_NATIVE_RESUMPTION !== '0';
+    this.resumptionHandle = null;
+    this.standbySetupComplete = false;
   }
 
   /**
@@ -130,6 +142,18 @@ class GeminiLiveManager {
       }
     };
 
+    if (this.nativeResumption) {
+      // Empty object opts in; a stored handle resumes the previous session server-side
+      setupMessage.setup.sessionResumption = this.resumptionHandle
+        ? { handle: this.resumptionHandle }
+        : {};
+      // Sliding-window compression lifts the context-size cap on session duration
+      setupMessage.setup.contextWindowCompression = { slidingWindow: {} };
+      if (this.resumptionHandle) {
+        console.log('[GEMINI] Resuming session with native resumption handle');
+      }
+    }
+
     // Add framework tool declarations if available (Article 12: JIT)
     if (this.toolDeclarations.length > 0) {
       setupMessage.setup.tools = [{
@@ -157,6 +181,7 @@ class GeminiLiveManager {
           console.log(`[GEMINI][${label}] Setup complete`);
           if (isStandby) {
             // Standby is ready for swap
+            this.standbySetupComplete = true;
             console.log(`[GEMINI] Standby connection ready for swap`);
           }
           // NOTE: Do NOT send clientContent text turns in AUDIO-only mode.
@@ -198,6 +223,24 @@ class GeminiLiveManager {
               this.onTurnComplete();
             }
           }
+        }
+
+        // Native resumption: store the freshest handle for the next (re)connect
+        if (msg.sessionResumptionUpdate) {
+          const { newHandle, resumable } = msg.sessionResumptionUpdate;
+          if (resumable && newHandle) {
+            this.resumptionHandle = newHandle;
+          }
+          return;
+        }
+
+        // GoAway: server is about to terminate this connection — swap NOW
+        // instead of waiting for the scheduled 14:00 timer.
+        if (msg.goAway && !isStandby) {
+          const timeLeftMs = this._parseDuration(msg.goAway.timeLeft);
+          console.log(`[GEMINI][${label}] GoAway received (timeLeft: ${msg.goAway.timeLeft || 'unknown'}) — early swap`);
+          this.handleGoAway(timeLeftMs);
+          return;
         }
 
         // Tool calls — framework JIT fetching (Article 12)
@@ -294,6 +337,7 @@ class GeminiLiveManager {
       if (this.closed) return;
       console.log(`[RECONNECT] === PHASE 1/3: Creating standby connection (${this.reconnectionCount + 1}) ===`);
       this.onReconnecting();
+      this.standbySetupComplete = false;
       this.standbyWs = this.createConnection();
       this.wireHandlers(this.standbyWs, true);
 
@@ -342,6 +386,58 @@ class GeminiLiveManager {
     this.reconnectTimers.push(t3);
 
     console.log(`[RECONNECT] Scheduled: prepare in ${(prepareDelay / 1000).toFixed(0)}s, setup in ${(setupDelay / 1000).toFixed(0)}s, swap in ${(swapDelay / 1000).toFixed(0)}s`);
+  }
+
+  /**
+   * Parse a protobuf Duration ("10s" string or {seconds, nanos} object) to ms.
+   * @returns {number|null}
+   */
+  _parseDuration(d) {
+    if (!d) return null;
+    if (typeof d === 'string') {
+      const m = d.match(/^([\d.]+)s$/);
+      return m ? Math.round(parseFloat(m[1]) * 1000) : null;
+    }
+    if (typeof d === 'object' && d.seconds !== undefined) {
+      return Number(d.seconds) * 1000 + Math.round((d.nanos || 0) / 1e6);
+    }
+    return null;
+  }
+
+  /**
+   * GoAway received: the server will drop the active connection soon.
+   * Spin up a standby immediately and swap as soon as its setup completes
+   * (or just before the server's deadline, whichever comes first).
+   */
+  handleGoAway(timeLeftMs) {
+    if (this.closed || this.isSwapping) return;
+    this.clearReconnectTimers();
+    this.onReconnecting();
+
+    this.standbySetupComplete = false;
+    this.standbyWs = this.createConnection();
+    this.wireHandlers(this.standbyWs, true);
+    this.standbyWs.on('open', () => {
+      this.sendSetup(this.standbyWs, this.phase, this.contextSummary);
+    });
+
+    let swapped = false;
+    const finish = () => {
+      if (swapped || this.closed) return;
+      swapped = true;
+      this.performSwap();
+    };
+
+    // Swap the moment standby setup completes…
+    const poll = setInterval(() => {
+      if (this.standbySetupComplete) finish();
+    }, 100);
+    this.reconnectTimers.push(poll);
+
+    // …or just before the server deadline (bounded 1-10s)
+    const deadline = Math.max(1000, Math.min(timeLeftMs || 5000, 10000) - 500);
+    const hardStop = setTimeout(finish, deadline);
+    this.reconnectTimers.push(hardStop);
   }
 
   /**
