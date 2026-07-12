@@ -33,6 +33,12 @@ class GeminiLiveManager {
     this.frameworkFetcher = opts.frameworkFetcher || null;
     this.toolDeclarations = opts.toolDeclarations || [];
 
+    // Session control tools (advance_phase, set_intent_mode): routed to this
+    // handler instead of the framework fetcher. Return value becomes the tool
+    // response the model hears.
+    this.onControlCall = opts.onControlCall || null;
+    this.controlToolNames = opts.controlToolNames || new Set();
+
     // Callbacks
     this.onTranscript = opts.onTranscript || (() => {});
     this.onAudio = opts.onAudio || (() => {});
@@ -243,11 +249,37 @@ class GeminiLiveManager {
           return;
         }
 
-        // Tool calls — framework JIT fetching (Article 12)
-        if (msg.toolCall && this.frameworkFetcher) {
+        // Tool calls — session control first, then framework JIT (Article 12)
+        if (msg.toolCall) {
           const calls = msg.toolCall.functionCalls || [];
           for (const fc of calls) {
             console.log(`[GEMINI][${label}] Tool call: ${fc.name}`);
+
+            // Session control tools (advance_phase, set_intent_mode)
+            if (this.onControlCall && this.controlToolNames.has(fc.name)) {
+              Promise.resolve(this.onControlCall({ name: fc.name, args: fc.args }))
+                .then((result) => {
+                  const responseMsg = {
+                    toolResponse: {
+                      functionResponses: [{
+                        id: fc.id,
+                        name: fc.name,
+                        response: { result: result?.message || 'ok' },
+                      }]
+                    }
+                  };
+                  if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(responseMsg));
+                    console.log(`[GEMINI] Control tool response for ${fc.name}: ${result?.message}`);
+                  }
+                })
+                .catch(err => {
+                  console.error(`[GEMINI] Control tool error (${fc.name}):`, err.message);
+                });
+              continue;
+            }
+
+            if (!this.frameworkFetcher) continue;
             this.frameworkFetcher.handleFunctionCall({ name: fc.name, args: fc.args })
               .then(result => {
                 // Send function response back to Gemini

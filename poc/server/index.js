@@ -22,6 +22,7 @@ const MIN_USER_BULLET_COMBINE = 30;
 const SUBSTANTIAL_BUFFER_THRESHOLD = 50;
 const MAX_CONTEXT_INJECTION_LENGTH = 10000;
 const { PhaseTransitionHandler } = require('./phase-transition');
+const { SESSION_CONTROL_DECLARATIONS, SESSION_CONTROL_TOOL_NAMES } = require('./session-tools');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
 const { LinkAuth } = require('./link-auth');
@@ -456,7 +457,26 @@ wss.on('connection', (clientWs, req) => {
       contextSummary: context.getCondensedContext(),
       knowledgeContext,
       frameworkFetcher: frameworkFetcher || null,
-      toolDeclarations: frameworkFetcher ? FrameworkFetcher.getGeminiFunctionDeclarations() : [],
+      toolDeclarations: [
+        ...(frameworkFetcher ? FrameworkFetcher.getGeminiFunctionDeclarations() : []),
+        ...SESSION_CONTROL_DECLARATIONS,
+      ],
+
+      // Session control tools: the AI signals transitions/mode via function
+      // calls (primary path); regex transcript detection remains as fallback
+      controlToolNames: SESSION_CONTROL_TOOL_NAMES,
+      onControlCall: ({ name, args }) => {
+        if (!phaseHandler) return { message: 'Session not fully initialized yet. Continue the conversation.' };
+        if (name === 'advance_phase') {
+          const result = phaseHandler.toolTransition(session.currentPhase, args || {});
+          console.log(`[PHASE] advance_phase(${args?.to_phase}, conf=${args?.confidence}) → ${result.ok ? 'accepted' : result.message}`);
+          return result;
+        }
+        if (name === 'set_intent_mode') {
+          return phaseHandler.toolSetMode(args?.mode);
+        }
+        return { message: `Unknown control tool: ${name}` };
+      },
 
       onTurnComplete: () => {
         // AI finished speaking — flush accumulated text as condensed bullet
@@ -583,8 +603,10 @@ wss.on('connection', (clientWs, req) => {
             // Orchestrate the full transition
             session.setPhase(toPhase);
 
-            // Build carry-forward text from AI's detected context
-            const carryForwardText = meta.detectedFrom
+            // Carry-forward: prefer the AI's own written summary (advance_phase
+            // tool call), fall back to transcript-derived context
+            const carryForwardText = meta.carryForward
+              || meta.detectedFrom
               || context.getCondensedContext()
               || 'No carry-forward generated for this phase.';
 

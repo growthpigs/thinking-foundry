@@ -225,6 +225,90 @@ class PhaseTransitionHandler {
   }
 
   /**
+   * Structured transition via the advance_phase tool call (primary path).
+   * The regex detection above remains as a fallback for narrated transitions.
+   *
+   * Returns a result whose `message` is sent back to the model as the tool
+   * response — so a blocked gate is FEEDBACK the AI hears, not a silent drop.
+   *
+   * @param {number} currentPhase
+   * @param {object} args - { to_phase, confidence, carry_forward, reason }
+   * @returns {{ ok: boolean, blocked?: boolean, message: string, toPhase?: number }}
+   */
+  toolTransition(currentPhase, args = {}) {
+    const toPhase = Number(args.to_phase);
+    const confidence = args.confidence !== undefined ? Number(args.confidence) : null;
+
+    if (!Number.isInteger(toPhase) || toPhase < 0 || toPhase > 7) {
+      return { ok: false, message: `Invalid to_phase: ${args.to_phase}. Must be an integer 0-7.` };
+    }
+    if (toPhase === currentPhase) {
+      return { ok: false, message: `Already in phase ${currentPhase}. No transition needed.` };
+    }
+    if (confidence === null || Number.isNaN(confidence) || confidence < 1 || confidence > 10) {
+      return { ok: false, message: 'confidence (1-10) is required. State your honest confidence that this phase achieved its goal.' };
+    }
+
+    // The Squeeze — confidence gate, enforced deterministically.
+    // Only gate FORWARD movement; going back to revisit a phase is always allowed.
+    if (toPhase > currentPhase && confidence < this.minConfidence) {
+      return {
+        ok: false,
+        blocked: true,
+        message: `Transition blocked: confidence ${confidence} is below the required ${this.minConfidence}` +
+          `${this.intentMode ? ` for ${this.intentMode} mode` : ''}. ` +
+          'Keep working this phase — what would raise your confidence? Retry advance_phase when it genuinely improves.',
+      };
+    }
+
+    const now = Date.now();
+    if (now - this.lastTransitionAt < this.debounceMs) {
+      return { ok: false, blocked: true, message: 'A transition just happened. Continue in the current phase.' };
+    }
+
+    this.lastTransitionAt = now;
+    const meta = {
+      confidence,
+      carryForward: typeof args.carry_forward === 'string' ? args.carry_forward.trim() : null,
+      reason: typeof args.reason === 'string' ? args.reason.trim() : null,
+      squeezeNotes: this.pendingSqueeze?.text || null,
+      source: 'tool',
+    };
+    this.recentAiText = [];
+    this.pendingSqueeze = null;
+
+    if (this.onTransition) {
+      Promise.resolve(this.onTransition(currentPhase, toPhase, meta))
+        .catch(err => console.error('[PHASE] Tool transition callback error:', err.message));
+    }
+
+    return { ok: true, toPhase, message: `Transition to phase ${toPhase} accepted. Continue the conversation in the new phase.` };
+  }
+
+  /**
+   * Structured intent-mode declaration via the set_intent_mode tool call
+   * (replaces the [MODE:xxx] transcript tag).
+   *
+   * @param {string} mode - 'explore' | 'research' | 'commit'
+   * @returns {{ ok: boolean, message: string }}
+   */
+  toolSetMode(mode) {
+    const normalized = String(mode || '').toLowerCase().trim();
+    const thresholds = { explore: 5, research: 6, commit: 8 };
+    if (!(normalized in thresholds)) {
+      return { ok: false, message: `Invalid mode: ${mode}. Must be explore, research, or commit.` };
+    }
+    this.intentMode = normalized;
+    this.minConfidence = thresholds[normalized];
+    console.log(`[PHASE] Intent mode set via tool: ${normalized} → minConfidence=${this.minConfidence}`);
+    if (this.onModeDetected) {
+      Promise.resolve(this.onModeDetected(normalized, this.minConfidence))
+        .catch(err => console.error('[PHASE] Mode callback error:', err.message));
+    }
+    return { ok: true, message: `Intent mode set to ${normalized} (confidence threshold: ${this.minConfidence}).` };
+  }
+
+  /**
    * Manually trigger a phase transition (from user clicking "Next Phase" button).
    * Bypasses AI detection but still respects the confidence gate if squeeze data exists.
    *
