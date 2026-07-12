@@ -33,12 +33,14 @@ jobs:
 
   smoke-production:
     runs-on: ubuntu-latest
-    continue-on-error: true # informative — prod being down must not block merges
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci
-      - name: Smoke test against production
-        run: SKIP_FRONTEND=1 npm run smoke
+      - name: Smoke test against production (informative — never blocks)
+        run: |
+          if ! SKIP_FRONTEND=1 npm run smoke; then
+            echo "::warning::Production smoke test failed — backend may be down (see issue #179)"
+          fi

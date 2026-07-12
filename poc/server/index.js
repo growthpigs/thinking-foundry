@@ -928,6 +928,19 @@ wss.on('connection', (clientWs, req) => {
         if (flushInterval) clearInterval(flushInterval);
         await flushToGitHub(); // Final flush
 
+        // hot.md memory: remember key takeaways for the next session (#169)
+        try {
+          const { HotMemory } = require('./hot-memory');
+          const bullets = context.keyPoints.slice(-5).map(kp => kp.text);
+          new HotMemory().appendSession({
+            endedAt: new Date().toISOString(),
+            phaseReached: session.currentPhase,
+            bullets,
+          });
+        } catch (err) {
+          console.warn('[HOT] Failed to write hot.md:', err.message);
+        }
+
         if (githubPersistence) {
           // Close the current phase issue
           const currentIssue = githubPersistence.phaseIssues.get(session.currentPhase);
