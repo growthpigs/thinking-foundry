@@ -197,6 +197,43 @@ describe('GeminiLiveManager — native session resumption', () => {
     expect(mgr.resumptionHandle).toBe('h-same');
   });
 
+  it('forceReconnect can drop the handle on a SAME-phase reconnect (live context injection)', async () => {
+    // add-context reconnects at the same phase but with a changed system prompt.
+    // A resumed server-side session may ignore the new systemInstruction, so the
+    // caller must be able to force a fresh session — continuity via condensed context.
+    mgr.resumptionHandle = 'h-stale';
+    mgr.phase = 2;
+    const fresh = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => fresh.emit('open'), 0); return fresh; };
+
+    const p = mgr.forceReconnect(2, 'ctx', { dropResumptionHandle: true });
+    await vi.advanceTimersByTimeAsync(10);
+    await p;
+
+    expect(mgr.resumptionHandle).toBeNull();
+    // The setup actually sent must NOT carry the stale handle either
+    expect(lastSetup(fresh).sessionResumption).toEqual({});
+  });
+
+  it('one-shot context rides exactly one reconnect and never leaks into later setups', async () => {
+    mgr.phase = 2;
+    const fresh = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => fresh.emit('open'), 0); return fresh; };
+
+    const p = mgr.forceReconnect(2, 'ctx', { oneShotContext: 'ACKNOWLEDGE THE SHARED DOC NOW' });
+    await vi.advanceTimersByTimeAsync(10);
+    await p;
+
+    // Present in the setup for THIS reconnect…
+    expect(lastSetup(fresh).systemInstruction.parts[0].text).toContain('ACKNOWLEDGE THE SHARED DOC NOW');
+
+    // …absent from every later setup (e.g. the scheduled 13:30 standby),
+    // so the AI isn't re-told to acknowledge a doc shared 14 minutes ago.
+    const later = new FakeWs();
+    mgr.sendSetup(later, 2, 'ctx');
+    expect(lastSetup(later).systemInstruction.parts[0].text).not.toContain('ACKNOWLEDGE THE SHARED DOC NOW');
+  });
+
   it('close() during a GoAway swap does not throw or fire callbacks', () => {
     const active = new FakeWs();
     mgr.activeWs = active;

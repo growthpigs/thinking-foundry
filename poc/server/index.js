@@ -937,12 +937,21 @@ wss.on('connection', (clientWs, req) => {
               driveContext: sessionDocContext || undefined,
               includeHotMemory: false,
             });
-            // Front-load the just-shared document with an explicit read-it-now directive
-            phaseKnowledge = `--- THE USER JUST SHARED THIS WITH YOU, MID-SESSION ---\n${clipped}\n--- END ---\n` +
-              `Open your very next response by briefly acknowledging what they shared (one sentence), then weave it into the conversation.\n\n` +
-              phaseKnowledge;
+            // Durable prompt: the doc itself is already in phaseKnowledge via
+            // driveContext. The read-it-NOW directive is one-shot — it rides
+            // only this reconnect, so a scheduled swap 14 minutes later doesn't
+            // re-instruct the AI to acknowledge an old share.
             gemini.knowledgeContext = phaseKnowledge;
-            await gemini.forceReconnect(session.currentPhase, context.getCondensedContext());
+            const oneShot = `--- THE USER JUST SHARED THIS WITH YOU, MID-SESSION ---\n${clipped}\n--- END ---\n` +
+              `Open your very next response by briefly acknowledging what they shared (one sentence), then weave it into the conversation.`;
+            // Same-phase reconnect would normally KEEP the resumption handle,
+            // and a resumed server-side session may ignore the changed
+            // systemInstruction (the whole point of this injection). Force a
+            // fresh session — continuity comes from the condensed context.
+            await gemini.forceReconnect(session.currentPhase, context.getCondensedContext(), {
+              dropResumptionHandle: true,
+              oneShotContext: oneShot,
+            });
             console.log(`[WS] Injected mid-session context live: ${msg.documents.length} doc(s), ${clipped.length} chars`);
           } catch (err) {
             console.error('[WS] Live context injection failed:', err.message);
