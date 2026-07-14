@@ -284,6 +284,16 @@ wss.on('connection', (clientWs, req) => {
 
     sendToClient('outline_item', { speaker: 'ai', text: cleaned, phase: session.currentPhase });
 
+    // Phase-transition detection on the COMPLETE turn (not per streaming
+    // fragment) so multi-word signals like "let's move to Phase 1" are matched
+    // whole. onTransition handles persistence + reconnection.
+    if (phaseHandler) {
+      const result = phaseHandler.processAiUtterance(cleaned, session.currentPhase);
+      if (result?.blocked) {
+        sendToClient('phase_blocked', { reason: result.reason, confidence: result.confidence });
+      }
+    }
+
     // Persist the full text
     if (supabaseBuffer) {
       supabaseBuffer.writeUtterance(session.currentPhase, 'ai', cleaned, true)
@@ -505,14 +515,10 @@ wss.on('connection', (clientWs, req) => {
           }
         }
 
-        // Check AI responses for phase transition signals (Article 10)
-        if (role === 'model' && phaseHandler) {
-          const result = phaseHandler.processAiUtterance(text, session.currentPhase);
-          if (result?.blocked) {
-            sendToClient('phase_blocked', { reason: result.reason, confidence: result.confidence });
-          }
-          // If transition detected, onTransition callback handles everything
-        }
+        // NOTE: phase-transition detection runs on the COMPLETE turn in
+        // flushAiTurnBuffer — not here per-fragment. Streaming fragments split
+        // phrases like "let's move to Phase 1" across the detector's small
+        // window and get missed; the full turn is always matched whole.
       },
 
       onAudio: (audioBase64) => {
