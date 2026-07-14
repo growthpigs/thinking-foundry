@@ -198,7 +198,15 @@ app.get('/health', async (req, res) => {
   const critical = checks.gemini && checks.knowledgeBase?.ok && checks.semanticSearch?.ok;
   const status = critical ? 'healthy' : 'degraded';
 
-  res.json({ status, checks, timestamp: new Date().toISOString() });
+  res.json({
+    status,
+    checks,
+    // Deploy identity: without a SHA + uptime, every "is the new code live?"
+    // question is inference. Railway injects RAILWAY_GIT_COMMIT_SHA at build.
+    version: process.env.RAILWAY_GIT_COMMIT_SHA || 'dev',
+    uptimeSec: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // ─── REST Endpoints ───
