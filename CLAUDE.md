@@ -265,6 +265,7 @@ thinking-foundry/
 - **responseModalities MUST be ['AUDIO'] only** — ['AUDIO', 'TEXT'] crashes with error 1011
 - Transcript comes from separate pipeline (future: Google STT), NOT from Gemini response
 - 15-minute connection limit → 3-phase reconnection (prepare at 13:00, setup at 13:30, swap at 14:00)
+- Native session resumption layered on top (2026-07-12): setup opts into `sessionResumption` + `contextWindowCompression`, handles from `sessionResumptionUpdate` are replayed on reconnect, `GoAway` triggers an early swap. Kill switch: `GEMINI_NATIVE_RESUMPTION=0`
 - Model: `models/gemini-3.1-flash-live-preview`
 - Voice: Aoede
 

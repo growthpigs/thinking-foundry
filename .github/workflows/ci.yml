@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+      - name: Install root deps
+        run: npm ci
+      - name: Install poc deps
+        run: npm install --no-audit --no-fund
+        working-directory: poc
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Server boots + smoke test (local)
+        run: |
+          PORT=3100 node poc/server/index.js &
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3100/health > /dev/null && break
+            sleep 0.5
+          done
+          BACKEND_URL=http://localhost:3100 SKIP_FRONTEND=1 node tests/smoke/smoke.mjs
+
+  smoke-production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Smoke test against production (informative — never blocks)
+        run: |
+          if ! SKIP_FRONTEND=1 npm run smoke; then
+            echo "::warning::Production smoke test failed — backend may be down (see issue #179)"
+          fi

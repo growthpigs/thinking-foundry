@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { HotMemory } = require('../server/hot-memory');
 
 const KNOWLEDGE_DIR = path.join(__dirname, '..', 'knowledge');
 const INDEX_PATH = path.join(KNOWLEDGE_DIR, 'index.json');
@@ -20,6 +21,7 @@ class ContextLoader {
   constructor() {
     this.index = this._loadIndex();
     this.cache = new Map();
+    this.hotMemory = new HotMemory();
   }
 
   /**
@@ -123,10 +125,19 @@ class ContextLoader {
    * @returns {Promise<string>} Formatted context string
    */
   async load(config = {}) {
-    const { phase = 0, frameworks, fullContent = false, driveContext, githubContext } = config;
+    const { phase = 0, frameworks, fullContent = false, driveContext, githubContext, includeHotMemory = true } = config;
     const phaseName = this.index.phaseNames[phase] || 'user-stories';
 
     const sections = [];
+
+    // --- Hot memory: recent-session bullets, read FIRST (cheap, no vector search — #169) ---
+    if (includeHotMemory) {
+      const hot = this.hotMemory.getPromptContext();
+      if (hot) {
+        sections.push(hot);
+        sections.push('');
+      }
+    }
 
     // --- Knowledge Frameworks ---
     let entries;

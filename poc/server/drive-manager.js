@@ -46,7 +46,7 @@ class DriveManager {
   async init() {
     if (this.initialized) return;
 
-    let keyFile = null;
+    let keyFile;
 
     // Option 1: Base64-encoded service account JSON (Railway)
     if (process.env.GOOGLE_SERVICE_ACCOUNT_B64) {
@@ -55,7 +55,7 @@ class DriveManager {
         keyFile = JSON.parse(decoded);
         console.log('[DRIVE] Using service account from GOOGLE_SERVICE_ACCOUNT_B64');
       } catch (err) {
-        throw new Error('Failed to decode GOOGLE_SERVICE_ACCOUNT_B64: ' + err.message);
+        throw new Error('Failed to decode GOOGLE_SERVICE_ACCOUNT_B64: ' + err.message, { cause: err });
       }
     }
     // Option 2: File path (local dev)

@@ -22,6 +22,8 @@ const MIN_USER_BULLET_COMBINE = 30;
 const SUBSTANTIAL_BUFFER_THRESHOLD = 50;
 const MAX_CONTEXT_INJECTION_LENGTH = 10000;
 const { PhaseTransitionHandler } = require('./phase-transition');
+const { SESSION_CONTROL_DECLARATIONS, SESSION_CONTROL_TOOL_NAMES } = require('./session-tools');
+const { HotMemory } = require('./hot-memory');
 const { FrameworkFetcher } = require('./framework-fetcher');
 const { SttPipeline } = require('./stt-pipeline');
 const { LinkAuth } = require('./link-auth');
@@ -440,6 +442,25 @@ wss.on('connection', (clientWs, req) => {
     }
   };
 
+  // hot.md memory (#169): remember key takeaways for the next session.
+  // Called from BOTH the 'stop' case and the disconnect close handler —
+  // guarded so whichever fires first wins.
+  let sessionMemoryWritten = false;
+  const writeSessionMemory = () => {
+    if (sessionMemoryWritten) return;
+    sessionMemoryWritten = true;
+    try {
+      const bullets = context.getSessionBullets(5);
+      new HotMemory().appendSession({
+        endedAt: new Date().toISOString(),
+        phaseReached: session.currentPhase,
+        bullets,
+      });
+    } catch (err) {
+      console.warn('[HOT] Failed to write hot.md:', err.message);
+    }
+  };
+
   const startGemini = async () => {
     // Load knowledge context for current phase, including external context and selected frameworks
     const knowledgeContext = await knowledgeLoader.load({
@@ -456,7 +477,26 @@ wss.on('connection', (clientWs, req) => {
       contextSummary: context.getCondensedContext(),
       knowledgeContext,
       frameworkFetcher: frameworkFetcher || null,
-      toolDeclarations: frameworkFetcher ? FrameworkFetcher.getGeminiFunctionDeclarations() : [],
+      toolDeclarations: [
+        ...(frameworkFetcher ? FrameworkFetcher.getGeminiFunctionDeclarations() : []),
+        ...SESSION_CONTROL_DECLARATIONS,
+      ],
+
+      // Session control tools: the AI signals transitions/mode via function
+      // calls (primary path); regex transcript detection remains as fallback
+      controlToolNames: SESSION_CONTROL_TOOL_NAMES,
+      onControlCall: ({ name, args }) => {
+        if (!phaseHandler) return { message: 'Session not fully initialized yet. Continue the conversation.' };
+        if (name === 'advance_phase') {
+          const result = phaseHandler.toolTransition(session.currentPhase, args || {});
+          console.log(`[PHASE] advance_phase(${args?.to_phase}, conf=${args?.confidence}) → ${result.ok ? 'accepted' : result.message}`);
+          return result;
+        }
+        if (name === 'set_intent_mode') {
+          return phaseHandler.toolSetMode(args?.mode);
+        }
+        return { message: `Unknown control tool: ${name}` };
+      },
 
       onTurnComplete: () => {
         // AI finished speaking — flush accumulated text as condensed bullet
@@ -549,7 +589,7 @@ wss.on('connection', (clientWs, req) => {
 
     try {
     switch (msg.type) {
-      case 'session-setup':
+      case 'session-setup': {
         // Guard against double-setup (client reconnect, duplicate messages)
         if (gemini) {
           console.warn('[WS] Ignoring duplicate session-setup (already initialized)');
@@ -583,8 +623,10 @@ wss.on('connection', (clientWs, req) => {
             // Orchestrate the full transition
             session.setPhase(toPhase);
 
-            // Build carry-forward text from AI's detected context
-            const carryForwardText = meta.detectedFrom
+            // Carry-forward: prefer the AI's own written summary (advance_phase
+            // tool call), fall back to transcript-derived context
+            const carryForwardText = meta.carryForward
+              || meta.detectedFrom
               || context.getCondensedContext()
               || 'No carry-forward generated for this phase.';
 
@@ -628,6 +670,7 @@ wss.on('connection', (clientWs, req) => {
                 fullContent: false,
                 githubContext: sessionGithubContext || undefined,
                 driveContext: sessionDocContext || undefined,
+                includeHotMemory: false, // previous-session bullets matter at session start, not every phase
               });
               // Inject carry-forward into knowledge context
               if (prevCarryForward) {
@@ -790,6 +833,7 @@ wss.on('connection', (clientWs, req) => {
         // Start Gemini with all context loaded
         await startGemini();
         break;
+      }
 
       case 'start':
         // Legacy start message (backwards compat)
@@ -927,6 +971,8 @@ wss.on('connection', (clientWs, req) => {
         if (flushInterval) clearInterval(flushInterval);
         await flushToGitHub(); // Final flush
 
+        writeSessionMemory();
+
         if (githubPersistence) {
           // Close the current phase issue
           const currentIssue = githubPersistence.phaseIssues.get(session.currentPhase);
@@ -967,6 +1013,10 @@ wss.on('connection', (clientWs, req) => {
     console.log('[WS] Client disconnected');
     if (flushInterval) clearInterval(flushInterval);
     clearTimeout(userFlushTimer);
+
+    // Sessions usually end by disconnect (closed tab, locked phone), not the
+    // stop button — hot.md memory must be written here too (#169)
+    writeSessionMemory();
     if (sttPipeline) {
       sttPipeline.stopStream().catch(() => {});
     }

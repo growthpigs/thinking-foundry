@@ -19,7 +19,8 @@ function escapeHtml(text) {
 
 const PIN_LENGTH = 4;
 const MAGIC_LINK_EXPIRY_MS = 15 * 60 * 1000;     // 15 minutes
-const SESSION_NONCE_EXPIRY_MS = 60 * 1000;        // 60 seconds
+const SESSION_NONCE_EXPIRY_MS = 5 * 60 * 1000;    // 5 minutes — tolerates slow Railway cold-start responses (#176).
+                                                  // NOTE: nonces are in-memory; a process RESTART still voids them.
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;        // 5 minutes
 
 class EmailAuth {
@@ -135,7 +136,8 @@ class EmailAuth {
   }
 
   /**
-   * Create a session nonce — proves PIN was verified. Expires in 60 seconds.
+   * Create a session nonce — proves PIN was verified. One-time use,
+   * expires after SESSION_NONCE_EXPIRY_MS (5 minutes).
    */
   createSessionNonce(email) {
     const nonce = crypto.randomUUID();

@@ -85,6 +85,21 @@ class ContextManager {
   }
 
   /**
+   * Key takeaways for session-end memory (hot.md). Combines already-extracted
+   * key points with points still sitting in the rolling window — without this,
+   * sessions shorter than the window (10 utterances) would yield nothing,
+   * because extractKeyPoint only runs on eviction.
+   */
+  getSessionBullets(n = 5) {
+    const finalizer = new ContextManager();
+    finalizer.keyPoints = [...this.keyPoints];
+    for (const entry of this.recentExchanges) {
+      finalizer.extractKeyPoint(entry);
+    }
+    return finalizer.keyPoints.slice(-n).map((kp) => kp.text);
+  }
+
+  /**
    * Record the output of a completed phase
    */
   setPhaseOutput(phase, output) {

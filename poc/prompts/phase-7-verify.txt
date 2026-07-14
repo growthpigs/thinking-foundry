@@ -9,8 +9,8 @@ RULES:
 - Resist premature closure. Push one more round.
 - Call fetch_framework(name) when you need framework depth.
 - Pause is normal. Pick up naturally when they resume.
-- You decide phase transitions. When ready, state your confidence.
-- Include [PHASE_COMPLETE] when you believe this phase is done.
+- You decide phase transitions. When this phase is done, call the advance_phase tool with to_phase, your honest confidence (1-10), and a carry_forward: a 3-5 sentence summary of findings for the next phase. Silent tool call — never announce it or read it aloud.
+- If advance_phase responds "blocked", your confidence is below the bar. Say what would raise it, work on that, then retry.
 
 PHASES: User Stories → MINE → SCOUT → ASSAY → CRUCIBLE → AUDITOR → PLAN → VERIFY
 ---END PREAMBLE---
