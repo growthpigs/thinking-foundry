@@ -71,8 +71,10 @@ class GeminiLiveManager {
     this.standbySetupComplete = false;
 
     // One-shot prompt block (e.g. "the user just shared this, acknowledge it").
-    // Set via forceReconnect opts, rides exactly ONE setup, then cleared — it
-    // must never leak into the scheduled 13:30 standby setup 14 minutes later.
+    // Set via forceReconnect opts, consumed by the FIRST setup that actually
+    // goes out (cleared in sendSetup at delivery) — a reconnect that errors
+    // before 'open' keeps it pending for the next setup, and it never leaks
+    // into the scheduled 13:30 standby setup 14 minutes later.
     this.oneShotContext = null;
   }
 
@@ -136,6 +138,10 @@ class GeminiLiveManager {
    */
   sendSetup(ws, phase, contextSummary) {
     const systemPrompt = this.getSystemPrompt(phase, contextSummary);
+    // Consume the one-shot at delivery: this setup carries it, no later one
+    // does. Clearing here (not at the end of forceReconnect) means a failed
+    // reconnect leaves it pending instead of silently discarding it.
+    this.oneShotContext = null;
 
     const setupMessage = {
       setup: {
@@ -611,11 +617,6 @@ class GeminiLiveManager {
         resolve();
       });
     });
-
-    // One-shot consumed: it rode this reconnect's setup (sent in the open
-    // handler above, before resolve). Clear it so no later setup —
-    // scheduled standby, GoAway swap, next phase — repeats the directive.
-    this.oneShotContext = null;
   }
 
   /**

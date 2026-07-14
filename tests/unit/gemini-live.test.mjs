@@ -234,6 +234,29 @@ describe('GeminiLiveManager — native session resumption', () => {
     expect(lastSetup(later).systemInstruction.parts[0].text).not.toContain('ACKNOWLEDGE THE SHARED DOC NOW');
   });
 
+  it('one-shot survives a FAILED reconnect and rides the next successful setup exactly once', async () => {
+    // If the fresh socket errors before 'open', no setup was sent — the
+    // directive must stay pending (not be silently discarded) and then ride
+    // the next setup that actually goes out, once.
+    mgr.phase = 2;
+    const failing = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => failing.emit('error', new Error('boom')), 0); return failing; };
+
+    const p = mgr.forceReconnect(2, 'ctx', { oneShotContext: 'ACK THE DOC' });
+    await vi.advanceTimersByTimeAsync(10);
+    await p;
+
+    expect(mgr.oneShotContext).toBe('ACK THE DOC'); // still pending — never delivered
+
+    const next = new FakeWs();
+    mgr.sendSetup(next, 2, 'ctx');
+    expect(lastSetup(next).systemInstruction.parts[0].text).toContain('ACK THE DOC');
+
+    const after = new FakeWs();
+    mgr.sendSetup(after, 2, 'ctx');
+    expect(lastSetup(after).systemInstruction.parts[0].text).not.toContain('ACK THE DOC');
+  });
+
   it('close() during a GoAway swap does not throw or fire callbacks', () => {
     const active = new FakeWs();
     mgr.activeWs = active;

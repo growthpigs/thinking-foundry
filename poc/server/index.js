@@ -942,7 +942,14 @@ wss.on('connection', (clientWs, req) => {
             // only this reconnect, so a scheduled swap 14 minutes later doesn't
             // re-instruct the AI to acknowledge an old share.
             gemini.knowledgeContext = phaseKnowledge;
-            const oneShot = `--- THE USER JUST SHARED THIS WITH YOU, MID-SESSION ---\n${clipped}\n--- END ---\n` +
+            // Reference the doc by name, don't re-embed it — the full text is
+            // already in the GOOGLE DRIVE CONTEXT section via driveContext
+            // (under "[User shared: <name>]"), so embedding `clipped` here
+            // would send the same body twice in one setup.
+            const docNames = msg.documents.filter(d => d && d.content)
+              .map(d => d.name || 'document').join(', ');
+            const oneShot = `--- THE USER JUST SHARED NEW MATERIAL WITH YOU, MID-SESSION: ${docNames} ---\n` +
+              `Its full text is in the GOOGLE DRIVE CONTEXT section of your context, under "[User shared: ...]".\n` +
               `Open your very next response by briefly acknowledging what they shared (one sentence), then weave it into the conversation.`;
             // Same-phase reconnect would normally KEEP the resumption handle,
             // and a resumed server-side session may ignore the changed
