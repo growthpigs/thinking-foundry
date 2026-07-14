@@ -69,6 +69,13 @@ class GeminiLiveManager {
       : process.env.GEMINI_NATIVE_RESUMPTION !== '0';
     this.resumptionHandle = null;
     this.standbySetupComplete = false;
+
+    // One-shot prompt block (e.g. "the user just shared this, acknowledge it").
+    // Set via forceReconnect opts, consumed by the FIRST setup that actually
+    // goes out (cleared in sendSetup at delivery) — a reconnect that errors
+    // before 'open' keeps it pending for the next setup, and it never leaks
+    // into the scheduled 13:30 standby setup 14 minutes later.
+    this.oneShotContext = null;
   }
 
   /**
@@ -88,6 +95,11 @@ class GeminiLiveManager {
     if (this.knowledgeContext) {
       prompt = `${this.knowledgeContext}\n\n--- PHASE INSTRUCTIONS ---\n${prompt}`;
       console.log(`[GEMINI] Injected ${this.knowledgeContext.length} chars of knowledge context`);
+    }
+
+    // Front-load any one-shot directive (mid-session context injection)
+    if (this.oneShotContext) {
+      prompt = `${this.oneShotContext}\n\n${prompt}`;
     }
 
     if (contextSummary) {
@@ -126,6 +138,10 @@ class GeminiLiveManager {
    */
   sendSetup(ws, phase, contextSummary) {
     const systemPrompt = this.getSystemPrompt(phase, contextSummary);
+    // Consume the one-shot at delivery: this setup carries it, no later one
+    // does. Clearing here (not at the end of forceReconnect) means a failed
+    // reconnect leaves it pending instead of silently discarding it.
+    this.oneShotContext = null;
 
     const setupMessage = {
       setup: {
@@ -538,7 +554,7 @@ class GeminiLiveManager {
   /**
    * Force an immediate reconnection (e.g., phase change)
    */
-  async forceReconnect(phase, contextSummary) {
+  async forceReconnect(phase, contextSummary, opts = {}) {
     console.log(`[GEMINI] Force reconnect: phase=${phase}`);
     this.clearReconnectTimers();
 
@@ -546,8 +562,16 @@ class GeminiLiveManager {
     // Resuming the old phase's server-side session would carry its state into
     // the new phase, fighting the new prompt — drop the handle. Same-phase
     // reconnects (swap-failure fallback) keep it: same conversation.
-    if (phase !== this.phase) {
+    // Callers that change the prompt WITHOUT changing phase (live context
+    // injection) pass dropResumptionHandle: true — a resumed session may
+    // ignore the new systemInstruction, so continuity must come from the
+    // condensed context instead, exactly as on a phase change.
+    if (phase !== this.phase || opts.dropResumptionHandle) {
       this.resumptionHandle = null;
+    }
+
+    if (opts.oneShotContext !== undefined) {
+      this.oneShotContext = opts.oneShotContext;
     }
 
     this.phase = phase;
