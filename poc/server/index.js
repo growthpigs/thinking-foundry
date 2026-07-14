@@ -13,12 +13,9 @@ const { GitHubConnector } = require('../context/github-connector');
 const { SupabaseBuffer } = require('./supabase-buffer');
 const { GitHubPersistence } = require('./github-persistence');
 
-// ── Condensation thresholds (bullet point generation) ──
+// ── Transcript thresholds (minimum lengths to bother emitting a line) ──
 const MIN_AI_TEXT_LENGTH = 30;
-const MIN_BULLET_COMBINE_LENGTH = 40;
-const MAX_BULLET_LENGTH = 80;
 const MIN_USER_TEXT_LENGTH = 10;
-const MIN_USER_BULLET_COMBINE = 30;
 const SUBSTANTIAL_BUFFER_THRESHOLD = 50;
 const MAX_CONTEXT_INJECTION_LENGTH = 10000;
 const { PhaseTransitionHandler } = require('./phase-transition');
@@ -275,33 +272,21 @@ wss.on('connection', (clientWs, req) => {
     aiTurnBuffer = '';
     if (text.length < MIN_AI_TEXT_LENGTH) return;
 
-    // Strip internal signals before creating bullet
+    // Strip internal signals, then send the FULL utterance — no first-sentence-only,
+    // no character cap. The transcript shows everything and the client wraps long lines.
     const cleaned = text
       .replace(/\[MODE:\w+\]/gi, '')
       .replace(/\[PHASE_COMPLETE\]/gi, '')
       .replace(/\[SYSTEM\][^\n]*/gi, '')
+      .replace(/\s+/g, ' ')
       .trim();
     if (cleaned.length < MIN_AI_TEXT_LENGTH) return;
 
-    // Take FIRST sentence — prompts enforce insight-first, question-last
-    const sentences = cleaned.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-    let bullet = sentences[0] || cleaned;
+    sendToClient('outline_item', { speaker: 'ai', text: cleaned, phase: session.currentPhase });
 
-    // If first sentence is very short, concatenate first two
-    if (bullet.length < MIN_BULLET_COMBINE_LENGTH && sentences.length > 1) {
-      bullet = sentences[0] + ' ' + sentences[1];
-    }
-
-    // Cap at ~80 chars
-    if (bullet.length > MAX_BULLET_LENGTH) {
-      bullet = bullet.substring(0, MAX_BULLET_LENGTH - 3) + '...';
-    }
-
-    sendToClient('outline_item', { speaker: 'ai', text: bullet, phase: session.currentPhase });
-
-    // Persist as key point
+    // Persist the full text
     if (supabaseBuffer) {
-      supabaseBuffer.writeUtterance(session.currentPhase, 'ai', bullet, true)
+      supabaseBuffer.writeUtterance(session.currentPhase, 'ai', cleaned, true)
         .catch(err => console.error('[OUTLINE] Supabase write error:', err.message));
     }
   }
@@ -325,15 +310,12 @@ wss.on('connection', (clientWs, req) => {
     userTurnBuffer = '';
     if (text.length < MIN_USER_TEXT_LENGTH) return;
 
-    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-    let bullet = sentences[0] || text;
-    if (bullet.length < MIN_USER_BULLET_COMBINE && sentences.length > 1) bullet = sentences[0] + ' ' + sentences[1];
-    if (bullet.length > MAX_BULLET_LENGTH) bullet = bullet.substring(0, MAX_BULLET_LENGTH - 3) + '...';
-
-    sendToClient('outline_item', { speaker: 'user', text: bullet, phase: session.currentPhase });
+    // Full user utterance — no first-sentence-only, no cap. Client wraps.
+    const cleaned = text.replace(/\s+/g, ' ').trim();
+    sendToClient('outline_item', { speaker: 'user', text: cleaned, phase: session.currentPhase });
 
     if (supabaseBuffer) {
-      supabaseBuffer.writeUtterance(session.currentPhase, 'user', bullet, true)
+      supabaseBuffer.writeUtterance(session.currentPhase, 'user', cleaned, true)
         .catch(function(err) { console.error('[OUTLINE] Supabase write error:', err.message); });
     }
   };
@@ -908,37 +890,61 @@ wss.on('connection', (clientWs, req) => {
         }
         break;
 
-      case 'add-context':
-        // Mid-session text/document context — store for next Gemini reconnection
-        // NOTE: Cannot inject text directly into AUDIO-only Gemini Live sessions
-        // (causes error 1007). Instead, add to context manager so it's included
-        // in the next phase transition or reconnection's system prompt.
-        if (Array.isArray(msg.documents) && msg.documents.length > 0) {
-          const contextParts = msg.documents
-            .filter(d => d && d.content)
-            .map(d => `[User shared: ${d.name || 'document'}]\n${d.content}`)
-            .join('\n\n');
-          const truncated = contextParts.length > MAX_CONTEXT_INJECTION_LENGTH
-            ? contextParts.substring(0, 9997) + '...'
-            : contextParts;
+      case 'add-context': {
+        // Mid-session text/document — inject it into the LIVE session so the AI
+        // reads it NOW. AUDIO-only Gemini Live rejects raw text turns (error 1007),
+        // so we fold the document into the system prompt and do a fast reconnect
+        // (same ~1s blip as a phase change) with a directive to acknowledge it.
+        if (!Array.isArray(msg.documents) || msg.documents.length === 0) break;
 
-          // Add to context manager (picked up on next reconnect/phase change)
-          context.addUtterance('user', truncated);
-          console.log(`[WS] Stored mid-session context: ${msg.documents.length} doc(s), ${truncated.length} chars (applied on next reconnect)`);
+        const contextParts = msg.documents
+          .filter(d => d && d.content)
+          .map(d => `[User shared: ${d.name || 'document'}]\n${d.content}`)
+          .join('\n\n');
+        if (!contextParts.trim()) break;
 
-          // Persist to Supabase
-          if (supabaseBuffer) {
-            supabaseBuffer.writeUtterance(session.currentPhase, 'user', truncated)
-              .catch(err => console.error('[SUPABASE] Context write error:', err.message));
+        const clipped = contextParts.length > MAX_CONTEXT_INJECTION_LENGTH
+          ? contextParts.substring(0, MAX_CONTEXT_INJECTION_LENGTH - 3) + '...'
+          : contextParts;
+
+        // Accumulate into the session's document context + transcript + Supabase
+        sessionDocContext = sessionDocContext ? `${sessionDocContext}\n\n${clipped}` : clipped;
+        context.addUtterance('user', clipped);
+        if (supabaseBuffer) {
+          supabaseBuffer.writeUtterance(session.currentPhase, 'user', clipped)
+            .catch(err => console.error('[SUPABASE] Context write error:', err.message));
+        }
+
+        sendToClient('outline_item', {
+          speaker: 'system',
+          text: 'Reading what you shared…',
+          phase: session.currentPhase,
+        });
+
+        if (gemini) {
+          try {
+            let phaseKnowledge = await knowledgeLoader.load({
+              phase: session.currentPhase,
+              frameworks: sessionFrameworks.length > 0 ? sessionFrameworks : undefined,
+              fullContent: false,
+              githubContext: sessionGithubContext || undefined,
+              driveContext: sessionDocContext || undefined,
+              includeHotMemory: false,
+            });
+            // Front-load the just-shared document with an explicit read-it-now directive
+            phaseKnowledge = `--- THE USER JUST SHARED THIS WITH YOU, MID-SESSION ---\n${clipped}\n--- END ---\n` +
+              `Open your very next response by briefly acknowledging what they shared (one sentence), then weave it into the conversation.\n\n` +
+              phaseKnowledge;
+            gemini.knowledgeContext = phaseKnowledge;
+            await gemini.forceReconnect(session.currentPhase, context.getCondensedContext());
+            console.log(`[WS] Injected mid-session context live: ${msg.documents.length} doc(s), ${clipped.length} chars`);
+          } catch (err) {
+            console.error('[WS] Live context injection failed:', err.message);
+            sendToClient('error', { message: 'Could not read that just now — it will be included as we continue.' });
           }
-
-          sendToClient('outline_item', {
-            speaker: 'system',
-            text: 'Context saved. It will be included at the next phase transition.',
-            phase: session.currentPhase
-          });
         }
         break;
+      }
 
       case 'generate_crucible':
         // Article 19: Offered, Not Forced. User chose to generate.
