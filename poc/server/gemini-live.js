@@ -76,6 +76,9 @@ class GeminiLiveManager {
     // before 'open' keeps it pending for the next setup, and it never leaks
     // into the scheduled 13:30 standby setup 14 minutes later.
     this.oneShotContext = null;
+
+    // Serializes forceReconnect calls — see forceReconnect for why.
+    this._reconnectQueue = Promise.resolve();
   }
 
   /**
@@ -553,8 +556,31 @@ class GeminiLiveManager {
 
   /**
    * Force an immediate reconnection (e.g., phase change)
+   *
+   * Serialized: the client WS message handler in index.js is async and the
+   * EventEmitter doesn't await it, so two rapid messages (add-context racing
+   * a phase transition, two shares back-to-back) can call this concurrently.
+   * Unserialized, each call captured a different oldWs, both dialed sockets,
+   * the loser's connection leaked open with handlers wired, and
+   * reconnectionCount double-incremented. Chaining on _reconnectQueue runs
+   * each reconnect against the settled state of the previous one; the latest
+   * requested phase/contextSummary wins because it runs last, and a queued
+   * oneShotContext is stored inside its own step, so it rides the FINAL
+   * surviving connection's setup (sendSetup consumes it exactly once).
    */
-  async forceReconnect(phase, contextSummary, opts = {}) {
+  forceReconnect(phase, contextSummary, opts = {}) {
+    const run = this._reconnectQueue.then(() => this._doForceReconnect(phase, contextSummary, opts));
+    // The caller sees its own reconnect's outcome, but a failed step must
+    // never poison the chain for later reconnects.
+    this._reconnectQueue = run.catch((err) => {
+      console.error('[GEMINI] forceReconnect step failed:', err.message);
+    });
+    return run;
+  }
+
+  async _doForceReconnect(phase, contextSummary, opts = {}) {
+    // A reconnect dequeued after close() must not dial out — session is over.
+    if (this.closed) return;
     console.log(`[GEMINI] Force reconnect: phase=${phase}`);
     this.clearReconnectTimers();
 
@@ -591,10 +617,15 @@ class GeminiLiveManager {
       this.activeWs = this.createConnection();
       this.wireHandlers(this.activeWs, false);
 
-      this.activeWs.on('open', () => {
+      const ws = this.activeWs;
+      ws.on('open', () => {
+        // close() may have run while this socket was dialing — activeWs is
+        // null then, and setting up / re-arming timers would resurrect a
+        // dead session.
+        if (this.closed) { resolve(); return; }
         this.connectionStartTime = Date.now();
         this.reconnectionCount++;
-        this.sendSetup(this.activeWs, phase, contextSummary);
+        this.sendSetup(ws, phase, contextSummary);
         this.scheduleReconnection();
 
         // Close old — clear isSwapping when it actually closes
