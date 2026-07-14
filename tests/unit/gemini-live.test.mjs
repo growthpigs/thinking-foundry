@@ -269,3 +269,121 @@ describe('GeminiLiveManager — native session resumption', () => {
     expect(() => vi.advanceTimersByTime(10000)).not.toThrow();
   });
 });
+
+describe('GeminiLiveManager — forceReconnect serialization', () => {
+  let mgr;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mgr = new GeminiLiveManager({ apiKey: 'test-key' });
+  });
+  afterEach(() => {
+    mgr.close();
+    vi.useRealTimers();
+  });
+
+  // Each dial returns a fresh FakeWs that emits 'open' a few ms later —
+  // long enough for a second forceReconnect to arrive while the first is
+  // still in flight, which is exactly the race being tested.
+  const trackDials = (created, openAfterMs = 5) => () => {
+    const f = new FakeWs();
+    created.push(f);
+    setTimeout(() => f.emit('open'), openAfterMs);
+    return f;
+  };
+
+  it('overlapping reconnects are serialized — one surviving connection, one timer set, no double counting', async () => {
+    const created = [];
+    mgr.createConnection = trackDials(created);
+    const initial = new FakeWs();
+    mgr.activeWs = initial;
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 1;
+
+    // A phase transition and an add-context share fire back-to-back — the
+    // second call arrives while the first reconnect is still dialing.
+    const p1 = mgr.forceReconnect(2, 'ctx-transition');
+    const p2 = mgr.forceReconnect(2, 'ctx-share', { dropResumptionHandle: true, oneShotContext: 'ACK THE DOC' });
+
+    await vi.advanceTimersByTimeAsync(50);
+    await Promise.all([p1, p2]);
+
+    expect(created).toHaveLength(2);              // second dial waited for the first to complete
+    expect(mgr.activeWs).toBe(created[1]);        // latest request wins
+    expect(initial.readyState).toBe(3);           // every predecessor closed —
+    expect(created[0].readyState).toBe(3);        // nothing leaked open
+    expect(mgr.reconnectionCount).toBe(2);        // +1 per COMPLETED reconnect, no double-increment
+    expect(mgr.reconnectTimers).toHaveLength(3);  // exactly one armed prepare/setup/swap set
+    expect(mgr.contextSummary).toBe('ctx-share');
+
+    // The one-shot rides the FINAL surviving connection's setup, exactly once
+    const carries = (ws) => ws.sent.filter((m) => m.setup?.systemInstruction.parts[0].text.includes('ACK THE DOC'));
+    expect(carries(created[0])).toHaveLength(0);
+    expect(carries(created[1])).toHaveLength(1);
+    expect(mgr.oneShotContext).toBeNull();
+  });
+
+  it('three rapid reconnects settle on the last requested phase and context', async () => {
+    const created = [];
+    mgr.createConnection = trackDials(created);
+    mgr.activeWs = new FakeWs();
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 0;
+
+    const all = Promise.all([
+      mgr.forceReconnect(1, 'a'),
+      mgr.forceReconnect(2, 'b'),
+      mgr.forceReconnect(3, 'c'),
+    ]);
+    await vi.advanceTimersByTimeAsync(100);
+    await all;
+
+    expect(created).toHaveLength(3);
+    expect(mgr.activeWs).toBe(created[2]);
+    expect(mgr.phase).toBe(3);
+    expect(mgr.contextSummary).toBe('c');
+    expect(mgr.reconnectionCount).toBe(3);
+    expect(created[0].readyState).toBe(3);
+    expect(created[1].readyState).toBe(3);
+  });
+
+  it('a reconnect whose socket errors before open does not block later reconnects (queue not poisoned)', async () => {
+    mgr.activeWs = new FakeWs();
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 1;
+
+    const failing = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => failing.emit('error', new Error('boom')), 0); return failing; };
+    const p1 = mgr.forceReconnect(2, 'ctx', { oneShotContext: 'ACK' });
+    await vi.advanceTimersByTimeAsync(10);
+    await p1;
+    expect(mgr.oneShotContext).toBe('ACK'); // never delivered — still pending
+
+    const fresh = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => fresh.emit('open'), 0); return fresh; };
+    const p2 = mgr.forceReconnect(2, 'ctx');
+    await vi.advanceTimersByTimeAsync(10);
+    await p2;
+
+    expect(mgr.activeWs).toBe(fresh); // the queued reconnect ran
+    expect(lastSetup(fresh).systemInstruction.parts[0].text).toContain('ACK'); // one-shot rode the next success
+  });
+
+  it('close() while reconnects are in flight/queued prevents further dials', async () => {
+    const created = [];
+    mgr.createConnection = trackDials(created);
+    mgr.activeWs = new FakeWs();
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 1;
+
+    const p1 = mgr.forceReconnect(2, 'a');
+    const p2 = mgr.forceReconnect(3, 'b');
+    await vi.advanceTimersByTimeAsync(0); // first step dequeues and dials
+    expect(created).toHaveLength(1);
+
+    mgr.close();
+    await vi.advanceTimersByTimeAsync(100);
+    await Promise.all([p1, p2]);
+    expect(created).toHaveLength(1); // queued step no-oped after close()
+  });
+});
