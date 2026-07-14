@@ -20,6 +20,11 @@ const RECONNECT_PREPARE_MS = 13 * 60 * 1000;   // 13:00 — start preparing new 
 const RECONNECT_SETUP_MS = 13.5 * 60 * 1000;   // 13:30 — send setup to new connection
 const RECONNECT_SWAP_MS = 14 * 60 * 1000;       // 14:00 — swap to new connection
 
+// A forced-reconnect dial that emits neither 'open' nor 'error' (network
+// black-hole) would hold the serialized reconnect queue hostage until TCP
+// gives up (~75s), stalling every queued reconnect behind it. Bound it.
+const FORCE_RECONNECT_DIAL_TIMEOUT_MS = 15000;
+
 const GEMINI_WS_URL = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
 
 class GeminiLiveManager {
@@ -614,11 +619,41 @@ class GeminiLiveManager {
 
     // Create fresh connection
     await new Promise((resolve) => {
-      this.activeWs = this.createConnection();
-      this.wireHandlers(this.activeWs, false);
+      const ws = this.createConnection();
+      this.activeWs = ws;
+      this.wireHandlers(ws, false);
 
-      const ws = this.activeWs;
+      let settled = false;
+
+      // Dial failed (error or timeout): the PREVIOUS connection may still be
+      // alive — staying on it (old prompt and all) beats leaving the session
+      // pointed at a dead socket. Its connectionStartTime never changed, so
+      // re-armed swap timers keep the correct 14-minute deadline. A pending
+      // oneShotContext stays queued for the next setup that actually goes out.
+      const fallbackToOldWs = () => {
+        settled = true;
+        clearTimeout(dialTimeout);
+        // Close the dead dial while isSwapping is still true → no spurious
+        // onClose reaches the client.
+        try { ws.close(); } catch { /* never opened */ }
+        this.isSwapping = false;
+        if (oldWs && oldWs.readyState === WebSocket.OPEN && !this.closed) {
+          this.activeWs = oldWs;
+          this.scheduleReconnection();
+        }
+        resolve();
+      };
+
+      const dialTimeout = setTimeout(() => {
+        if (settled || this.closed) { resolve(); return; }
+        console.error(`[GEMINI] Force reconnect dial timed out after ${FORCE_RECONNECT_DIAL_TIMEOUT_MS}ms — releasing queue`);
+        fallbackToOldWs();
+      }, FORCE_RECONNECT_DIAL_TIMEOUT_MS);
+
       ws.on('open', () => {
+        if (settled) return; // late open after a dial timeout — superseded
+        settled = true;
+        clearTimeout(dialTimeout);
         // close() may have run while this socket was dialing — activeWs is
         // null then, and setting up / re-arming timers would resurrect a
         // dead session.
@@ -642,10 +677,10 @@ class GeminiLiveManager {
         resolve();
       });
 
-      this.activeWs.on('error', (err) => {
-        // Don't clear isSwapping — old ws close event handles it
+      ws.on('error', (err) => {
         this.onError(err);
-        resolve();
+        if (settled) return;
+        fallbackToOldWs();
       });
     });
   }

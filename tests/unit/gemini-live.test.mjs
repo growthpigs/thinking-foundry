@@ -369,6 +369,94 @@ describe('GeminiLiveManager — forceReconnect serialization', () => {
     expect(lastSetup(fresh).systemInstruction.parts[0].text).toContain('ACK'); // one-shot rode the next success
   });
 
+  it('a failed dial falls back to the still-open previous connection instead of stranding the session', async () => {
+    const oldActive = new FakeWs();
+    mgr.activeWs = oldActive;
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 1;
+
+    const failing = new FakeWs();
+    mgr.createConnection = () => { setTimeout(() => failing.emit('error', new Error('dial refused')), 1); return failing; };
+
+    const p = mgr.forceReconnect(2, 'ctx');
+    await vi.advanceTimersByTimeAsync(10);
+    await p;
+
+    expect(mgr.activeWs).toBe(oldActive);        // restored — session keeps talking on the old line
+    expect(oldActive.readyState).toBe(1);        // old connection untouched
+    expect(failing.readyState).toBe(3);          // dead dial closed, not leaked
+    expect(mgr.isSwapping).toBe(false);          // future closes reach onClose
+    expect(mgr.reconnectTimers).toHaveLength(3); // swap timers re-armed for the old line
+  });
+
+  it('a dial that never opens NOR errors times out, releases the queue, and recovers', async () => {
+    const oldActive = new FakeWs();
+    mgr.activeWs = oldActive;
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 1;
+
+    const hung = new FakeWs(); // network black-hole: no open, no error
+    const fresh = new FakeWs();
+    let dials = 0;
+    mgr.createConnection = () => {
+      dials++;
+      if (dials === 1) return hung;
+      setTimeout(() => fresh.emit('open'), 1);
+      return fresh;
+    };
+
+    const p1 = mgr.forceReconnect(2, 'ctx-hung');
+    const p2 = mgr.forceReconnect(3, 'ctx-next'); // queued behind the hung dial
+
+    await vi.advanceTimersByTimeAsync(14000);
+    expect(dials).toBe(1);          // still head-of-line blocked
+    expect(mgr.activeWs).toBe(hung);
+
+    await vi.advanceTimersByTimeAsync(2000); // 15s dial timeout fires
+    await Promise.all([p1, p2]);
+
+    expect(hung.readyState).toBe(3);   // hung socket closed
+    expect(dials).toBe(2);             // queue released — second reconnect ran
+    expect(mgr.activeWs).toBe(fresh);
+    expect(mgr.phase).toBe(3);
+    expect(oldActive.readyState).toBe(3); // superseded by the successful reconnect
+  });
+
+  it('stress: 10 randomly interleaved reconnects with intermittent failures preserve every invariant', async () => {
+    const initial = new FakeWs();
+    mgr.activeWs = initial;
+    mgr.connectionStartTime = Date.now();
+    mgr.phase = 0;
+
+    const created = [];
+    let dials = 0;
+    mgr.createConnection = () => {
+      const f = new FakeWs();
+      created.push(f);
+      const n = ++dials;
+      if (n % 4 === 0) setTimeout(() => f.emit('error', new Error('boom')), n % 7); // every 4th dial fails
+      else setTimeout(() => f.emit('open'), n % 7);
+      return f;
+    };
+
+    const ps = [];
+    for (let i = 1; i <= 10; i++) {
+      ps.push(mgr.forceReconnect(i % 8, `ctx-${i}`, i % 3 === 0 ? { oneShotContext: `SHOT-${i}` } : {}));
+    }
+    await vi.advanceTimersByTimeAsync(1000);
+    await Promise.all(ps);
+
+    expect(created).toHaveLength(10); // serialized: every request dialed exactly once
+    // THE invariant: exactly one socket open across everything ever created
+    const open = [initial, ...created].filter((w) => w.readyState === 1);
+    expect(open).toHaveLength(1);
+    expect(open[0]).toBe(mgr.activeWs);
+    expect(mgr.phase).toBe(2);                   // last request (10 % 8) won
+    expect(mgr.contextSummary).toBe('ctx-10');
+    expect(mgr.reconnectTimers).toHaveLength(3); // one armed timer set
+    expect(mgr.oneShotContext).toBeNull();       // every one-shot consumed
+  });
+
   it('close() while reconnects are in flight/queued prevents further dials', async () => {
     const created = [];
     mgr.createConnection = trackDials(created);
