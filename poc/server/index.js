@@ -956,9 +956,15 @@ wss.on('connection', (clientWs, req) => {
             // would send the same body twice in one setup.
             const docNames = msg.documents.filter(d => d && d.content)
               .map(d => d.name || 'document').join(', ');
+            // Wording matters here: "acknowledge what they shared" read as an
+            // instruction to open with validation, which is exactly what the
+            // anti-sycophancy contract's HARD RULE 1 forbids. Naming the document
+            // so they know it landed is fine; praising it is not. Say what it is,
+            // then engage with its substance.
             const oneShot = `--- THE USER JUST SHARED NEW MATERIAL WITH YOU, MID-SESSION: ${docNames} ---\n` +
               `Its full text is in the GOOGLE DRIVE CONTEXT section of your context, under "[User shared: ...]".\n` +
-              `Open your very next response by briefly acknowledging what they shared (one sentence), then weave it into the conversation.`;
+              `Name what arrived in a few words so they know it landed, then go straight to what it changes ` +
+              `about the problem. Do not praise it, thank them for it, or comment on how useful it is.`;
             // Same-phase reconnect would normally KEEP the resumption handle,
             // and a resumed server-side session may ignore the changed
             // systemInstruction (the whole point of this injection). Force a
