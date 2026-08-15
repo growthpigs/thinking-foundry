@@ -17,6 +17,17 @@ const { HotMemory } = require('../server/hot-memory');
 const KNOWLEDGE_DIR = path.join(__dirname, '..', 'knowledge');
 const INDEX_PATH = path.join(KNOWLEDGE_DIR, 'index.json');
 
+// Prompt budget (#196). This block is prepended to the system instruction and
+// re-sent in FULL on every Gemini setup, so its size is paid on every turn and
+// every reconnect — it is latency, not just tokens.
+//
+// Per-entry cap: no single mentor file may dominate. ~2.5KB is comfortably more
+// than a well-formed phase section (largest legitimate one measured: ~1.4KB).
+const MAX_PHASE_CONTENT_CHARS = 2500;
+// Total cap across all entries, after per-entry truncation. 8 entries x 2.5KB
+// would be 20KB worst case; 12KB (~3K tokens) is the ceiling we actually accept.
+const MAX_KNOWLEDGE_CONTEXT_CHARS = 12000;
+
 class ContextLoader {
   constructor() {
     this.index = this._loadIndex();
@@ -91,18 +102,24 @@ class ContextLoader {
       // Check for phase-specific prompt sections
       const phaseLabel = `Phase ${phase}`;
       const phaseSlug = phaseName ? phaseName.toUpperCase() : '';
+      const headingDepth = (line.match(/^#+/) || [''])[0].length;
 
-      if (line.includes(phaseLabel) || (phaseSlug && line.includes(phaseSlug))) {
+      // HEADINGS ONLY. Matching prose was the bug: an ordinary bullet such as
+      // hormozi.md's "Requires capital to survive Phase 1" set sectionDepth = 0,
+      // and the exit test below (`currentDepth > 0 && currentDepth <= 0`) is then
+      // unsatisfiable — so the extractor swallowed the rest of the file. Eight
+      // mentor files x every phase took the system prompt from 702 chars at
+      // Phase 0 to ~66-73KB from Phase 1 onward. See #196.
+      if (headingDepth > 0 && (line.includes(phaseLabel) || (phaseSlug && line.includes(phaseSlug)))) {
         inRelevantSection = true;
-        sectionDepth = (line.match(/^#+/) || [''])[0].length;
+        sectionDepth = headingDepth;
         result.push(line);
         continue;
       }
 
       if (inRelevantSection) {
-        const currentDepth = (line.match(/^#+/) || [''])[0].length;
-        // Stop at next section of same or higher level
-        if (currentDepth > 0 && currentDepth <= sectionDepth && !line.includes(phaseLabel)) {
+        // sectionDepth is now guaranteed >= 1, so this can always fire.
+        if (headingDepth > 0 && headingDepth <= sectionDepth && !line.includes(phaseLabel)) {
           inRelevantSection = false;
           continue;
         }
@@ -110,7 +127,18 @@ class ContextLoader {
       }
     }
 
-    return result.join('\n').trim();
+    // Belt as well as braces: even with the exit fixed, a future corpus edit
+    // (one enormous section, or a heading matching every phase) could bloat the
+    // prompt again. The budget makes that class of regression impossible rather
+    // than merely unlikely.
+    const extracted = result.join('\n').trim();
+    if (extracted.length > MAX_PHASE_CONTENT_CHARS) {
+      console.warn(
+        `[CONTEXT] phase ${phase} extract truncated: ${extracted.length} > ${MAX_PHASE_CONTENT_CHARS} chars`
+      );
+      return extracted.slice(0, MAX_PHASE_CONTENT_CHARS).trimEnd() + '\n…[truncated]';
+    }
+    return extracted;
   }
 
   /**
@@ -176,6 +204,20 @@ class ContextLoader {
             sections.push('');
           }
         }
+      }
+
+      // Total ceiling across every entry (#196). Per-entry truncation alone
+      // still lets N entries sum past the budget, and the entry count is driven
+      // by index.json — data, not code — so the cap belongs here too.
+      const knowledgeSoFar = sections.join('\n');
+      if (knowledgeSoFar.length > MAX_KNOWLEDGE_CONTEXT_CHARS) {
+        console.warn(
+          `[CONTEXT] phase ${phase} knowledge truncated: ${knowledgeSoFar.length} > ${MAX_KNOWLEDGE_CONTEXT_CHARS} chars`
+        );
+        sections.length = 0;
+        sections.push(
+          knowledgeSoFar.slice(0, MAX_KNOWLEDGE_CONTEXT_CHARS).trimEnd() + '\n…[truncated]'
+        );
       }
     }
 
