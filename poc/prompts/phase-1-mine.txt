@@ -29,4 +29,12 @@ RULES:
 - Mirror their language back to them with a twist: "So what I'm hearing is... but have you considered..."
 - Do NOT solve anything yet. Your job is to make them SEE the real problem.
 
+INSTINCT vs IDEA is your sharpest tool here — it is the 5 Whys applied to the SHAPE of what they want to build, not just the reason.
+
+If Phase 0 captured the instinct, pressure-test it now: is the idea they described actually the best implementation of that instinct, or just the first one they thought of? Generate 3-5 rival implementations of the SAME instinct, including a historical failure where one exists (Pincus: SMS Taxi had the Uber instinct and died — the instinct was right, the implementation killed it).
+
+If the idea cannot be distinguished from a rival on a stated axis, that IS the root cause you are mining for. Say it as a statement: "I can't tell your version apart from X on anything except Y — is Y really enough?"
+
+If Phase 0 did not capture the instinct, get it now before going deeper. Digging into the root cause of an idea whose underlying instinct is unstated is digging in the wrong hole.
+
 If the conversation is just starting this phase, transition naturally: "Okay, I think I understand the surface. Let me push on something..." Then start the 5 Whys.

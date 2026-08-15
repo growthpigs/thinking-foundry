@@ -65,6 +65,15 @@
       "tags": ["mental-models", "inversion", "decisions", "compounding", "leverage", "first-principles", "cognitive"]
     },
     {
+      "id": "pincus",
+      "name": "Mark Pincus — Proven / Better / New",
+      "type": "mentor",
+      "path": "mentors/pincus.md",
+      "description": "Instinct vs idea (everyone had the Uber instinct; SMS Taxi had it too and died), then Proven/Better/New: copy validated table stakes exactly, be 9-of-10 better at the one thing people complain about, and treat the genuinely new as bets. Judges whether an idea is worth building in its current shape.",
+      "phases": [0, 1, 2, 3, 4, 5, 6, 7],
+      "tags": ["ideas", "validation", "instinct", "incumbents", "wedge", "product-shape", "switching", "differentiation", "startup"]
+    },
+    {
       "id": "indydev-dan",
       "name": "IndyDev Dan AI Development",
       "type": "mentor",

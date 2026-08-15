@@ -281,24 +281,36 @@ header h1 {
   gap: 10px;
 }
 
+/* Readability pass, Roderic 2026-08-15: "make the text a lot bigger" and the
+   left-hand markers were competing with the words. This is a voice product read
+   at arm's length on a phone while walking — 14px was desk-software sizing.
+   The words are the product; the phase label is chrome, so it recedes rather
+   than shouting in accent-coloured caps on every single line. */
 .outline-item {
-  padding: 12px 16px;
-  border-left: 3px solid var(--accent);
+  padding: 14px 18px;
+  border-left: 2px solid var(--border);
   background: var(--surface);
   border-radius: 0 8px 8px 0;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 19px;
+  line-height: 1.6;
   color: var(--text);
   animation: slideIn 0.3s ease-out;
 }
 
 .outline-item .outline-label {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.55;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+/* Keep the accent, but spend it only where it carries information: the line
+   the AI just produced. A marker on every line marks nothing. */
+.outline-item:last-child {
+  border-left-color: var(--accent);
 }
 
 @keyframes slideIn {
