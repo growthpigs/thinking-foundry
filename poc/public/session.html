@@ -837,7 +837,38 @@ function drainAudio() {
 /* ════════════════════════════════════════════════════
    MICROPHONE
    ════════════════════════════════════════════════════ */
+/* Tear down capture completely. The old endSession() stopped the media tracks
+   but left `processor` connected and `micCtx` open, so nothing here was ever
+   fully released. #198 */
+function stopMic() {
+  if (processor) { try { processor.disconnect(); } catch (e) {} processor = null; }
+  if (micStream) { micStream.getTracks().forEach(function(t) { t.stop(); }); micStream = null; }
+  if (micCtx) { try { micCtx.close(); } catch (e) {} micCtx = null; }
+}
+
+/* THE DOUBLING BUG (#198).
+
+   startMic() is called on EVERY `status: connected` message, and the server
+   re-emits that on reconnect (index.js onReconnected) — which fires on every
+   phase transition. With no guard, the second call created a second
+   ScriptProcessorNode while the first was still connected and still firing
+   onaudioprocess, so every audio chunk went to the server twice. Deepgram
+   transcribed the stutter literally:
+
+     "I can can give my my personal brand answer"
+
+   and it began exactly at the Phase 0 -> Phase 1 marker, because that is the
+   first reconnect. The doubled text was not cosmetic — it was persisted to
+   Supabase and Drive and fed to the model as the user's words.
+
+   An earlier fix went into poc/public/app.js, which the live session UI does
+   not load at all (session.html is self-contained, no external scripts). Same
+   defect, wrong file. */
 function startMic() {
+  if (processor || micCtx || micStream) {
+    console.warn('[AUDIO] Mic already running — tearing down before restart (#198)');
+    stopMic();
+  }
   navigator.mediaDevices.getUserMedia({
     audio: { sampleRate: MIC_SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true }
   }).then(function(s) {
@@ -884,7 +915,7 @@ function togglePause() {
 
 function endSession() {
   if (ws) ws.send(JSON.stringify({ type: 'stop' }));
-  if (micStream) micStream.getTracks().forEach(function(t) { t.stop(); });
+  stopMic();
 }
 </script>
 </body></html>
