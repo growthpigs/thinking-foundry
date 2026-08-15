@@ -508,8 +508,18 @@ wss.on('connection', (clientWs, req) => {
         context.addUtterance(role, text);
 
         if (role === 'model') {
-          // Accumulate AI text — don't send raw to client
+          // Accumulate AI text for the CONDENSED item and for phase-transition
+          // detection, which must run on the complete turn (see flushAiTurnBuffer).
           aiTurnBuffer += text + ' ';
+
+          // ...but also stream each fragment for DISPLAY as it arrives (Roderic
+          // 2026-08-15: "if it could sort of write quicker"). Previously the
+          // client saw nothing until onTurnComplete, so her whole reply appeared
+          // in one block after she had finished speaking — the text lagged the
+          // voice by the length of the answer. The client renders these into a
+          // provisional line which the final outline_item then REPLACES, so this
+          // adds no second copy.
+          sendToClient('ai_partial', { text, phase: session.currentPhase });
           // Still write raw to Supabase for full persistence
           if (supabaseBuffer) {
             supabaseBuffer.writeUtterance(session.currentPhase, 'ai', text)

@@ -105,8 +105,17 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .bullet .indicator.user{background:var(--user-accent)}
 .bullet .indicator.system{background:var(--text-faint)}
 .bullet .content{flex:1;min-width:0}
-.bullet .content .text{font-size:0.84rem;line-height:1.55;color:var(--text)}
-.bullet .content .meta{font-size:0.68rem;color:var(--text-muted);margin-top:2px}
+/* Readability, Roderic 2026-08-15: "make the text a lot bigger". 0.84rem is
+   desk-software sizing; this is read at arm's length, often on a phone, while
+   talking. The words are the product — the meta line and the left indicator are
+   chrome and stay small so they stop competing. */
+.bullet .content .text{font-size:1.15rem;line-height:1.6;color:var(--text)}
+.bullet .content .meta{font-size:0.68rem;color:var(--text-muted);margin-top:3px;opacity:0.6}
+
+/* Provisional line while she is still speaking (#ai_partial). Same size as a
+   finished bullet so the text does not visibly resize when it settles — only
+   the colour firms up. */
+.bullet.streaming .content .text{color:var(--text-secondary)}
 
 /* Phase separator */
 .phase-sep{display:flex;align-items:center;gap:12px;margin:20px 0 12px;font-size:0.7rem;font-weight:600;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase}
@@ -479,6 +488,10 @@ function connectWs(github, docs) {
         setAiState('speaking');
       }
 
+      if (msg.type === 'ai_partial') {
+        appendStreaming(msg.text, msg.phase);
+      }
+
       if (msg.type === 'outline_item') {
         addBullet(msg.speaker, msg.text, msg.phase);
         if (msg.speaker === 'ai') setAiState('listening');
@@ -499,6 +512,10 @@ function connectWs(github, docs) {
       if (msg.type === 'interrupted') {
         audioQueue = [];
         isPlaying = false;
+        // Barge-in: the server either flushes a substantial buffer as a real
+        // bullet or discards it. Either way the provisional line must go, or an
+        // abandoned half-sentence stays on screen forever.
+        clearStreamingBullet();
         setAiState('listening');
       }
 
@@ -549,8 +566,39 @@ function setAiState(state) {
   }
 }
 
+// Provisional line shown while the AI is still speaking. The server streams
+// ai_partial fragments so the text keeps pace with the voice instead of landing
+// in one block at turn end. clearStreamingBullet() runs before every finished
+// bullet, so the provisional line is REPLACED, never duplicated — important,
+// because a doubled transcript is exactly the bug we just fixed (#198).
+var streamingEl = null;
+var streamingText = '';
+
+function appendStreaming(text, p) {
+  if (!text) return;
+  streamingText += text;
+  var container = document.getElementById('insights');
+  if (!streamingEl) {
+    var phaseNum = p !== undefined ? p : phase;
+    streamingEl = document.createElement('div');
+    streamingEl.className = 'bullet streaming';
+    streamingEl.innerHTML = '<div class="indicator ai"></div>' +
+      '<div class="content"><div class="text"></div></div>';
+    container.appendChild(streamingEl);
+  }
+  streamingEl.querySelector('.text').textContent = streamingText.replace(/\s+/g, ' ').trim();
+  container.scrollTop = container.scrollHeight;
+}
+
+function clearStreamingBullet() {
+  if (streamingEl && streamingEl.parentNode) streamingEl.parentNode.removeChild(streamingEl);
+  streamingEl = null;
+  streamingText = '';
+}
+
 function addBullet(speaker, text, p) {
   if (!text || text.trim().length < 3) return;
+  if (speaker === 'ai') clearStreamingBullet();
   var phaseNum = p !== undefined ? p : phase;
   phaseBullets[phaseNum] = phaseBullets[phaseNum] || [];
   phaseBullets[phaseNum].push({ speaker: speaker, text: text, time: new Date() });

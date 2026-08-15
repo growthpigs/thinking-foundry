@@ -158,6 +158,18 @@ function getSetupConfig() {
  * so we use AudioContext + ScriptProcessor for the POC.
  */
 async function startAudioCapture() {
+  // Idempotent by force (#198). This used to overwrite `scriptProcessor` while
+  // the previous ScriptProcessorNode was still connected and still firing
+  // onaudioprocess — so a second session in the same page load sent EVERY audio
+  // chunk twice. Deepgram then transcribed the stutter literally, which is where
+  // "I can can give my my personal brand answer" came from. The doubled text was
+  // not cosmetic: it was buffered, persisted to Supabase and Drive, and fed to
+  // the model as the user's actual words.
+  if (scriptProcessor || audioContext || mediaStream) {
+    console.warn('[AUDIO] Capture already running — tearing down before restart (#198)');
+    stopAudioCapture();
+  }
+
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -527,7 +539,13 @@ async function startSession(config) {
     await startAudioCapture();
 
     // ─── Bug fix: iOS audio suspension recovery ───
-    document.addEventListener('visibilitychange', async () => {
+    // Registered once per page, not once per session (#198): this used to be
+    // added on every startSession, stacking an extra identical listener each
+    // time. Harmless individually, but it is the same class of leak as the
+    // audio-capture one above — start without teardown.
+    if (!window.__tfVisibilityHandlerBound) {
+      window.__tfVisibilityHandlerBound = true;
+      document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
         console.log('[AUDIO] Page visibility resumed, checking audio contexts...');
         if (audioContext?.state === 'suspended') {
@@ -539,7 +557,8 @@ async function startSession(config) {
           console.log('[AUDIO] Resumed playback context');
         }
       }
-    });
+      });
+    }
 
     // Transition screens
     $setupScreen.classList.add('hidden');
