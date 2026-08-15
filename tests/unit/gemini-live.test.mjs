@@ -530,6 +530,39 @@ describe('GeminiLiveManager — anti-sycophancy contract', () => {
     expect(text).toMatch(/bare agreement is forbidden/i);
   });
 
+  // Regression: the contract was applied BEFORE the oneShotContext prepend, so
+  // mid-session injected text landed above the rule that claims to govern the
+  // whole prompt. Not theoretical — the live one-shot in index.js instructs the
+  // model to open by acknowledging what the user shared, which is precisely what
+  // HARD RULE 1 forbids. The first cut of this suite tested ordering against
+  // knowledgeContext and never against oneShotContext; this is that gap.
+  it('stays above a mid-session one-shot injection', () => {
+    const mgr = new GeminiLiveManager({ apiKey: 'k' });
+    mgr.oneShotContext = '--- THE USER JUST SHARED NEW MATERIAL WITH YOU ---';
+    mgr.knowledgeContext = 'RETRIEVED FRAMEWORK CHUNK.';
+    const ws = new FakeWs();
+    mgr.sendSetup(ws, 1, '');
+    const text = promptOf(ws);
+    mgr.close();
+
+    expect(text).toContain(MARKER);
+    expect(text.indexOf(MARKER)).toBeLessThan(text.indexOf('THE USER JUST SHARED'));
+    // and still above everything it already outranked
+    expect(text.indexOf(MARKER)).toBeLessThan(text.indexOf('RETRIEVED FRAMEWORK CHUNK'));
+    // Absolute top: the contract file's own opening delimiter starts the prompt.
+    // (MARKER itself sits just after it, hence delimiter rather than marker.)
+    expect(text.startsWith('---BEGIN CONTRACT---')).toBe(true);
+  });
+
+  // The contract must not rest on being physically first. Position is one defence;
+  // the wording is the other, because a future caller can always prepend.
+  it('claims precedence regardless of position', () => {
+    const text = setupFor(2);
+    // \s* because the clause wraps across a line in the contract file
+    expect(text).toMatch(/above it,\s*below it, injected mid-session/i);
+    expect(text).not.toMatch(/any instruction below this block conflicts/i);
+  });
+
   it('survives a missing contract file without killing the session', () => {
     const mgr = new GeminiLiveManager({ apiKey: 'k' });
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});

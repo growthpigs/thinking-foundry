@@ -105,9 +105,21 @@ class GeminiLiveManager {
       console.log(`[GEMINI] Injected ${this.knowledgeContext.length} chars of knowledge context`);
     }
 
-    // The anti-sycophancy contract leads the whole prompt — applied AFTER the
-    // knowledge block so it sits above it, not buried inside PHASE INSTRUCTIONS.
-    // It lives in ONE file and is composed in here rather than copied into all 8
+    // Front-load any one-shot directive (mid-session context injection)
+    if (this.oneShotContext) {
+      prompt = `${this.oneShotContext}\n\n${prompt}`;
+    }
+
+    // The anti-sycophancy contract goes on LAST so it ends up FIRST — above the
+    // one-shot as well as the knowledge block.
+    //
+    // The first cut applied it before the one-shot prepend, which put mid-session
+    // injected text above the rule that claims to govern everything. That was not
+    // theoretical: the live one-shot (index.js) says "Open your very next response
+    // by briefly acknowledging what they shared", which is the exact behaviour
+    // HARD RULE 1 forbids — and it sat above the contract, so it won.
+    //
+    // It lives in ONE file and is composed here rather than copied into all 8
     // phase prompts: eight copies is how prompts/soul-file.md ended up written,
     // good, and referenced by nothing. Load failure is logged loudly — a session
     // that silently drops the contract is exactly the product we are not.
@@ -116,11 +128,6 @@ class GeminiLiveManager {
       prompt = `${contract}\n\n${prompt}`;
     } catch (err) {
       console.error(`[GEMINI] ANTI-SYCOPHANCY CONTRACT MISSING — running without it: ${err.message}`);
-    }
-
-    // Front-load any one-shot directive (mid-session context injection)
-    if (this.oneShotContext) {
-      prompt = `${this.oneShotContext}\n\n${prompt}`;
     }
 
     if (contextSummary) {
