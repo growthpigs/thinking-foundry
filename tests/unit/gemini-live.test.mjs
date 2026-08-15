@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EventEmitter } from 'events';
+import fs from 'fs';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
@@ -473,5 +474,79 @@ describe('GeminiLiveManager — forceReconnect serialization', () => {
     await vi.advanceTimersByTimeAsync(100);
     await Promise.all([p1, p2]);
     expect(created).toHaveLength(1); // queued step no-oped after close()
+  });
+});
+
+describe('GeminiLiveManager — anti-sycophancy contract', () => {
+  const MARKER = 'ANTI-SYCOPHANCY CONTRACT';
+  const promptOf = (ws) => lastSetup(ws).systemInstruction.parts[0].text;
+
+  const setupFor = (phase, opts = {}) => {
+    const mgr = new GeminiLiveManager({ apiKey: 'k', ...opts });
+    const ws = new FakeWs();
+    mgr.sendSetup(ws, phase, '');
+    const text = promptOf(ws);
+    mgr.close();
+    return text;
+  };
+
+  // The requirement is that the contract is unconditional, not that phase 1
+  // happens to mention challenging assumptions. soul-file.md was good prose that
+  // nothing loaded; a per-phase contract rots the same way.
+  it.each([0, 1, 2, 3, 4, 5, 6, 7])('phase %i carries the contract', (phase) => {
+    expect(setupFor(phase)).toContain(MARKER);
+  });
+
+  it('puts the contract above the phase instructions', () => {
+    const text = setupFor(1);
+    expect(text.indexOf(MARKER)).toBeLessThan(text.indexOf('MINE'));
+  });
+
+  // Regression: the first cut of this composed the contract BEFORE the knowledge
+  // block, so the knowledge dump ended up on top and the contract was buried
+  // inside "--- PHASE INSTRUCTIONS ---". Position is the whole point of a rule
+  // that claims to override everything below it.
+  it('stays above the knowledge context, not buried inside it', () => {
+    const mgr = new GeminiLiveManager({ apiKey: 'k' });
+    mgr.knowledgeContext = 'RETRIEVED FRAMEWORK CHUNK about offers and pricing.';
+    const ws = new FakeWs();
+    mgr.sendSetup(ws, 3, '');
+    const text = promptOf(ws);
+    mgr.close();
+
+    expect(text).toContain(MARKER);
+    expect(text.indexOf(MARKER)).toBeLessThan(text.indexOf('RETRIEVED FRAMEWORK CHUNK'));
+    expect(text.indexOf(MARKER)).toBeLessThan(text.indexOf('--- PHASE INSTRUCTIONS ---'));
+  });
+
+  // The behaviours the card's wedge actually rests on. Asserting the rules exist
+  // is not proof the model obeys them — only a live session shows that — but it
+  // does stop the contract being quietly hollowed out by a later edit.
+  it('states the rules the wedge depends on', () => {
+    const text = setupFor(0);
+    expect(text).toMatch(/never open a response by validating/i);
+    expect(text).toMatch(/at least once per phase/i);
+    expect(text).toMatch(/hold under pressure/i);
+    expect(text).toMatch(/bare agreement is forbidden/i);
+  });
+
+  it('survives a missing contract file without killing the session', () => {
+    const mgr = new GeminiLiveManager({ apiKey: 'k' });
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const readFileSync = fs.readFileSync;
+    vi.spyOn(fs, 'readFileSync').mockImplementation((p, enc) => {
+      if (String(p).endsWith('_contract.txt')) throw new Error('ENOENT');
+      return readFileSync(p, enc);
+    });
+
+    const ws = new FakeWs();
+    expect(() => mgr.sendSetup(ws, 1, '')).not.toThrow();
+    const text = promptOf(ws);
+    expect(text).not.toContain(MARKER);   // proves the assertion above can fail
+    expect(text).toContain('MINE');       // the session still works
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('CONTRACT MISSING'));
+
+    vi.restoreAllMocks();
+    mgr.close();
   });
 });

@@ -105,6 +105,19 @@ class GeminiLiveManager {
       console.log(`[GEMINI] Injected ${this.knowledgeContext.length} chars of knowledge context`);
     }
 
+    // The anti-sycophancy contract leads the whole prompt — applied AFTER the
+    // knowledge block so it sits above it, not buried inside PHASE INSTRUCTIONS.
+    // It lives in ONE file and is composed in here rather than copied into all 8
+    // phase prompts: eight copies is how prompts/soul-file.md ended up written,
+    // good, and referenced by nothing. Load failure is logged loudly — a session
+    // that silently drops the contract is exactly the product we are not.
+    try {
+      const contract = fs.readFileSync(path.join(__dirname, '..', 'prompts', '_contract.txt'), 'utf-8');
+      prompt = `${contract}\n\n${prompt}`;
+    } catch (err) {
+      console.error(`[GEMINI] ANTI-SYCOPHANCY CONTRACT MISSING — running without it: ${err.message}`);
+    }
+
     // Front-load any one-shot directive (mid-session context injection)
     if (this.oneShotContext) {
       prompt = `${this.oneShotContext}\n\n${prompt}`;
