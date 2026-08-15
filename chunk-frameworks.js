@@ -26,6 +26,12 @@ const FRAMEWORKS = [
   { id: 'hormozi', path: 'poc/knowledge/mentors/hormozi.md', phases: [0, 1, 2, 3, 4, 5, 6, 7] },
   { id: 'nate-b-jones', path: 'poc/knowledge/mentors/nate-b-jones.md', phases: [0, 1, 2, 3, 4, 5, 6, 7] },
   { id: 'indydev-dan', path: 'poc/knowledge/mentors/indydev-dan.md', phases: [0, 1, 2, 3, 4, 5, 6, 7] },
+  // Registering a mentor in poc/knowledge/index.json gets it into the SYSTEM
+  // PROMPT (loader.js reads the .md directly). It does NOT get it into the
+  // Supabase vector store — that needs this list plus a re-seed. Two separate
+  // registrations, and missing the second one leaves search_knowledge blind to
+  // a mentor the model can otherwise see. #189.
+  { id: 'pincus', path: 'poc/knowledge/mentors/pincus.md', phases: [0, 1, 2, 3, 4, 5, 6, 7] },
 ];
 
 const wordCount = (text) => text.trim().split(/\s+/).length;
