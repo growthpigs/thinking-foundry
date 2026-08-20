@@ -368,3 +368,32 @@ The product teaches people how to think clearly when AI provides answers but not
 The Foundry bridges that gap through structured voice sessions where an AI co-founder leads you through the thinking process — from confusion to clarity in 60-120 minutes.
 
 **Read the FSD. It's the bible. Everything flows from there.**
+
+## 🤝 Agent skills (mattpocock/skills per-repo config)
+
+Configuration the `mattpocock-skills` engineering skills (`/to-tickets`,
+`/triage`, `/to-spec`, `/implement`, `/wayfinder`, `/domain-modeling`,
+`/code-review`) read before acting. Scaffolded by
+`/setup-matt-pocock-skills` on 2026-08-20.
+
+### Issue tracker
+
+GitHub Issues on `growthpigs/thinking-foundry` via the `gh` CLI. **The house rules from
+`~/.claude/CLAUDE.md` — body-rewrite-never-comments, issue #1 is the Master
+Index, search before filing — override the skills' generic conventions**, which
+otherwise tell skills to track state in comments. See
+[`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+The five canonical triage roles, each label string equal to its role name
+(`needs-triage` · `needs-info` · `ready-for-agent` · `ready-for-human` ·
+`wontfix`). They do not exist as GitHub labels until created — the idempotent
+command is in the file. See
+[`docs/agents/triage-labels.md`](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: `CONTEXT.md` at the repo root and `docs/adr/`, both created
+lazily by `/domain-modeling`. See
+[`docs/agents/domain.md`](docs/agents/domain.md).
